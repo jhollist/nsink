@@ -15,3 +15,5 @@ License: MIT + file LICENSE
 Encoding: UTF-8
 Language: es
 LazyData: true
+URL: https://github.com/jhollist/nsink
+BugReports: https://github.com/jhollist/nsink/issues
