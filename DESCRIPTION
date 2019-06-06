@@ -1,13 +1,17 @@
 Package: nsink
-Title: What the Package Does (One Line, Title Case)
+Title: Set-up and run N-Sink
 Version: 0.0.0.9000
 Authors@R: 
-    person(given = "First",
-           family = "Last",
+    person(given = "Jeffrey",
+           family = "Hollister",
            role = c("aut", "cre"),
-           email = "first.last@example.com",
-           comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: What the package does (one paragraph).
-License: What license it uses
+           email = "hollister.jeff@epa.gov",
+           comment = c(ORCID = "0000-0002-9254-9740"))
+Description: N-Sink is an analysis that utilizes geospatial data to estimate a 
+             flow path and the nitrogen removal along that flow path.  The nsink
+             package provides tools to setup and run this analysis for any HUC 
+             in the united states.
+License: MIT + file LICENSE
 Encoding: UTF-8
+Language: es
 LazyData: true
