@@ -19,9 +19,28 @@ application is national for the United States.
 
 Proposed (as of 2019-06-06) functions for the `nsink` package are:
 
-  - `nsink_get_data()`
+  - `nsink_get_data()` - Pass HUC, get data, use cache to avoid repeat
+    downloads
+      - `nsink_get_nhd_fd()` - Retrieved at 2-digit HUC level
+      - `nsink_get_nhd_huc()` - Retrieved at 2-digit HUC level
+      - `nsink_get_nhd_attr()` - Retrieved at 2-digit HUC level
+      - `nsink_get_nhd_erom()` - Retrieved at 2-digit HUC level
+      - `nsink_get_nhd()` - Retrieved at 2-digit HUC level
+      - `nsink_get_imperv()` - May need to be retrieved at submitted HUC
+        level
+      - `nsink_get_ssurgo()` - May need to be retrieved at submitted HUC
+        level
+  - `nsink_prep_data()` - Prepares data by clipping to specified HUC,
+    standardizing projections, standardizing raster extents. Outputs
+    will be HUC level for HUC, flow direction, streams, waterbodies,
+    impervious, and soils
+  - `nsink_calc_removal()`
+      - `nsink_calc_land_removal()`
+      - `nsink_calc_stream_removal()`
+      - `nsink_calc_lake_removal()`
+      - `nsink_calc_removal_type()` - maybe include this as part of each
+        type removal
 
-  - 
 ## Installation
 
 When released to CRAN, you can install the released version of nsink
