@@ -66,7 +66,7 @@ fdr_ne <- raster(here("data/NHDPlusNE/NHDPlus01/NHDPlusFdrFac01a/fdr/"))
 huc12_ne <- st_read(here("data/NHDPlusNE/NHDPlus01/WBDSnapshot/WBD/WBD_Subwatershed.shp")) %>% st_transform(projection(fdr_ne))
 
 niantic_huc <- huc12_ne %>%
-  filter(HU_12_NAME == "Palmer River") %>%
+  filter(HU_12_NAME == "Niantic River") %>%
   rename_all(tolower)
 
 ## Create raster to set extent, projection, etc. for all conversions

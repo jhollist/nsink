@@ -15,9 +15,17 @@ Description: N-Sink is an analysis that utilizes geospatial data to estimate a
              flow path and the nitrogen removal along that flow path.  The nsink
              package provides tools to setup and run this analysis for any HUC 
              in the united states.
+Depends: R (>= 3.4.0)
+Imports:
+  nhdR,
+  sf,
+  raster,
+  FedData,
+  httr
 License: MIT + file LICENSE
 Encoding: UTF-8
 Language: es
 LazyData: true
 URL: https://github.com/jhollist/nsink
 BugReports: https://github.com/jhollist/nsink/issues
+RoxygenNote: 6.1.1
