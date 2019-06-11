@@ -1,0 +1,471 @@
+---
+title: "Draft raster methodology in R"
+author:
+- Jeff Hollister
+- Q Kellogg
+date: '2017-11-27'
+output:
+  html_document:
+    df_print: paged
+editor_options:
+  chunk_output_type: console
+---
+
+# Step 1: Load up packages required for N-Sink analysis
+
+```{r}
+pkgs <- c("here","archive", "httr", "raster", "sp", "rgdal", "tidyverse", "sf",
+          "FedData","foreign", "fasterize", "mapview", "quickmapr", "lwgeom","zoo")
+for(i in pkgs){
+  if(i == "archive" & !i %in% installed.packages()){
+    devtools::install_github("jimhester/archive")
+  } else if(!i %in% installed.packages()){
+    install.packages(i)
+  }
+}
+x<-lapply(pkgs, library, character.only = TRUE)
+```
+
+# Step 2: Get required data sets
+
+## NHD Plus
+
+Note: Need to write function to grab for specified huc
+
+```{r}
+# Grab data if doesn't exist locally
+
+if(!file.exists(here("data/nhdplus_ne_fdr.7z"))){
+  fdr_url <- "http://www.horizon-systems.com/NHDPlusData/NHDPlusV21/Data/NHDPlusNE/NHDPlusV21_NE_01_01a_FdrFac_01.7z"
+  httr::GET(fdr_url, httr::write_disk(path = here("data/nhdplus_ne_fdr.7z")),progress())
+  archive_extract(here("data/nhdplus_ne_fdr.7z"), here("data"))
+}
+if(!file.exists(here("data/nhdplus_ne_huc12.7z"))){
+  huc12_url <- "http://www.horizon-systems.com/NHDPlusData/NHDPlusV21/Data/NHDPlusNE/NHDPlusV21_NE_01_WBDSnapshot_03.7z"
+  httr::GET(huc12_url, httr::write_disk(here("data/nhdplus_ne_huc12.7z")), httr::progress())
+  archive_extract(here("data/nhdplus_ne_huc12.7z"), here("data"))
+}
+if(!file.exists(here("data/nhdplus_ne_attributes.7z"))){
+  attr_url <- "http://www.horizon-systems.com/NHDPlusData/NHDPlusV21/Data/NHDPlusNE/NHDPlusV21_NE_01_NHDPlusAttributes_08.7z"
+  httr::GET(attr_url, httr::write_disk(here("data/nhdplus_ne_attributes.7z")), httr::progress())
+  archive_extract(here("data/nhdplus_ne_attributes.7z"), here("data"))
+}
+
+if(!file.exists(here("data/nhdplus_ne_erom.7z"))){
+  erom_url <- "http://www.horizon-systems.com/NHDPlusData/NHDPlusV21/Data/NHDPlusNE/NHDPlusV21_NE_01_EROMExtension_05.7z"
+  httr::GET(erom_url, httr::write_disk(here("data/nhdplus_ne_erom.7z")), httr::progress())
+  archive_extract(here("data/nhdplus_ne_erom.7z"), here("data"))
+}
+
+if(!file.exists(here("data/nhdplus_ne_snapshot.7z"))){
+  fdr_url <- "http://www.horizon-systems.com/NHDPlusData/NHDPlusV21/Data/NHDPlusNE/NHDPlusV21_NE_01_NHDSnapshot_04.7z"
+  httr::GET(fdr_url, httr::write_disk(path = here("data/nhdplus_ne_snapshot.7z")),progress())
+  archive_extract(here("data/nhdplus_ne_snapshot.7z"), here("data"))
+}
+fdr_ne <- raster(here("data/NHDPlusNE/NHDPlus01/NHDPlusFdrFac01a/fdr/"))
+huc12_ne <- st_read(here("data/NHDPlusNE/NHDPlus01/WBDSnapshot/WBD/WBD_Subwatershed.shp")) %>% st_transform(projection(fdr_ne))
+
+niantic_huc <- huc12_ne %>%
+  filter(HU_12_NAME == "Palmer River") %>%
+  rename_all(tolower)
+
+## Create raster to set extent, projection, etc. for all conversions
+empty_raster_30 <- fasterize::raster(niantic_huc, resolution = 30)
+empty_raster_10 <- fasterize::raster(niantic_huc, resolution = 10)
+
+niantic_fdr <- crop(fdr_ne, as(niantic_huc, "Spatial")) %>%
+  projectRaster(empty_raster_30,method = "ngb") 
+
+ne_streams <- st_read(here("data/NHDPlusNE/NHDPlus01/NHDSnapshot/Hydrography/NHDFlowline.shp")) %>%
+  st_transform(st_crs(niantic_huc)) %>%
+  st_zm() %>%
+  rename_all(tolower) %>%
+  rename(stream_comid = comid,
+         lake_comid = wbareacomi)
+niantic_streams <- ne_streams %>%
+  slice(st_contains(niantic_huc, ne_streams)[[1]]) %>%
+  st_crop(st_bbox(niantic_huc))
+ne_waterbodies <- st_read(here("data/NHDPlusNE/NHDPlus01/NHDSnapshot/Hydrography/NHDWaterbody.shp")) %>%
+  st_transform(st_crs(niantic_huc)) %>%
+  rename_all(tolower) %>%
+  rename(lake_comid = comid) %>%
+  filter(ftype == "LakePond")
+niantic_waterbodies <- ne_waterbodies %>%
+  slice(st_contains(niantic_huc, ne_waterbodies)[[1]])
+```
+
+
+
+## NLCD Percent Impervious
+```{r}
+# FedData better option
+if(!file.exists(here("data/niantic_NLCD_2011_impervious.tif"))){
+  niantic_imp <- get_nlcd(as(niantic_huc,"Spatial"), dataset = "impervious", label = "niantic", extraction.dir = "data")
+}
+niantic_imp <- projectRaster(raster(here("data/niantic_NLCD_2011_impervious.tif")), empty_raster_10)
+# Note on projectRaster - used to force raster extents to be the same...
+```
+
+## SSURGO
+```{r}
+# This conditional is fragile!
+if(!file.exists(here("data/ssurgo/"))){
+niantic_ssurgo <- get_ssurgo(as(niantic_huc, "Spatial"), "niantic", "data/ssurgo", "data/ssurgo")
+}
+```
+
+# Step 3: Summarize land, stream, and lake removal 
+
+## Land removal from hydric
+
+```{r}
+# Read in ssurgo 
+niantic_ssurgo_sf <- st_read(here("data/ssurgo/niantic_SSURGO_Mapunits.shp")) %>%
+  st_transform(projection(fdr_ne)) 
+names(niantic_ssurgo_sf) <- str_to_lower(names(niantic_ssurgo_sf)) 
+niantic_ssurgo_tbl <- read_csv(here("data/ssurgo/niantic_SSURGO_component.csv"))%>%
+  mutate(mukey = as(mukey, "character")) %>%
+  select(mukey, cokey, hydricrating, comppct.r) %>%
+  filter(hydricrating == "Yes") %>%
+  group_by(mukey, hydricrating) %>%
+  summarize(hydric_pct = sum(comppct.r))
+
+# Convert ssurgo to hydric removal
+niantic_hydric <- niantic_ssurgo_sf %>%
+  mutate(mukey = as(mukey, "character")) %>%
+  full_join(niantic_ssurgo_tbl, by = "mukey") %>%
+  mutate(n_removal = 0.8*(hydric_pct/100)) %>%
+  mutate(n_removal = case_when(n_removal == 0 ~ NA_real_,
+                               TRUE ~ n_removal))
+niantic_hydric_removal <- fasterize::fasterize(niantic_hydric, 
+                                               empty_raster_10,
+                                               "n_removal",
+                                               background = 0,
+                                               fun = "max")
+
+# Pull in impervious to mask out hydric
+niantic_imp_na <- niantic_imp
+niantic_imp_na[niantic_imp_na > 0] <- NA
+niantic_imp_na[!is.na(niantic_imp_na)] <- 1
+niantic_hydric_removal <- raster::mask(niantic_hydric_removal,niantic_imp_na)
+```
+
+# Stream removal
+
+```{r}
+# Read in external data tables
+q_dat <- read.dbf(here("data/NHDPlusNE/NHDPlus01/EROMExtension/EROM_MA0001.DBF")) %>%
+  select(stream_comid = ComID,q_cfs = Q0001E) %>%
+  mutate(q_cms = q_cfs * 0.028316846592) %>%
+  mutate(mean_reach_depth = 0.2612 * (q_cms ^ 0.3966)) %>%
+  mutate_if(is.factor, as.character())
+
+tot_dat <- read.dbf(here("data/NHDPlusNE/NHDPlus01/NHDPlusAttributes/PlusFlowlineVAA.dbf"))%>%
+  rename_all(tolower) %>%
+  rename(stream_comid = comid,totma = totma) %>%
+  mutate_if(is.factor, as.character())
+
+niantic_streams <- niantic_streams %>%
+  mutate_if(is.factor, as.character()) %>%
+  left_join(q_dat, by = c("stream_comid" = "stream_comid")) %>%
+  left_join(tot_dat, by = c("stream_comid" = "stream_comid")) 
+
+# Calc stream removal
+# streams are done at 30m and burnt in last 
+niantic_stream_removal <- niantic_streams %>%
+  filter(ftype != "ArtificialPath") %>%
+  mutate(totma = case_when(totma == -9999 ~ NA_real_,
+                           TRUE ~ totma)) %>%
+  mutate(n_removal = (1 - exp(-0.0513 * (mean_reach_depth^-1.319) * totma))/100) %>%
+  raster::rasterize(empty_raster_30, 
+                    field = "n_removal",
+                    fun = "max") 
+```
+
+# Lake removal
+
+```{r}
+nhd_lakemorpho <- read.dbf(here("data/NHDPlusNE/NHDPlus01/NHDPlusAttributes/PlusWaterbodyLakeMorphology.dbf")) %>%
+  rename_all(tolower) %>%
+  rename(lake_comid = comid) %>%
+  mutate_if(is.factor, as.character())
+
+# Not used
+nhd_lakemorpho_flowline <- read.dbf(here("data/NHDPlusNE/NHDPlus01/NHDPlusAttributes/PlusFlowlineLakeMorphology.dbf")) %>%
+  rename_all(tolower) %>%
+  rename(stream_comid = comid) %>%
+  mutate_if(is.factor, as.character())
+
+# Calc waterbody residence times which is sum of TOTMA per lake on Artifical 
+# Flow Paths
+niantic_res_time <- niantic_streams %>%
+  left_join(tot_dat) %>%
+  filter(lake_comid > 0,
+         totma != -9999) %>%
+  group_by(lake_comid) %>%
+  summarize(lake_residence_time_yrs = sum(totma*0.002737851)) %>%
+  ungroup()
+
+st_geometry(niantic_res_time) <- NULL
+  
+# Get artifical flow path removal table NEED TO CHECK REMOVAL CALCS
+niantic_lake_removal <- niantic_waterbodies %>%
+  left_join(nhd_lakemorpho) %>%
+  left_join(niantic_res_time) %>%
+  mutate(meandused = case_when(meandused < 0 ~ NA_real_,
+                               TRUE ~ meandused)) %>%
+  mutate(n_removal = (79.24 - (33.26 * log10(meandused/lake_residence_time_yrs)))/100) %>%
+  mutate(n_removal = case_when(n_removal < 0 ~ 0,
+                               TRUE ~ n_removal)) %>%
+  fasterize::fasterize(empty_raster_10,
+                       "n_removal",
+                       fun = "max") 
+```
+
+# Merge removal rasters
+
+```{r}
+#Need to burn in streams into hydric as hydric 30m rasterization erases most 
+#streams
+#stream_val <- getValues(niantic_stream_removal)
+#stream_val[stream_val>=0] <- 0
+#stream_val[is.na(stream_val)] <- 1
+#hydric_val <- getValues(niantic_hydric_removal)
+#hydric_val <- hydric_val * stream_val
+#niantic_hydric_removal <- setValues(niantic_hydric_removal, hydric_val)
+
+
+niantic_n_removal <- raster::merge(niantic_lake_removal, 
+                                    niantic_hydric_removal) 
+niantic_n_removal <- mask(niantic_n_removal, niantic_huc)
+niantic_n_removal[is.na(niantic_n_removal)] <- 0
+niantic_n_removal_filter <- focal(niantic_n_removal, matrix(1,nrow = 3, ncol = 3), max)
+# re-scale back to 30 m
+niantic_n_removal <- projectRaster(niantic_n_removal_filter, empty_raster_30, method = "ngb")
+#burn in streams
+niantic_n_removal <- raster::merge(niantic_stream_removal,
+                   niantic_n_removal)
+```
+
+# Create and merge removal type raster
+
+```{r}
+hydric_type_val <- getValues(niantic_hydric_removal)
+hydric_type_val[hydric_type_val>0] <- 1
+hydric_type_val[hydric_type_val == 0] <- NA 
+hydric_type <- setValues(niantic_hydric_removal, hydric_type_val)
+stream_type_val <- getValues(niantic_stream_removal)
+stream_type_val[!is.na(stream_type_val)] <- 2
+stream_type <- setValues(niantic_stream_removal,stream_type_val)
+lake_type_val <- getValues(niantic_lake_removal)
+lake_type_val[!is.na(lake_type_val)] <- 3
+lake_type <- setValues(niantic_lake_removal, lake_type_val)
+niantic_types <- merge(lake_type,
+                       hydric_type)
+niantic_types <- mask(niantic_types, niantic_huc)
+niantic_types[is.na(niantic_types)] <- 0
+# Create mode function:
+Mode <- function(x) {
+  ux <- unique(x)
+  ux[which.max(tabulate(match(x, ux)))]
+}
+niantic_types_filter <- focal(niantic_types, matrix(1,nrow = 3, ncol = 3), max) #matches the removal, but max for categories ...
+# re-scale back to 30 m
+niantic_types <- projectRaster(niantic_types_filter, empty_raster_30, method = "ngb")
+niantic_types <- raster::merge(stream_type,niantic_types)
+```
+
+Create stack of type and removal
+
+```{r}
+niantic_n_removal_type_stack <- stack(niantic_n_removal, niantic_types)
+```
+
+```{r}
+# Simple plot!
+#brks <- c(0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8)
+#color <- rev(RColorBrewer::brewer.pal(9,"RdYlBu"))
+plot(niantic_n_removal)
+plot(niantic_streams$geometry, add = T, col = "slateblue", lwd = 2)
+```
+
+
+## How to calc flow path stuff
+
+## Calculate the flow path of interest
+
+This can all be done direclty in r with `raster::flowPath()`
+
+Issues with flowpath not following the streams exactly.  
+
+Ideas:
+1. Calc flow path
+```{r}
+plot(niantic_huc$geometry)
+plot(niantic_streams$geometry, add = T)
+loc <- unlist(locator(1)) #can use this for interactive
+#loc <- c(1948121,2295822) 
+example_fp_niantic <- flowPath(niantic_fdr, loc)
+example_fp_xy <- xyFromCell(empty_raster_30, example_fp_niantic)
+fp_n_sf <- st_sfc(st_linestring(example_fp_xy), crs = st_crs(niantic_streams)) %>%
+  st_sf
+```
+
+2. Get land portion of flow path
+
+```{r}
+# https://github.com/r-spatial/sf/issues/749
+# https://gis.stackexchange.com/questions/283131/r-reinsertion-of-intersection-points-into-initial-dataset-after-sfst-interse/283269#283269
+
+get_path_ends <- function(fp, streams){
+  # remove linear intersections
+  streams <- st_difference(st_combine(streams), st_combine(fp))
+  splits <- st_split(fp, st_combine(streams))
+  splits <- st_collection_extract(splits, "LINESTRING")
+  ends <- rbind(splits[1,], splits[nrow(splits),])
+  ends
+}
+
+fp_ends <- get_path_ends(fp_n_sf, niantic_streams)
+
+```
+
+3. Get nhd flowline portion of flow path.
+
+```{r}
+library(igraph)
+niantic_streams_df <- niantic_streams %>%
+  select(fromnode, tonode, stream_comid) 
+st_geometry(niantic_streams_df) <- NULL
+niantic_streams_df <- mutate_all(niantic_streams_df, funs(as.character))
+niantic_streams_g <- graph_from_data_frame(niantic_streams_df, directed = TRUE)
+
+from_nd_idx <- st_is_within_distance(fp_ends[1,], niantic_streams, 0.01)[[1]]
+to_nd_idx <- st_is_within_distance(fp_ends[2,], niantic_streams, 0.01)[[1]]
+from_nd <- niantic_streams_df[from_nd_idx,]$fromnode
+to_nd <- niantic_streams_df[to_nd_idx,]$tonode
+idx <- shortest_paths(niantic_streams_g, from_nd, to_nd, output = "epath", mode = "out")$epath[[1]]
+fl_comids <- igraph::edge_attr(niantic_streams_g, "stream_comid", idx)
+fp_end_pt <- tail(st_cast(fp_ends[1,], "POINT"), 1)
+fp_flowlines <- niantic_streams %>%
+  slice(match(fl_comids, .$stream_comid)) %>%
+  st_snap(fp_end_pt, 1) %>%
+  st_split(st_combine(fp_end_pt)) %>%
+  st_collection_extract("LINESTRING") %>%
+  filter(!st_overlaps(st_snap(., fp_ends[1,], 0.1), fp_ends[1,],F)) # This isn't working on my first palmer river example with x,y = 2019379,2356331 
+
+```
+
+6. Combine together in combo flowpath vector and extract data along that flowpath
+
+```{r}
+niantic_fp <- rbind(fp_ends[1,],select(fp_flowlines, geometry))
+# Collapse into a single linestring
+niantic_fp <- unique(st_coordinates(niantic_fp)[,-3]) %>%
+  st_linestring() %>%
+  st_sfc() %>%
+  st_sf(crs = st_crs(niantic_streams))
+```
+
+
+```{r}
+niantic_fp_r <- niantic_fp %>%
+  raster::rasterize(empty_raster_30,
+                    1,
+                    max)
+niantic_fp_removal_r <- niantic_fp_r * niantic_n_removal
+
+niantic_fp_extract <- raster::extract(niantic_n_removal_type_stack, niantic_fp,
+                                      along = TRUE)
+niantic_fp_removal <- niantic_fp_extract[[1]][,1]
+niantic_fp_types <- niantic_fp_extract[[1]][,2]
+```
+
+7. Vector is Corrector or raster conversion funny business...
+In some flowpaths that flow along edge of a feature there is a problem caused by the rasterization of that feature which results in the flowpath going in and out of the feature.  A reasonable solution is to use a moving window to filter out these instances.  A window of 3 pixels makes sense as the accepted MMU for a raster is a 3x3 pixel.  In this case, I filter the flow path which limits our removal features to ones that are at least 90m in length. We should discuss this so that all understand and are on board.  
+
+As I am working on summarizing this, I think it may be possible to avoid this by NOT rasterizing the stream and lake.  All of the info is by stream reach (artifical flow path or not).  This rasterization problem is of our (mine) making.  re-think how to calculate flow path removal with hybrid raster (land based) and vector (NHD Plus flowlines).  In the meantime, what is below is how to pull this info out of the raster only approach.
+
+```{r}
+fp_removal_max_filter <- zoo::rollmax(niantic_fp_removal, 3)
+fp_types_max_filter <- zoo::rollmax(niantic_fp_types, 3)
+```
+
+8. Total Reduction Calculation
+This returns just the total removal along a flow path.
+
+```{r}
+fp_last <- zoo::rollapply(fp_removal_max_filter, width = 2, partial = TRUE, 
+                          function(x) ifelse(x[1]==x[2],0, x[1]))
+fp_last <- ifelse(is.na(fp_last),fp_removal_max_filter[length(fp_removal_max_filter)],fp_last)
+fp_last_removal <- 1-fp_last
+total_removal <- cumprod(c(100,fp_last_removal))
+min(total_removal)
+```
+
+
+## Output
+
+### Example output #1 - Nitrogen removal per segment (drop to integer values)
+
+| Segment Type | Length | Percent Removal | N in | N out |
+|---------------|--------|-----------------|------|-------|
+| Non-hydric    | 8156   | 0               | 100  | 100   |
+| Hydric        | 546    | 80              | 100  | 20    |
+| Stream        | XX     | 16              | 20   | 16.8  |
+| Lake/Pond     | XX     | 23              | 16.8 | 12.9  |
+| Stream        | XX     | 1               | 12.9 | 11.6  |
+
+```{r}
+type_removal_df <- data_frame(type_code = fp_types_max_filter, 
+                              removal = fp_removal_max_filter) %>%
+  mutate(segment_type = case_when(type_code == 0 ~ "No Removal",
+                                  type_code == 1 ~ "Hydric",
+                                  type_code == 2 ~ "Stream",
+                                  type_code == 3 ~ "Lake/Pond"))
+#Need to get segment id's
+create_id <- function(x){
+  y<-vector("numeric", length(x))
+  y_id<-vector("numeric", length(x))
+  for(i in seq_along(x)){
+    if(i == 1){
+      y[i] <- i
+    } else {
+      y[i] <- ifelse(x[i]==x[i-1], FALSE,i)
+    }
+  }
+  for(i in seq_along(y)){
+    if(i == 1){
+      y[1] <- y[1]
+    } else {
+      y[i] <- ifelse(y[i] == 0, y[i-1], y[i])
+    }
+  }
+  y
+}
+
+type_removal_df <- type_removal_df %>%
+  mutate(segment_id = create_id(paste(type_code,removal))) %>%
+  group_by(segment_id, segment_type) %>%
+  summarize(length = n()*30,
+            n_removal = max(removal)) %>%
+  ungroup()
+n <- nrow(type_removal_df)
+output_1 <- type_removal_df %>%
+  mutate(n_in = round(cumprod(c(100,1-n_removal))[-n],2),
+         n_out = round(cumprod(c(100,1-n_removal))[-1],2),
+         percent_removal = round(n_removal*100,3)) %>%
+  select(segment_type, length, percent_removal, n_in, n_out)
+knitr::kable(output_1)
+```
+
+### Example output #2 - map the flowpath with removal, need to figure out base map
+
+```{r}
+mapview(niantic_fp_removal_r, na.color = "transparent", map.types = "Esri.WorldImagery") +
+  mapview(as(niantic_huc, "Spatial"), col.regions = "white", alpha.regions = 0.2) + 
+  mapview(as(niantic_fp, "Spatial"),color = "dark blue", lwd = 5)
+```
+
+
+
