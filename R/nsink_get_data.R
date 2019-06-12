@@ -53,7 +53,8 @@ nsink_get_data <- function(huc, data_dir = paste0(getwd(),"/nsink_data"),
   # Use actual huc to limit downloads on impervious and ssurgo
   huc_sf <- sf::st_read(paste0(data_dir, "/wbd/WBD_Subwatershed.shp"))
   huc_12 <- huc_sf[huc_sf$HUC_12 == huc | huc_sf$HU_12_NAME == huc, ]
-  # This was a hack to get the ssurgo to download via spatial
+  # This was a hack to get the ssurgo to download via spatial as raw HUC12 on
+  # niantic huc was throwing an error with get_ssurgo
   huc_12_buff <- st_buffer(huc_12, 0.01)
 
 
@@ -62,7 +63,7 @@ nsink_get_data <- function(huc, data_dir = paste0(getwd(),"/nsink_data"),
                     label = huc, extraction.dir = paste0(data_dir, "/imperv"),
                     raw.dir = paste0(data_dir, "/imperv"),
                     force.redo = force)
-  #browser()
+
   # Get SSURGO area symbol
   # Using HUC as spatial was throwing an error on example niantic huc
   #ss_area <- huc_ssurgo_lookup[huc_ssurgo_lookup$HUC_12 == huc_12$HUC_12, ]$areasymbol
@@ -70,6 +71,9 @@ nsink_get_data <- function(huc, data_dir = paste0(getwd(),"/nsink_data"),
   ssurgo <- FedData::get_ssurgo(as(huc_12_buff, "Spatial"),label = huc,
                                 extraction.dir = paste0(data_dir, "/ssurgo"),
                                 raw.dir = paste0(data_dir, "/ssurgo"),
-                                force.redo = T)
+                                force.redo = force)
+
+  # Save the merged output as an .rda
+  save(ssurgo, file = paste0(getwd(),"/nsink_data/ssurgo/ssurgo.rda"))
 
 }
