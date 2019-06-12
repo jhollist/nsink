@@ -17,23 +17,14 @@ raster-vector approach that takes very little time to set up for each
 new watershed and relies on readily available data. Thus, its
 application is national for the United States.
 
-Proposed (as of 2019-06-11) functions for the `nsink` package are:
+Proposed (as of 2019-06-12) functions for the `nsink` package are:
 
   - `nsink_get_data()` - Pass HUC, get data, use cache to avoid repeat
     downloads
-      - `nsink_get_nhd_fd()` - Retrieved at 2-digit HUC level
-      - `nsink_get_nhd_huc()` - Retrieved at 2-digit HUC level
-      - `nsink_get_nhd_attr()` - Retrieved at 2-digit HUC level
-      - `nsink_get_nhd_erom()` - Retrieved at 2-digit HUC level
-      - `nsink_get_nhd()` - Retrieved at 2-digit HUC level
-      - `nsink_get_imperv()` - May need to be retrieved at submitted HUC
-        level
-      - `nsink_get_ssurgo()` - May need to be retrieved at submitted HUC
-        level
   - `nsink_prep_data()` - Prepares data by clipping to specified HUC,
     standardizing projections, standardizing raster extents. Outputs
     will be HUC level for HUC, flow direction, streams, waterbodies,
-    impervious, and soils
+    impervious, and soils.
   - `nsink_calc_removal()` - implemented now as purely raster, might be
     able to do hybrid approach (see lines 384+ in working\_nsink.Rmd).
     Use a method argument for c(“raster”, “hybrid”).

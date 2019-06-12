@@ -1,4 +1,4 @@
-#' Get's N-sink data for a given HUC
+#' Get's N-Sink data for a given HUC
 #'
 #' The required datasets for the N-sink analysis are available from multiple,
 #' online resources.  This function takes a HUC as input and downloads local
@@ -9,6 +9,8 @@
 #' @param force Logical to determine if files should be downloaded
 #'                       again if they already exist locally.
 #' @export
+#' @return Returns a list with the huc used and the directory where the data is
+#'         stored.
 #' @examples
 #' \dontrun{
 #' niantic_huc <- "011000030304"
@@ -76,4 +78,6 @@ nsink_get_data <- function(huc, data_dir = paste0(getwd(),"/nsink_data"),
   # Save the merged output as an .rda
   save(ssurgo, file = paste0(getwd(),"/nsink_data/ssurgo/ssurgo.rda"))
 
+  # Return a list with the huc and the data_dir
+  list(huc = huc, data_dir = data_dir)
 }
