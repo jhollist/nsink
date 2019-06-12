@@ -62,5 +62,5 @@ run_7z <- function(zipfile, destdir){
   }
 
   path_7z <- paths_7z[nchar(Sys.which(paths_7z)) > 0][1]
-  system(paste0(path_7z, " e ", shQuote(zipfile), " -o", shQuote(destdir)))
+  system(paste0(path_7z, " e ", shQuote(zipfile), " -aos -o", shQuote(destdir)))
 }

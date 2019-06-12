@@ -20,7 +20,8 @@ Imports:
   sf,
   raster,
   FedData,
-  httr
+  httr,
+  rvest
 License: GPL-3
 Encoding: UTF-8
 Language: es

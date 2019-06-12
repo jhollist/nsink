@@ -43,14 +43,14 @@ nsink_get_data <- function(huc, data_dir = paste0(getwd(),"/nsink_data"),
   wbd <- get_nhd_plus(wbd_url, data_dir, download_again)
 
   # unzip nhdplus data
-  run_7z(paste0(data_dir, "/", basename(attr_url)), data_dir)
-  run_7z(paste0(data_dir, "/", basename(erom_url)), data_dir)
-  run_7z(paste0(data_dir, "/", basename(nhd_url)), data_dir)
-  run_7z(paste0(data_dir, "/", basename(fdr_url)), data_dir)
-  run_7z(paste0(data_dir, "/", basename(wbd_url)), data_dir)
+  run_7z(paste0(data_dir, "/", basename(attr_url)), paste0(data_dir, "/attr"))
+  run_7z(paste0(data_dir, "/", basename(erom_url)), paste0(data_dir, "/erom"))
+  run_7z(paste0(data_dir, "/", basename(nhd_url)), paste0(data_dir, "/nhd"))
+  run_7z(paste0(data_dir, "/", basename(fdr_url)), paste0(data_dir, "/fdr"))
+  run_7z(paste0(data_dir, "/", basename(wbd_url)), paste0(data_dir, "/wbd"))
 
   # Use actual huc to limit downloads on impervious and ssurgo
-  huc_sf <- sf::st_read(paste0(data_dir, "/WBD_Subwatershed.shp"))
+  huc_sf <- sf::st_read(paste0(data_dir, "/wbd/WBD_Subwatershed.shp"))
   huc_sf <- huc_sf[huc_sf$HUC_12 == huc | huc_sf$HU_12_NAME == huc, ]
 
 
