@@ -1,7 +1,7 @@
 #' function to download nhd files
 #' @param download_url url to download
 #' @param data_dir The data dir
-#' @param download_again Force new download
+#' @param force Force new download
 #' @keywords internal
 get_nhd_plus <- function(download_url,
                          data_dir = paste0(getwd(),"/nsink_data"),
@@ -12,7 +12,7 @@ get_nhd_plus <- function(download_url,
                       httr::write_disk(paste0(data_dir,"/", basename(download_url))),
                       overwrite = TRUE, httr::progress())
   } else {
-    message("File, ", basename(download_url), " already downloaded. \nTo force another download of the file, set the download_again argument to TRUE. \n")
+    message("File, ", basename(download_url), " already downloaded. \nTo force another download of the file, set the force argument to TRUE. \n")
   }
 }
 
@@ -49,9 +49,14 @@ nsink_get_plus_remotepath <- function (vpu, component = c("NHDSnapshot",
 #' available.  If available it unzips a 7z zipfile to a destination directory.
 #' This avoids needing to use archive package which is only available via
 #' GitHub.  Need to acknowledge jsta as original author.
+#'
+#' @param zipfile The zipfile to be extracted
+#' @param destdir Where to put the extract files
+#' @param force Whether or not to extract again if the destination files
+#'                      already exist
 #' @keywords internal
 
-run_7z <- function(zipfile, destdir){
+run_7z <- function(zipfile, destdir, extract_again = FALSE){
   paths_7z <- c("7z",
                 path.expand("~/usr/bin/7z"),
                 "C:\\PROGRA~1\\7-Zip\\7za",
@@ -62,5 +67,9 @@ run_7z <- function(zipfile, destdir){
   }
 
   path_7z <- paths_7z[nchar(Sys.which(paths_7z)) > 0][1]
-  system(paste0(path_7z, " e ", shQuote(zipfile), " -aos -o", shQuote(destdir)))
+  if(!dir.exists(destdir) | extract_again){
+    system(paste0(path_7z, " e ", shQuote(zipfile), " -aos -o", shQuote(destdir)))
+  } else {
+    message(paste0("It appears you have already extracted", zipfile, "\nIf you would like to force another extraction, set force = TRUE."))
+  }
 }
