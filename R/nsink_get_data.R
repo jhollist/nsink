@@ -3,23 +3,30 @@
 #' The required datasets for the N-sink analysis are available from multiple,
 #' online resources.  This function takes a HUC as input and downloads local
 #' copies of those datasets.
-#' @param location An sf polygon object of the HUC (or really any spatial object) for
-#'            which you wish to build the N-Sink database.
+#' @param huc A character string of a HUC12 identifier or a HUC12 name.
 #' @param data_dir A directory to store N-Sink data downloads.  Defaults to
 #'                 current working directory.
+#' @param download_again Logical to determine if files should be downloaded
+#'                       again if they already exist locally.
 #' @export
 #' @examples
-#' data(niantic_huc)
-#' nsink_get_data(location = niantic_huc)
-nsink_get_data <- function(location, data_dir = paste0(getwd(),"/nsink_data")){
+#' \dontrun{
+#' niantic_huc <- "011000030304"
+#' niantic_name <- "Niantic River"
+#' nsink_get_data(huc = niantic_huc)
+#' nsink_get_data(huc = niantic_name)
+#' }
+nsink_get_data <- function(huc, data_dir = paste0(getwd(),"/nsink_data"),
+                           download_again = FALSE){
+
+  # Check for/create data directory
+  if(!dir.exists(data_dir)){dir.create(data_dir)}
+
   browser()
-  # Enforce same projection
-  vpu_sf <- sf::st_transform(nhdR::vpu_shp, crs = 4269)
-  loc_sf <- sf::st_point_on_surface(sf::st_transform(location, crs = 4269))
 
   # Get vpu
-  vpu_inter_loc <- sf::st_intersection(vpu_sf, loc_sf)
-  vpu <- vpu_inter_loc[vpu_inter_loc$UnitType == "VPU"]$UnitID
+  vpu <- wbd_lookup[wbd_lookup$HUC_12 == huc | wbd_lookup$HU_12_NAME == huc,]$VPUID
+  vpu <- vpu[!is.na(vpu)]
 
   # urls
   attr_url <- nsink_get_plus_remotepath(vpu, "NHDPlusAttributes")
@@ -28,30 +35,33 @@ nsink_get_data <- function(location, data_dir = paste0(getwd(),"/nsink_data")){
   fdr_url <- nsink_get_plus_remotepath(vpu, "FdrFac")
   wbd_url <- nsink_get_plus_remotepath(vpu, "WBDSnapshot")
 
+  # get nhdplus data
+  attr <- get_nhd_plus(attr_url, data_dir, download_again)
+  erom <- get_nhd_plus(erom_url, data_dir, download_again)
+  nhd <- get_nhd_plus(nhd_url, data_dir, download_again)
+  fdr <- get_nhd_plus(fdr_url, data_dir, download_again)
+  wbd <- get_nhd_plus(wbd_url, data_dir, download_again)
 
-  # Get required NHDPlus components with nhdR
-  # nhdR manages its own cache location
-  # does not yet include FdrFac or WBDSnapshot
+  # unzip nhdplus data
+  run_7z(paste0(data_dir, "/", basename(attr_url)), data_dir)
+  run_7z(paste0(data_dir, "/", basename(erom_url)), data_dir)
+  run_7z(paste0(data_dir, "/", basename(nhd_url)), data_dir)
+  run_7z(paste0(data_dir, "/", basename(fdr_url)), data_dir)
+  run_7z(paste0(data_dir, "/", basename(wbd_url)), data_dir)
 
-  nhdR::nhd_plus_get(vpu = vpu, component = "NHDPlusAttributes")
-  nhdR::nhd_plus_get(vpu = vpu, component = "EROMExtension")
-  nhdR::nhd_plus_get(vpu = vpu, component = "NHDSnapshot")
-
-  # Get other NHDPlus components not exposed with nhdR
-  # nsink manages local cache
-
-  fdr_url <- gsub("NHDSnapshot_04", "FdrFac_01",nhdR:::get_plus_remotepath(vpu))
-  wbd_url <- gsub("NHDSnapshot_04", "WBDSnapshot_03",nhdR:::get_plus_remotepath(vpu))
-
-  httr::GET(fdr_url, httr::write_disk(data_dir))
-
+  # Use actual huc to limit downloads on impervious and ssurgo
+  huc_sf <- sf::st_read(paste0(data_dir, "/WBD_Subwatershed.shp"))
+  huc_sf <- huc_sf[huc_sf$HUC_12 == huc | huc_sf$HU_12_NAME == huc, ]
 
 
   # Get impervious
-  # First need to limit to
-  #FedData::get_
+  imp <- FedData::get_nlcd(as(huc_sf, "Spatial"), dataset = "impervious",
+                    label = vpu, extraction.dir = data_dir, raw.dir = data_dir,
+                    force.redo = download_again)
 
   # Get SSURGO
-
+  ssurgo <- FedData::get_ssurgo(as(huc_sf, "Spatial"),label = vpu,
+                                extraction.dir = data_dir, raw.dir = data_dir,
+                                force.redo = download_again)
 
 }

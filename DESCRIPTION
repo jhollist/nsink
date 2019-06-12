@@ -17,12 +17,11 @@ Description: N-Sink is an analysis that utilizes geospatial data to estimate a
              in the united states.
 Depends: R (>= 3.4.0)
 Imports:
-  nhdR,
   sf,
   raster,
   FedData,
   httr
-License: MIT + file LICENSE
+License: GPL-3
 Encoding: UTF-8
 Language: es
 LazyData: true
