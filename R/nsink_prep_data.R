@@ -34,7 +34,8 @@ nsink_prep_data <- function(huc, projection,
        ssurgo = nsink_prep_ssurgo(huc_sf, data_dir),
        q = nsink_prep_q(data_dir),
        tot = nsink_prep_tot(data_dir),
-       huc = huc_sf)
+       huc = huc_sf,
+       raster_template = huc_raster)
 }
 
 #' Prepare streams data for N-Sink

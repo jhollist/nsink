@@ -29,7 +29,9 @@
 nsink_calc_removal <- function(input_data){
   if(all(names(input_data) == c("streams","lakes", "fdr", "impervious", "ssurgo",
                             "q", "tot", "huc"))){
-    land_removal <- nsink_calc_land_removal()
+    land_removal <- nsink_calc_land_removal(input_data[c("ssurgo",
+                                                         "impervious",
+                                                         "raster_template")])
     stream_removal <- nsink_calc_stream_removal()
     lake_removal <- nsink_calc_lake_removal()
     merged_removal <- nsink_merge_removal()
@@ -43,11 +45,24 @@ nsink_calc_removal <- function(input_data){
 
 #' Calulates land-based nitrogen removal
 #'
-#' @param input_data list of data ...
+#' @param input_data A named list with "ssurgo", "impervious", and
+#'                   "raster_template".
 #' @return raster of land based nitrogen removal
 #' @keywords internal
 nsink_calc_land_removal <- function(input_data){
+  land_removal <- dplyr::mutate(input_data$ssurgo,
+                                n_removal = 0.8 * (hydric_pct/100))
+  land_removal <- dplyr::mutate(land_removal, case_when(n_removal == 0 ~
+                                                          NA_real_,
+                                                        TRUE ~ n_removal))
+  land_removal_rast <- fasterize::fasterize(land_removal, raster_template,
+                                            "n_removal", background = 0,
+                                            fun = "max")
+  impervious <- input_data$impervious
+  impervious[impervious > 0] <- NA
+  impervious[!is.na(impervious)] <- 1
 
+  raster::mask(land_removal_rast, impervious)
 }
 
 #' Calculates stream-based nitrogen removal
