@@ -5,7 +5,7 @@
 \title{Prepares N-Sink data for a given HUC}
 \usage{
 nsink_prep_data(huc, projection, data_dir = paste0(getwd(),
-  "nsink_data"))
+  "/nsink_data"))
 }
 \arguments{
 \item{huc}{A character string of the HUC12 ID.  Use

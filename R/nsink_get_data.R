@@ -74,8 +74,7 @@ nsink_get_data <- function(huc, data_dir = paste0(getwd(),"/nsink_data"),
                                 raw.dir = paste0(data_dir, "/ssurgo"),
                                 force.redo = force)
 
-  # Save the merged output as an .rda
-  save(ssurgo, file = paste0(getwd(),"/nsink_data/ssurgo/ssurgo.rda"))
+
 
   # Return a list with the huc and the data_dir
   list(huc = huc, data_dir = data_dir)

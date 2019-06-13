@@ -13,7 +13,7 @@ nsink_prep_ssurgo(huc_sf, data_dir)
 be downloaded with the \code{\link{nsink_get_data}} function.}
 }
 \value{
-returns a list object of the SSURGO data in spatial and tabular forms
+returns a sf object of the SSURGO data with hydric data added.
         for the huc_sf
 }
 \description{

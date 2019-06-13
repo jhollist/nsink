@@ -162,7 +162,7 @@ q_dat <- read.dbf(here("data/NHDPlusNE/NHDPlus01/EROMExtension/EROM_MA0001.DBF")
 
 tot_dat <- read.dbf(here("data/NHDPlusNE/NHDPlus01/NHDPlusAttributes/PlusFlowlineVAA.dbf"))%>%
   rename_all(tolower) %>%
-  rename(stream_comid = comid,totma = totma) %>%
+  select(stream_comid = comid,totma = totma) %>%
   mutate_if(is.factor, as.character())
 
 niantic_streams <- niantic_streams %>%
