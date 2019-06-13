@@ -21,7 +21,9 @@ Imports:
   raster,
   FedData,
   httr,
-  rvest
+  rvest,
+  dplyr,
+  fasterize
 License: GPL-3
 Encoding: UTF-8
 Language: es

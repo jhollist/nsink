@@ -74,7 +74,7 @@ empty_raster_30 <- fasterize::raster(niantic_huc, resolution = 30)
 empty_raster_10 <- fasterize::raster(niantic_huc, resolution = 10)
 
 niantic_fdr <- crop(fdr_ne, as(niantic_huc, "Spatial")) %>%
-  projectRaster(empty_raster_30,method = "ngb") 
+  projectRaster(empty_raster_30, method = "ngb") 
 
 ne_streams <- st_read(here("data/NHDPlusNE/NHDPlus01/NHDSnapshot/Hydrography/NHDFlowline.shp")) %>%
   st_transform(st_crs(niantic_huc)) %>%

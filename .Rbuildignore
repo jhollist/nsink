@@ -13,3 +13,4 @@
 ^log_check\.R$
 ^working_nsink\.Rmd$
 ^nsink_data$
+^scripts$

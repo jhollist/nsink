@@ -2,16 +2,23 @@
 % Please edit documentation in R/nsink_get_data.R
 \name{nsink_get_data}
 \alias{nsink_get_data}
-\title{Get's N-sink data for a given HUC}
+\title{Get's N-Sink data for a given HUC}
 \usage{
-nsink_get_data(location, data_dir = paste0(getwd(), "/nsink_data"))
+nsink_get_data(huc, data_dir = paste0(getwd(), "/nsink_data"),
+  force = FALSE)
 }
 \arguments{
-\item{location}{An sf polygon object of the HUC (or really any spatial object) for
-which you wish to build the N-Sink database.}
+\item{huc}{A character string of a HUC12 identifier.  Currently can run only a single HUC at a time.}
 
 \item{data_dir}{A directory to store N-Sink data downloads.  Defaults to
 current working directory.}
+
+\item{force}{Logical to determine if files should be downloaded
+again if they already exist locally.}
+}
+\value{
+Returns a list with the huc used and the directory where the data is
+        stored.
 }
 \description{
 The required datasets for the N-sink analysis are available from multiple,
@@ -19,6 +26,9 @@ online resources.  This function takes a HUC as input and downloads local
 copies of those datasets.
 }
 \examples{
-data(niantic_huc)
-nsink_get_data(location = niantic_huc)
+\dontrun{
+library(nsink)
+niantic_huc <- nsink_get_huc_id("Niantic River")$huc_12
+nsink_get_data(huc = niantic_huc)
+}
 }

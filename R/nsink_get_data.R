@@ -3,7 +3,7 @@
 #' The required datasets for the N-sink analysis are available from multiple,
 #' online resources.  This function takes a HUC as input and downloads local
 #' copies of those datasets.
-#' @param huc A character string of a HUC12 identifier or a HUC12 name.  Currently can run only a single HUC at a time.
+#' @param huc A character string of a HUC12 identifier.  Currently can run only a single HUC at a time.
 #' @param data_dir A directory to store N-Sink data downloads.  Defaults to
 #'                 current working directory.
 #' @param force Logical to determine if files should be downloaded
@@ -13,10 +13,9 @@
 #'         stored.
 #' @examples
 #' \dontrun{
-#' niantic_huc <- "011000030304"
-#' niantic_name <- "Niantic River"
+#' library(nsink)
+#' niantic_huc <- nsink_get_huc_id("Niantic River")$huc_12
 #' nsink_get_data(huc = niantic_huc)
-#' nsink_get_data(huc = niantic_name)
 #' }
 nsink_get_data <- function(huc, data_dir = paste0(getwd(),"/nsink_data"),
                            force = FALSE){
@@ -27,7 +26,7 @@ nsink_get_data <- function(huc, data_dir = paste0(getwd(),"/nsink_data"),
 
 
   # Get vpu
-  vpu <- wbd_lookup[wbd_lookup$HUC_12 == huc | wbd_lookup$HU_12_NAME == huc,]$VPUID
+  vpu <- wbd_lookup[wbd_lookup$HUC_12 == huc,]$VPUID
   vpu <- vpu[!is.na(vpu)]
 
   # urls
@@ -54,7 +53,7 @@ nsink_get_data <- function(huc, data_dir = paste0(getwd(),"/nsink_data"),
 
   # Use actual huc to limit downloads on impervious and ssurgo
   huc_sf <- sf::st_read(paste0(data_dir, "/wbd/WBD_Subwatershed.shp"))
-  huc_12 <- huc_sf[huc_sf$HUC_12 == huc | huc_sf$HU_12_NAME == huc, ]
+  huc_12 <- huc_sf[huc_sf$HUC_12 == huc, ]
   # This was a hack to get the ssurgo to download via spatial as raw HUC12 on
   # niantic huc was throwing an error with get_ssurgo
   huc_12_buff <- st_buffer(huc_12, 0.01)
