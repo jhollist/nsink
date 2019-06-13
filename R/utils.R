@@ -56,7 +56,7 @@ nsink_get_plus_remotepath <- function (vpu, component = c("NHDSnapshot",
 #'                      already exist
 #' @keywords internal
 
-run_7z <- function(zipfile, destdir, extract_again = FALSE){
+nsink_run_7z <- function(zipfile, destdir, extract_again = FALSE){
   paths_7z <- c("7z",
                 path.expand("~/usr/bin/7z"),
                 "C:\\PROGRA~1\\7-Zip\\7za",

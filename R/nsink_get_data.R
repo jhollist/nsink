@@ -45,11 +45,11 @@ nsink_get_data <- function(huc, data_dir = paste0(getwd(),"/nsink_data"),
 
   # unzip nhdplus data
 
-  run_7z(paste0(data_dir, "/", basename(attr_url)), paste0(data_dir, "/attr"), force)
-  run_7z(paste0(data_dir, "/", basename(erom_url)), paste0(data_dir, "/erom"), force)
-  run_7z(paste0(data_dir, "/", basename(nhd_url)), paste0(data_dir, "/nhd"), force)
-  run_7z(paste0(data_dir, "/", basename(fdr_url)), paste0(data_dir, "/fdr"), force)
-  run_7z(paste0(data_dir, "/", basename(wbd_url)), paste0(data_dir, "/wbd"), force)
+  nsink_run_7z(paste0(data_dir, "/", basename(attr_url)), paste0(data_dir, "/attr"), force)
+  nsink_run_7z(paste0(data_dir, "/", basename(erom_url)), paste0(data_dir, "/erom"), force)
+  nsink_run_7z(paste0(data_dir, "/", basename(nhd_url)), paste0(data_dir, "/nhd"), force)
+  nsink_run_7z(paste0(data_dir, "/", basename(fdr_url)), paste0(data_dir, "/fdr"), force)
+  nsink_run_7z(paste0(data_dir, "/", basename(wbd_url)), paste0(data_dir, "/wbd"), force)
 
   # Use actual huc to limit downloads on impervious and ssurgo
   huc_sf <- sf::st_read(paste0(data_dir, "/wbd/WBD_Subwatershed.shp"))
@@ -78,4 +78,20 @@ nsink_get_data <- function(huc, data_dir = paste0(getwd(),"/nsink_data"),
 
   # Return a list with the huc and the data_dir
   list(huc = huc, data_dir = data_dir)
+}
+
+#' Look up HUC 12 ID from a HUC name
+#'
+#' This function takes a HUC Name and returns all possible matching HUC 12 IDs.
+#'
+#' @param huc_name character string of a HUC Name
+#' @return A data frame with HUC_12 and HU_12_NAME that match the huc_name
+#' @importFrom dplyr tibble
+#' @export
+#' @examples
+#' nsink_get_huc_id(huc_name = "Niantic River")
+nsink_get_huc_id <- function(huc_name){
+  wbd_match <- wbd_lookup[grepl(huc_name, wbd_lookup$HU_12_NAME),]
+  tibble(huc_12 = wbd_match$HUC_12, huc_12_name = wbd_match$HU_12_NAME,
+         state = wbd_match$STATES)
 }

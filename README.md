@@ -27,12 +27,7 @@ Proposed (as of 2019-06-13) functions for the `nsink` package are:
     impervious, and soils.
   - `nsink_calc_removal()` - implemented now as purely raster, might be
     able to do hybrid approach (see lines 384+ in working\_nsink.Rmd).
-    Use a method argument for c(“raster”, “hybrid”).
-      - `nsink_calc_land_removal()`
-      - `nsink_calc_stream_removal()`
-      - `nsink_calc_lake_removal()`
-      - `nsink_calc_removal_type()` - maybe include this as part of each
-        type removal
+    Use a method argument for c(“raster”, “hybrid”). Maybe not here?  
   - `nsink_calc_flowpath()`
       - `nsink_flowpath_ends()`
       - `nsink_flowpath_flowlines()`
