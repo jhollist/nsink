@@ -7,7 +7,8 @@
 nsink_calc_lake_removal(input_data)
 }
 \arguments{
-\item{input_data}{list of data ...}
+\item{input_data}{A named list with "streams", "lakes", "tot", "lakemorpho",
+and "raster_template".}
 }
 \value{
 raster of lake based nitrogen removal

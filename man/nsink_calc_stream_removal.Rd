@@ -4,24 +4,16 @@
 \alias{nsink_calc_stream_removal}
 \title{Calculates stream-based nitrogen removal}
 \usage{
-nsink_calc_stream_removal(removal_rasters)
-
-nsink_calc_stream_removal(removal_rasters)
+nsink_calc_stream_removal(input_data)
 }
 \arguments{
-\item{removal_rasters}{list of land, stream, and lake nitrogen removal
-rasters.}
-
-\item{input_data}{list of data ...}
+\item{input_data}{A named list with "streams", "q", "tot", and
+"raster_template".}
 }
 \value{
-raster of stream based nitrogen removal
-
 raster of stream based nitrogen removal
 }
 \description{
 Calculates stream-based nitrogen removal
-
-Merges removal rasters into single raster
 }
 \keyword{internal}

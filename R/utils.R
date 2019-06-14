@@ -33,8 +33,8 @@ nsink_get_plus_remotepath <- function (vpu, component = c("NHDSnapshot",
   component <- match.arg(component)
   baseurl <- paste0("http://www.horizon-systems.com/nhdplus/NHDPlusV2_", vpu,
                     ".php")
-  res <- rvest::html_attrs(rvest::html_nodes(xml2::read_html(baseurl),
-                                             "a"))
+  res <- suppressMessages(rvest::html_attrs(rvest::html_nodes(
+    xml2::read_html(baseurl),"a")))
   res <- unlist(res[grepl(component, res)])
   res <- res[!grepl("FGDB", res)]
   res <- res[!grepl(".pdf", res)]
