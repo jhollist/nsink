@@ -34,6 +34,7 @@ nsink_prep_data <- function(huc, projection,
        ssurgo = nsink_prep_ssurgo(huc_sf, data_dir),
        q = nsink_prep_q(data_dir),
        tot = nsink_prep_tot(data_dir),
+       lakemorpho = nsink_prep_lakemorpho(data_dir),
        huc = huc_sf,
        raster_template = huc_raster)
 }
@@ -159,6 +160,7 @@ nsink_prep_ssurgo <- function(huc_sf, data_dir){
     ssurgo_tbl <- dplyr::filter(ssurgo_tbl, hydricrating == "Yes")
     ssurgo_tbl <- dplyr::group_by(ssurgo_tbl, mukey, hydricrating)
     ssurgo_tbl <- dplyr::summarize(ssurgo_tbl, hydric_pct = sum(comppct.r))
+    ssurgo_tbl <- dplyr::ungroup(ssurgo_tbl)
     ssurgo <- full_join(ssurgo, ssurgo_tbl, by = "mukey")
   } else {
     stop("The required data file does not exist.  Run nsink_get_data().")
@@ -184,7 +186,7 @@ nsink_prep_q <- function(data_dir){
   } else {
     stop("The required data file does not exist.  Run nsink_get_data().")
   }
-  q
+  dplyr::tibble(q)
 }
 
 #' Prepare time of travel data for N-Sink
@@ -204,5 +206,27 @@ nsink_prep_tot <- function(data_dir){
   } else {
     stop("The required data file does not exist.  Run nsink_get_data().")
   }
-  tot
+  dplyr::tibble(tot)
 }
+
+#' Prepare lake morphology data for N-Sink
+#'
+#' Standardizes lake morphology  from the lake morphology tables.
+#'
+#' @param data_dir Base directory that contains N-Sink data folders.  Data may
+#'                 be downloaded with the \code{\link{nsink_get_data}} function.
+#' @return returns a tibble of the lake morphology data
+#' @keywords  internal
+nsink_prep_lakemorpho <- function(data_dir){
+  if(file.exists(paste0(data_dir, "/attr/PlusFlowlineLakeMorphology.dbf"))){
+    lakemorpho <- foreign::read.dbf(paste0(data_dir,
+                                    "/attr/PlusFlowlineLakeMorphology.dbf"))
+    lakemorpho <- dplyr::rename_all(lakemorpho, tolower)
+    lakemorpho <- dplyr::rename(lakermorpho, stream_comid = comid)
+    lakemorpho <- dplyr::mutate_if(lakemorpho, is.factor, as.character())
+  } else {
+    stop("The required data file does not exist.  Run nsink_get_data().")
+  }
+  dplyr::tibble(lakemorpho)
+}
+

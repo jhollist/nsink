@@ -27,15 +27,24 @@
 #' niantic_calc_removal(niantic_nsink_data)
 #' }
 nsink_calc_removal <- function(input_data){
-  if(all(names(input_data) == c("streams","lakes", "fdr", "impervious", "ssurgo",
-                            "q", "tot", "huc"))){
-    land_removal <- nsink_calc_land_removal(input_data[c("ssurgo",
+  if(all(names(input_data) %in% c("streams","lakes", "fdr", "impervious", "ssurgo",
+                            "q", "tot", "huc", "raster_template",
+                            "lakemorpho"))){
+    removal <- list(land_removal = nsink_calc_land_removal(input_data[c("ssurgo",
                                                          "impervious",
-                                                         "raster_template")])
-    stream_removal <- nsink_calc_stream_removal()
-    lake_removal <- nsink_calc_lake_removal()
-    merged_removal <- nsink_merge_removal()
-    merged_type <- nsink_calc_removal_type()
+                                                         "raster_template")]),
+    stream_removal = nsink_calc_stream_removal(input_data[c("streams",
+                                                             "q",
+                                                             "tot",
+                                                             "raster_template")]),
+    lake_removal = nsink_calc_lake_removal(input_data[c("streams",
+                                                         "lakes",
+                                                         "tot",
+                                                         "lakemorpho",
+                                                         "raster_template")]),
+    raster_template = input_data$raster_template, huc = input_data$huc)
+    merged_removal <- nsink_merge_removal(removal)
+    merged_type <- nsink_calc_removal_type(removal)
   } else {
     stop("The input data do contain the expected data.  Check the object and
          re-run with nsink_prep_data().")
@@ -67,28 +76,99 @@ nsink_calc_land_removal <- function(input_data){
 
 #' Calculates stream-based nitrogen removal
 #'
-#' @param input_data list of data ...
+#' @param input_data  A named list with "streams", "q", "tot", and
+#'                   "raster_template".
 #' @return raster of stream based nitrogen removal
 #' @keywords internal
 nsink_calc_stream_removal <- function(input_data){
-
+  stream_removal <- dplyr::mutate_if(is.factor, as.character())
+  stream_removal <- dplyr::left_join(stream_removal,
+                                     input_data$q,
+                                     by = c("stream_comid" = "stream_comid"))
+  stream_removal <- dplyr::left_join(stream_removal,
+                                     input_data$tot,
+                                     by = c("stream_comid" = "stream_comid"))
+  stream_removal <- dplyr::filter(stream_removal, ftype != "ArtificialPath")
+  stream_removal <- dplyr::mutate(totma = case_when(totma == -9999 ~ NA_real_,
+                                                    TRUE ~ totma))
+  stream_removal <- dplyr::mutate(n_removal =
+                                    (1 - exp(-0.0513 * (mean_reach_depth^-1.319)
+                                             * totma))/100)
+  raster::rasterize(stream_removal, input_data$raster_template,
+                    field = "n_removal", fun = "max")
 }
 
 #' Calculates lake-based nitrogen removal
 #'
-#' @param input_data list of data ...
+#' @param input_data A named list with "streams", "lakes", "tot", "lakemorpho",
+#'                   and "raster_template".
 #' @return raster of lake based nitrogen removal
 #' @keywords internal
 nsink_calc_lake_removal <- function(input_data){
+  residence_time <- dplyr::left_join(input_data$streams, input_data$tot)
+  residence_time <- dplyr::filter(residence_time, lake_comid > 0,
+                                  totma != -9999)
+  residence_time <- dplyr::group_by(residence_time, lake_comid)
+  residence_time <- dplyr::summarize(residence_time, lake_residence_time_yrs =
+                                       sum(totma*0.002737851))
+  residence_time <- dplyr::ungroup(residence_time)
+  sf::st_geometry(residence_time) <- NULL
 
+  lake_removal <- dplyr::left_join(input_data$lakes, lakemorpho)
+  lake_removal <- dplyr::left_join(lake_removal, residence_time)
+  lake_removal <- dplyr::mutate(meandused = case_when(meandused < 0 ~ NA_real_,
+                                                      TRUE ~ meandused))
+  lake_removal <- dplyr::mutate(n_removal = (79.24 - (33.26 * log10(meandused/lake_residence_time_yrs)))/100)
+  lake_removal <- dplyr::mutate(n_removal = case_when(n_removal < 0 ~ 0,
+                                                      TRUE ~ n_removal))
+  fasterize::fasterize(lake_removal, input_data$raster_template,
+                       field = "n_removal", fun = "max")
 }
 
 #' Merges removal rasters into single raster
 #'
-#' @param removal_rasters list of land, stream, and lake nitrogen removal
-#'                        rasters.
-#' @return raster of stream based nitrogen removal
+#' @param removal_rasters A named list of "land_removal", "stream_removal,
+#'                        "lake_removal", and "raster_template" rasters plus a
+#'                        sf object "huc".
+#' @return raster of landscape nitrogen removal
 #' @keywords internal
-nsink_calc_stream_removal <- function(removal_rasters){
+nsink_merge_removal <- function(removal_rasters){
+  removal <- raster::merge(removal_rasters$lake_removal,
+                           removal_rasters$hydric_removal)
+  removal <- raster::mask(removal, as(huc, "Spatial"))
+  removal[is.na(removal)] <- 0
+  removal <- raster::focal(removal, matrix(1, nrow = 3, ncol = 3), max)
+  removal <- raster::projectRaster(removal, removal_rasters$raster_template,
+                                   method = "ngb")
+  removal <- raster::merge(removal_rasters$stream_removal, removal)
+  removal
+}
 
+#' Create removal type raster
+#'
+#' @param removal_rasters A named list of "land_removal", "stream_removal,
+#'                        "lake_removal", and "raster_template" rasters plus a
+#'                        sf object "huc".
+#' @return raster of landscape nitrogen removal
+#' @keywords internal
+nsink_calc_removal_type <- function(removal_rasters){
+  type_it <- function(removal_rast){
+    val <- raster::getValues(removal_rast)
+    val[val > 0] <- 1
+    val[val == 0] <- NA
+    raster::setValues(removal_rast, val)
+  }
+
+  hydric_type <- type_it(removal_rasters$land_removal)
+  stream_type <- type_it(removal_raster$stream_removal)
+  lake_type <- type_it(removal_raster$lake_removal)
+
+  types <- raster::merge(lake_type, hydric_type)
+  types <- raster::mask(types, removal_rasters$huc)
+  types[is.na(types)] <- 0
+  types <- raster::focal(types,  matrix(1,nrow = 3, ncol = 3), max)
+  types <- raster::projectRaster(types, removal_rasters$raster_template,
+                                 method = "ngb")
+  types <- raster::merge(stream_type, types)
+  types
 }
