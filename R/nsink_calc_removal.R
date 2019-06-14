@@ -21,7 +21,6 @@
 #'             \href{https://doi.org/10.1016/j.ecoleng.2010.02.006}{Link}
 #'
 #' @export
-#' @import raster
 #' @examples
 #' \dontrun{
 #' library(nsink)
@@ -32,6 +31,7 @@
 #' nsink_calc_removal(niantic_nsink_data)
 #' }
 nsink_calc_removal <- function(input_data){
+  browser()
   if(all(names(input_data) %in% c("streams","lakes", "fdr", "impervious", "ssurgo",
                             "q", "tot", "huc", "raster_template",
                             "lakemorpho"))){
@@ -54,7 +54,7 @@ nsink_calc_removal <- function(input_data){
     stop("The input data do contain the expected data.  Check the object and
          re-run with nsink_prep_data().")
   }
-  stack(merged_removal, merged_type)
+  raster::stack(merged_removal, merged_type)
 }
 
 #' Calulates land-based nitrogen removal
@@ -62,15 +62,14 @@ nsink_calc_removal <- function(input_data){
 #' @param input_data A named list with "ssurgo", "impervious", and
 #'                   "raster_template".
 #' @return raster of land based nitrogen removal
-#' @import raster dplyr sf
+#' @import dplyr sf
 #' @keywords internal
 nsink_calc_land_removal <- function(input_data){
   land_removal <- mutate(input_data$ssurgo,
                                 n_removal = 0.8 * (hydric_pct/100))
-  land_removal <- mutate(land_removal, case_when(n_removal == 0 ~
+  land_removal <- mutate(land_removal, n_removal = case_when(n_removal == 0 ~
                                                           NA_real_,
                                                         TRUE ~ n_removal))
-  browser()
   land_removal_rast <- fasterize::fasterize(land_removal,
                                             input_data$raster_template,
                                             field = "n_removal", background = 0,
@@ -79,7 +78,7 @@ nsink_calc_land_removal <- function(input_data){
   impervious[impervious > 0] <- NA
   impervious[!is.na(impervious)] <- 1
 
-  mask(land_removal_rast, impervious)
+  raster::mask(land_removal_rast, impervious)
 }
 
 #' Calculates stream-based nitrogen removal
@@ -87,10 +86,11 @@ nsink_calc_land_removal <- function(input_data){
 #' @param input_data  A named list with "streams", "q", "tot", and
 #'                   "raster_template".
 #' @return raster of stream based nitrogen removal
-#' @import raster dplyr sf
+#' @import dplyr sf
 #' @keywords internal
 nsink_calc_stream_removal <- function(input_data){
-  stream_removal <- mutate_if(is.factor, as.character())
+  browser()
+  stream_removal <- mutate_if(input_data$streams, is.factor, as.character())
   stream_removal <- left_join(stream_removal,
                                      input_data$q,
                                      by = c("stream_comid" = "stream_comid"))
@@ -98,12 +98,12 @@ nsink_calc_stream_removal <- function(input_data){
                                      input_data$tot,
                                      by = c("stream_comid" = "stream_comid"))
   stream_removal <- filter(stream_removal, ftype != "ArtificialPath")
-  stream_removal <- mutate(totma = case_when(totma == -9999 ~ NA_real_,
+  stream_removal <- mutate(stream_removal, totma = case_when(totma == -9999 ~ NA_real_,
                                                     TRUE ~ totma))
-  stream_removal <- mutate(n_removal =
+  stream_removal <- mutate(stream_removal, n_removal =
                                     (1 - exp(-0.0513 * (mean_reach_depth^-1.319)
                                              * totma))/100)
-  rasterize(stream_removal, input_data$raster_template,
+  raster::rasterize(stream_removal, input_data$raster_template,
                     field = "n_removal", fun = "max")
 }
 
@@ -141,17 +141,16 @@ nsink_calc_lake_removal <- function(input_data){
 #'                        "lake_removal", and "raster_template" rasters plus a
 #'                        sf object "huc".
 #' @return raster of landscape nitrogen removal
-#' @import raster
 #' @keywords internal
 nsink_merge_removal <- function(removal_rasters){
-  removal <- merge(removal_rasters$lake_removal,
+  removal <- raster::merge(removal_rasters$lake_removal,
                            removal_rasters$hydric_removal)
-  removal <- mask(removal, as(huc, "Spatial"))
+  removal <- raster::mask(removal, as(huc, "Spatial"))
   removal[is.na(removal)] <- 0
-  removal <- focal(removal, matrix(1, nrow = 3, ncol = 3), max)
-  removal <- projectRaster(removal, removal_rasters$raster_template,
+  removal <- raster::focal(removal, matrix(1, nrow = 3, ncol = 3), max)
+  removal <- raster::projectRaster(removal, removal_rasters$raster_template,
                                    method = "ngb")
-  removal <- merge(removal_rasters$stream_removal, removal)
+  removal <- raster::merge(removal_rasters$stream_removal, removal)
   removal
 }
 
@@ -161,26 +160,25 @@ nsink_merge_removal <- function(removal_rasters){
 #'                        "lake_removal", and "raster_template" rasters plus a
 #'                        sf object "huc".
 #' @return raster of landscape nitrogen removal
-#' @import raster
 #' @keywords internal
 nsink_calc_removal_type <- function(removal_rasters){
   type_it <- function(removal_rast){
-    val <- getValues(removal_rast)
+    val <- raster::getValues(removal_rast)
     val[val > 0] <- 1
     val[val == 0] <- NA
-    setValues(removal_rast, val)
+    raster::setValues(removal_rast, val)
   }
 
   hydric_type <- type_it(removal_rasters$land_removal)
   stream_type <- type_it(removal_raster$stream_removal)
   lake_type <- type_it(removal_raster$lake_removal)
 
-  types <- merge(lake_type, hydric_type)
-  types <- mask(types, removal_rasters$huc)
+  types <- raster::merge(lake_type, hydric_type)
+  types <- raster::mask(types, removal_rasters$huc)
   types[is.na(types)] <- 0
-  types <- focal(types,  matrix(1,nrow = 3, ncol = 3), max)
-  types <- projectRaster(types, removal_rasters$raster_template,
+  types <- raster::focal(types,  matrix(1,nrow = 3, ncol = 3), max)
+  types <- raster::projectRaster(types, removal_rasters$raster_template,
                                  method = "ngb")
-  types <- merge(stream_type, types)
+  types <- raster::merge(stream_type, types)
   types
 }

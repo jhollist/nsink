@@ -58,25 +58,30 @@ nsink_get_data <- function(huc, data_dir = paste0(getwd(),"/nsink_data"),
   # Use actual huc to limit downloads on impervious and ssurgo
   huc_sf <- sf::st_read(paste0(data_dir, "/wbd/WBD_Subwatershed.shp"))
   huc_12 <- huc_sf[huc_sf$HUC_12 == huc, ]
-  huc_12_ext <- round(raster::extent(as(huc_12, "Spatial")),2)
-  huc_12_ext <- FedData::polygon_from_extent(huc_12_ext,
-                                             st_crs(huc_12)$proj4string)
-
 
   # Get impervious
-  imp <- FedData::get_nlcd(huc_12_ext, dataset = "impervious",
+  imp <- FedData::get_nlcd(as(huc_12, "Spatial"), dataset = "impervious",
                     label = huc, extraction.dir = paste0(data_dir, "/imperv"),
                     raw.dir = paste0(data_dir, "/imperv"),
                     force.redo = force)
 
-  # Get SSURGO area symbol
-  # Using HUC as spatial was throwing an error on example niantic huc
-  #ss_area <- huc_ssurgo_lookup[huc_ssurgo_lookup$HUC_12 == huc_12$HUC_12, ]$areasymbol
+  # Get SSURGO
+  # This would occasional have connection reset and FedData would throw
+  # an error.  Connection would eventually work.  This code repeats it until it works
+  # I call this my "definition of insanity" method
+  repeat_it <- TRUE
 
-  ssurgo <- FedData::get_ssurgo(huc_12_ext,label = huc,
-                                extraction.dir = paste0(data_dir, "/ssurgo"),
-                                raw.dir = paste0(data_dir, "/ssurgo"),
-                                force.redo = force)
+  while(is.logical(repeat_it)){
+    repeat_it <- tryCatch(ssurgo <- FedData::get_ssurgo(as(huc_12, "Spatial"),
+                                                        label = huc,
+                                                        extraction.dir =
+                                                          paste0(data_dir, "/ssurgo"),
+                                                        raw.dir = paste0(data_dir,
+                                                                         "/ssurgo"),
+                                                        force.redo = force),
+             error = function(e) TRUE)
+  }
+
 
 
 

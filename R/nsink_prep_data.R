@@ -35,7 +35,7 @@ nsink_prep_data <- function(huc, projection,
          fdr = nsink_prep_fdr(huc_sf, huc_raster, data_dir),
          impervious = nsink_prep_impervious(huc_sf,  huc_raster, data_dir),
          ssurgo = nsink_prep_ssurgo(huc_sf, data_dir),
-         q = nsink_prep_q(data_dir),
+         q = nsink_prep_q(data_dir), #names are messed up on this...
          tot = nsink_prep_tot(data_dir),
          lakemorpho = nsink_prep_lakemorpho(data_dir),
          huc = huc_sf,
@@ -106,13 +106,12 @@ nsink_prep_lakes <- function(huc_sf, data_dir){
 #' @param data_dir Base directory that contains N-Sink data folders.  Data may be
 #'                 downloaded with the \code{\link{nsink_get_data}} function.
 #' @return returns a raster object of the flow direction for the huc_sf
-#' @import raster
 #' @keywords  internal
 nsink_prep_fdr <- function(huc_sf, huc_raster, data_dir){
   if(dir.exists(paste0(data_dir, "/fdr"))){
-    fdr <- raster(paste0(data_dir, "/fdr"))
-    fdr <- crop(fdr, as(huc_sf, "Spatial"))
-    fdr <- projectRaster(fdr, huc_raster, method = "ngb")
+    fdr <- raster::raster(paste0(data_dir, "/fdr"))
+    fdr <- raster::crop(fdr, as(huc_sf, "Spatial"))
+    fdr <- raster::projectRaster(fdr, huc_raster, method = "ngb")
   } else {
     stop("The required data file does not exist.  Run nsink_get_data().")
   }
@@ -128,16 +127,15 @@ nsink_prep_fdr <- function(huc_sf, huc_raster, data_dir){
 #' @param data_dir Base directory that contains N-Sink data folders.  Data may
 #'                 be downloaded with the \code{\link{nsink_get_data}} function.
 #' @return returns a raster object of the impervious cover for the huc_sf
-#' @import raster
 #' @keywords  internal
 nsink_prep_impervious <- function(huc_sf, huc_raster, data_dir){
   if(file.exists(paste0(data_dir, "/imperv/",
                         as.character(huc_sf$HUC_12),
                         "_NLCD_2011_impervious.tif"))){
-  impervious <- raster(paste0(data_dir, "/imperv/",
+  impervious <- raster::raster(paste0(data_dir, "/imperv/",
                                       as.character(huc_sf$HUC_12),
                                       "_NLCD_2011_impervious.tif"))
-  impervious <- projectRaster(impervious, huc_raster)
+  impervious <- raster::projectRaster(impervious, huc_raster)
   } else {
     stop("The required data file does not exist.  Run nsink_get_data().")
   }
