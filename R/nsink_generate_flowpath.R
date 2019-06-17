@@ -1,0 +1,34 @@
+#' Generate and clean a flowpath for N-Sink
+#'
+#' This function takes an XY location as a starting point and generates a hybrid
+#' (flow direction plus NHDPlus flowpath) flowpath for use in the N-Sink
+#' nitrogen removal analysis.
+#'
+#' @param starting_location An \code{\link{sf}} point location as a starting
+#'                          point for the flowpath.  Projection must match projection in input_data
+#' @param input_data A list of input data with "fdr", "streams" and "raster_template".  These may be
+#'                   generated with \code{\link{nsink_prep_data}}.
+#' @return An \code{\link{sf}} LINESTRING object of the flowpath that starts at
+#'         the \codep{starting_location} and ends at the ouflow of the HUC.
+#' @export
+#' @import sf
+#' @examples
+#' \dontrun{
+#' library(nsink)
+#' library(sf)
+#' niantic_huc <- nsink_get_huc_id("Niantic River")$huc_12
+#' niantic_data <- nsink_get_data(niantic_huc)
+#' aea <- "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=23 +lon_0=-96 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
+#' niantic_nsink_data <- nsink_prep_data(niantic_huc, projection = aea)
+#' nsink_calc_removal(niantic_nsink_data)
+#' pt <- c(1948121,2295822)
+#' start_loc <- st_sf(st_sfc(st_point(c(pt), crs = aea))
+#' nsink_generate_flowpath(start_loc, niantic_nsink_data)
+#' }
+nsink_generate_flowpath <- function(starting_location, input_data){
+  # Add prj check
+  fp <- raster::flowPath(input_data$fdr, st_coordinates(starting_location))
+  fp <- raster::xyFromCell(input_data$raster_template, fp)
+  fp <- st_sfc(st_linestring(fp), crs =st_crs(input_data$streams))
+  fp
+}

@@ -23,7 +23,8 @@ Imports:
   httr,
   rvest,
   dplyr,
-  fasterize
+  fasterize,
+  zoo
 License: GPL-3
 Encoding: UTF-8
 Language: es
