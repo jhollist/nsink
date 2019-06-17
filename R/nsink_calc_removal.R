@@ -31,7 +31,7 @@
 #' nsink_calc_removal(niantic_nsink_data)
 #' }
 nsink_calc_removal <- function(input_data){
-  browser()
+
   if(all(names(input_data) %in% c("streams","lakes", "fdr", "impervious", "ssurgo",
                             "q", "tot", "huc", "raster_template",
                             "lakemorpho"))){
@@ -57,7 +57,7 @@ nsink_calc_removal <- function(input_data){
   raster::stack(merged_removal, merged_type)
 }
 
-#' Calulates land-based nitrogen removal
+#' Calculates land-based nitrogen removal
 #'
 #' @param input_data A named list with "ssurgo", "impervious", and
 #'                   "raster_template".
@@ -89,7 +89,6 @@ nsink_calc_land_removal <- function(input_data){
 #' @import dplyr sf
 #' @keywords internal
 nsink_calc_stream_removal <- function(input_data){
-  browser()
   stream_removal <- mutate_if(input_data$streams, is.factor, as.character())
   stream_removal <- left_join(stream_removal,
                                      input_data$q,
@@ -124,12 +123,13 @@ nsink_calc_lake_removal <- function(input_data){
   residence_time <- ungroup(residence_time)
   st_geometry(residence_time) <- NULL
 
-  lake_removal <- left_join(input_data$lakes, lakemorpho)
+  lake_removal <- left_join(input_data$lakes, input_data$lakemorpho)
   lake_removal <- left_join(lake_removal, residence_time)
-  lake_removal <- mutate(meandused = case_when(meandused < 0 ~ NA_real_,
+  lake_removal <- mutate(lake_removal, meandused = case_when(meandused < 0 ~ NA_real_,
                                                       TRUE ~ meandused))
-  lake_removal <- mutate(n_removal = (79.24 - (33.26 * log10(meandused/lake_residence_time_yrs)))/100)
-  lake_removal <- mutate(n_removal = case_when(n_removal < 0 ~ 0,
+  lake_removal <- mutate(lake_removal, n_removal =
+                           (79.24 - (33.26 * log10(meandused/lake_residence_time_yrs)))/100)
+  lake_removal <- mutate(lake_removal, n_removal = case_when(n_removal < 0 ~ 0,
                                                       TRUE ~ n_removal))
   fasterize::fasterize(lake_removal, input_data$raster_template,
                        field = "n_removal", fun = "max")
@@ -144,8 +144,8 @@ nsink_calc_lake_removal <- function(input_data){
 #' @keywords internal
 nsink_merge_removal <- function(removal_rasters){
   removal <- raster::merge(removal_rasters$lake_removal,
-                           removal_rasters$hydric_removal)
-  removal <- raster::mask(removal, as(huc, "Spatial"))
+                           removal_rasters$land_removal)
+  removal <- raster::mask(removal, as(removal_rasters$huc, "Spatial"))
   removal[is.na(removal)] <- 0
   removal <- raster::focal(removal, matrix(1, nrow = 3, ncol = 3), max)
   removal <- raster::projectRaster(removal, removal_rasters$raster_template,
@@ -162,16 +162,25 @@ nsink_merge_removal <- function(removal_rasters){
 #' @return raster of landscape nitrogen removal
 #' @keywords internal
 nsink_calc_removal_type <- function(removal_rasters){
-  type_it <- function(removal_rast){
-    val <- raster::getValues(removal_rast)
-    val[val > 0] <- 1
-    val[val == 0] <- NA
+  type_it <- function(removal_rast, type = c("hydric","stream", "lake")){
+    type <- match.arg(type)
+    if(type == "hydric"){
+      val <- raster::getValues(removal_rast)
+      val[val > 0] <- 1
+      val[val == 0] <- NA
+    } else if(type == "stream"){
+      val <- raster::getValues(removal_rast)
+      val[!is.na(val)] <- 2
+    } else if(type == "lake"){
+      val <- raster::getValues(removal_rast)
+      val[!is.na(val)]  <- 3
+    }
     raster::setValues(removal_rast, val)
   }
 
-  hydric_type <- type_it(removal_rasters$land_removal)
-  stream_type <- type_it(removal_raster$stream_removal)
-  lake_type <- type_it(removal_raster$lake_removal)
+  hydric_type <- type_it(removal_rasters$land_removal, "hydric")
+  stream_type <- type_it(removal_rasters$stream_removal, "stream")
+  lake_type <- type_it(removal_rasters$lake_removal, "lake")
 
   types <- raster::merge(lake_type, hydric_type)
   types <- raster::mask(types, removal_rasters$huc)

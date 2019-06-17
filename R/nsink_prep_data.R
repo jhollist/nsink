@@ -197,7 +197,7 @@ nsink_prep_q <- function(data_dir){
   } else {
     stop("The required data file does not exist.  Run nsink_get_data().")
   }
-  tibble(q)
+  as_tibble(q)
 }
 
 #' Prepare time of travel data for N-Sink
@@ -218,7 +218,7 @@ nsink_prep_tot <- function(data_dir){
   } else {
     stop("The required data file does not exist.  Run nsink_get_data().")
   }
-  tibble(tot)
+  as_tibble(tot)
 }
 
 #' Prepare lake morphology data for N-Sink
@@ -231,15 +231,15 @@ nsink_prep_tot <- function(data_dir){
 #' @import dplyr
 #' @keywords  internal
 nsink_prep_lakemorpho <- function(data_dir){
-  if(file.exists(paste0(data_dir, "/attr/PlusFlowlineLakeMorphology.dbf"))){
+  if(file.exists(paste0(data_dir, "/attr/PlusWaterbodyLakeMorphology.dbf"))){
     lakemorpho <- foreign::read.dbf(paste0(data_dir,
-                                    "/attr/PlusFlowlineLakeMorphology.dbf"))
+                                    "/attr/PlusWaterbodyLakeMorphology.dbf"))
     lakemorpho <- rename_all(lakemorpho, tolower)
-    lakemorpho <- rename(lakemorpho, stream_comid = comid)
+    lakemorpho <- rename(lakemorpho, lake_comid = comid)
     lakemorpho <- mutate_if(lakemorpho, is.factor, as.character())
   } else {
     stop("The required data file does not exist.  Run nsink_get_data().")
   }
-  tibble(lakemorpho)
+  as_tibble(lakemorpho)
 }
 
