@@ -25,7 +25,7 @@
 nsink_prep_data <- function(huc, projection,
                             data_dir = paste0(getwd(), "/nsink_data")){
     dirs <- list.dirs(data_dir, full.names = FALSE, recursive = FALSE)
-    if(all(dirs %in% c("attr","erom","fdr","imperv","nhd","ssurgo", "wbd"))){
+    if(all(c("attr","erom","fdr","imperv","nhd","ssurgo", "wbd") %in% dirs)){
     huc_sf <- st_read(paste0(data_dir, "/wbd/WBD_Subwatershed.shp"))
     huc_sf <- st_transform(huc_sf[huc_sf$HUC_12 == huc,],
                                crs = projection)
@@ -57,6 +57,7 @@ nsink_prep_data <- function(huc, projection,
 #' @import dplyr sf
 #' @keywords  internal
 nsink_prep_streams <- function(huc_sf, data_dir){
+
   if(file.exists(paste0(data_dir, "/nhd/NHDFlowline.shp"))){
     streams <- st_read(paste0(data_dir, "/nhd/NHDFlowline.shp"))
     streams <- st_transform(streams, st_crs(huc_sf))
@@ -213,7 +214,7 @@ nsink_prep_tot <- function(data_dir){
   if(file.exists(paste0(data_dir, "/attr/PlusFlowlineVAA.dbf"))){
     tot <- foreign::read.dbf(paste0(data_dir, "/attr/PlusFlowlineVAA.dbf"))
     tot <- rename_all(tot, tolower)
-    tot <- select(tot, stream_comid = comid, totma = totma)
+    tot <- select(tot, stream_comid = comid, totma = totma, fromnode, tonode)
     tot <- mutate_if(tot, is.factor, as.character())
   } else {
     stop("The required data file does not exist.  Run nsink_get_data().")

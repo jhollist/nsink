@@ -8,14 +8,16 @@ nsink_generate_flowpath(starting_location, input_data)
 }
 \arguments{
 \item{starting_location}{An \code{\link{sf}} point location as a starting
-point for the flowpath.  Projection must match projection in input_data}
+point for the flowpath.  Projection must match
+projection in input_data}
 
-\item{input_data}{A list of input data with "fdr", "streams" and "raster_template".  These may be
-generated with \code{\link{nsink_prep_data}}.}
+\item{input_data}{A list of input data with "fdr", "streams" and
+"raster_template". These may be generated with
+\code{\link{nsink_prep_data}}.}
 }
 \value{
 An \code{\link{sf}} LINESTRING object of the flowpath that starts at
-        the \codep{starting_location} and ends at the ouflow of the HUC.
+        the \code{starting_location} and ends at the ouflow of the HUC.
 }
 \description{
 This function takes an XY location as a starting point and generates a hybrid
@@ -32,7 +34,7 @@ aea <- "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=23 +lon_0=-96 +x_0=0 +y_0=0 +el
 niantic_nsink_data <- nsink_prep_data(niantic_huc, projection = aea)
 nsink_calc_removal(niantic_nsink_data)
 pt <- c(1948121,2295822)
-start_loc <- st_sf(st_sfc(st_point(c(pt), crs = aea))
-nsink_generate_flowpath(start_loc, niantic_nsink_data)
+start_loc <- st_sf(st_sfc(st_point(c(pt)), crs = aea))
+fp <- nsink_generate_flowpath(start_loc, niantic_nsink_data)
 }
 }

@@ -304,7 +304,7 @@ Ideas:
 plot(niantic_huc$geometry)
 plot(niantic_streams$geometry, add = T)
 loc <- unlist(locator(1)) #can use this for interactive
-#loc <- c(1948121,2295822) 
+#loc <- c(x=1948121,y=2295822) 
 example_fp_niantic <- flowPath(niantic_fdr, loc)
 example_fp_xy <- xyFromCell(empty_raster_30, example_fp_niantic)
 fp_n_sf <- st_sfc(st_linestring(example_fp_xy), crs = st_crs(niantic_streams)) %>%
