@@ -2,7 +2,7 @@
 % Please edit documentation in R/nsink_calc_removal.R
 \name{nsink_calc_land_removal}
 \alias{nsink_calc_land_removal}
-\title{Calulates land-based nitrogen removal}
+\title{Calculates land-based nitrogen removal}
 \usage{
 nsink_calc_land_removal(input_data)
 }
@@ -14,6 +14,6 @@ nsink_calc_land_removal(input_data)
 raster of land based nitrogen removal
 }
 \description{
-Calulates land-based nitrogen removal
+Calculates land-based nitrogen removal
 }
 \keyword{internal}

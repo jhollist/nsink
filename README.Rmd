@@ -25,7 +25,7 @@ Proposed (as of `r lubridate::today()`) functions for the `nsink` package are:
 - `nsink_get_data()` - Pass HUC, get data, use cache to avoid repeat downloads
 - `nsink_prep_data()` - Prepares data by clipping to specified HUC, standardizing projections, standardizing raster extents.  Outputs will be HUC level for HUC, flow direction, streams, waterbodies, impervious, and soils. 
 - `nsink_calc_removal()` - implemented now as purely raster, might be able to do hybrid approach (see lines 384+ in working_nsink.Rmd).  Use a method argument for c("raster", "hybrid"). Maybe not here?  
-- `nsink_calc_flowpath()`
+- `nsink_generate_flowpath()`
   - `nsink_flowpath_ends()`
   - `nsink_flowpath_flowlines()`
   - `nsink_flowpath_removal_filter()` - raster only.

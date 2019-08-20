@@ -100,7 +100,9 @@ nsink_get_data <- function(huc, data_dir = paste0(getwd(),"/nsink_data"),
 #' @examples
 #' nsink_get_huc_id(huc_name = "Niantic River")
 nsink_get_huc_id <- function(huc_name){
-  wbd_match <- wbd_lookup[grepl(huc_name, wbd_lookup$HU_12_NAME),]
+  idx <- stringr::str_detect(wbd_lookup$HU_12_NAME,huc_name)
+  idx[is.na(idx)] <- FALSE
+  wbd_match <- wbd_lookup[idx,]
   tibble(huc_12 = wbd_match$HUC_12, huc_12_name = wbd_match$HU_12_NAME,
          state = wbd_match$STATES)
 }
