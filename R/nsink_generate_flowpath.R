@@ -1,8 +1,8 @@
 #' Generate and clean a flowpath for N-Sink
 #'
 #' This function takes an XY location as a starting point and generates a hybrid
-#' (flow direction plus NHDPlus flowpath) flowpath for use in the N-Sink
-#' nitrogen removal analysis.
+#' (flow direction derived flowpath on land plus NHDPlus vector downstream
+#' flowpath) flowpath for use in the N-Sink nitrogen removal analysis.
 #'
 #' @param starting_location An \code{\link{sf}} point location as a starting
 #'                          point for the flowpath.  Projection must match
