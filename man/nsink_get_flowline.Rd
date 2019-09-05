@@ -4,13 +4,16 @@
 \alias{nsink_get_flowline}
 \title{Get flowlines that intersect with a flowpath}
 \usage{
-nsink_get_flowline(flowpath_ends, streams)
+nsink_get_flowline(flowpath_ends, streams, tot)
 }
 \arguments{
 \item{flowpath_ends}{An \code{sf} LINESTRING of the flowpath ends, generated
 with \code{\link{nsink_get_flowpath_ends}}}
 
-\item{streams}{NHDPlus streams from}
+\item{streams}{NHDPlus streams from \code{\link{nsink_prep_data}}}
+
+\item{tot}{NHDPlus time of travel from \code{\link{nsink_prep_data}} which
+provides the from and to nodes.}
 }
 \value{
 an \code{sf} object of the NHDPlus flowlines that occur after a

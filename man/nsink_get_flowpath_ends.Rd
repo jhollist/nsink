@@ -2,7 +2,7 @@
 % Please edit documentation in R/nsink_generate_flowpath.R
 \name{nsink_get_flowpath_ends}
 \alias{nsink_get_flowpath_ends}
-\title{Get flowpath ends}
+\title{Get flowpath beginning and ends}
 \usage{
 nsink_get_flowpath_ends(flowpath, streams)
 }
@@ -18,6 +18,7 @@ An \code{sf} object of the portions of the flowpath that are not
 \description{
 Flowpath from land is only portion that needs to be generated from the flow
 direction grid.  This function extracts those portions of the generated
-flowpath.  There may be issues with off network waterbodies...
+flowpath.  There may be issues with off network waterbodies...  May need to
+find all sections without connected flowpaths...
 }
 \keyword{internal}

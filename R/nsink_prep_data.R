@@ -71,6 +71,7 @@ nsink_prep_streams <- function(huc_sf, data_dir){
   } else {
     stop("The required data file does not exist.  Run nsink_get_data().")
   }
+
   streams
 }
 
