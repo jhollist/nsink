@@ -17,7 +17,7 @@ raster-vector approach that takes very little time to set up for each
 new watershed and relies on readily available data. Thus, its
 application is national for the United States.
 
-Proposed (as of 2019-09-05) functions for the `nsink` package are:
+Proposed (as of 2019-09-11) functions for the `nsink` package are:
 
   - `nsink_get_data()` - Pass HUC, get data, use cache to avoid repeat
     downloads
@@ -33,8 +33,12 @@ Proposed (as of 2019-09-05) functions for the `nsink` package are:
     raster flow direction generated flowpath on land, and then uses the
     NHDPlus flowpath once the raster flowpath intersects the NHDPlus
     flowpath.
-  - `nsink_summarize_flowpath_removal()` - summarizes flowpath removal
-      - `nsink_flowpath_removal_filter()` - raster only.
+  - `nsink_summarize_flowpath()` - Summarizes flowpath removal and
+    returns a list with flowpath rasters for removal and type, the total
+    removal for the flowpath, and a summary data frame of removal per
+    segment along the flowpath.
+  - `nsink_generate_static_maps()` - Function to create static maps for
+    a HUC.
 
 The API for this package is still very much a work in progress and may
 change at anytime with possible breakage of past functionality. Use at
