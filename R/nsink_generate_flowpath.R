@@ -22,12 +22,14 @@
 #' niantic_data <- nsink_get_data(niantic_huc)
 #' aea <- "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=23 +lon_0=-96 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
 #' niantic_nsink_data <- nsink_prep_data(niantic_huc, projection = aea)
-#' removal_rasters <- nsink_calc_removal(niantic_nsink_data)
+#' removal_rasters <- getnsink_calc_removal(niantic_nsink_data)
 #' pt <- c(1948121,2295822)
 #' start_loc <- st_sf(st_sfc(st_point(c(pt)), crs = aea))
 #' fp <- nsink_generate_flowpath(start_loc, niantic_nsink_data)
 #' }
-nsink_generate_flowpath <- function(starting_location, input_data){
+nsink_generate_flowpath <- function(starting_location, input_data,
+                                    method = c("raster", "hybrid")){
+  method <- match.arg(method)
   if(st_crs(starting_location) != st_crs(input_data$streams)){
     stop(paste0("The coordinate reference systems for your starting location and the input data do not match.  Re-project to a common reference system."))
   }
@@ -42,6 +44,9 @@ nsink_generate_flowpath <- function(starting_location, input_data){
   combo_fp <- st_sfc(combo_fp)
   combo_fp <- st_sf(combo_fp, crs =  st_crs(input_data$streams))
   combo_fp
+  if(method == "raster"){return(combo_fp)}
+  if(method == "hybrid"){return(list(flowpath_ends = fp_ends,
+                                     flowpath_network = fp_flowlines))}
 }
 
 #' Get flowpath beginning and ends

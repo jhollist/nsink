@@ -4,15 +4,24 @@
 \alias{nsink_calc_removal}
 \title{Calculates N-Sink nitrogen removal percent}
 \usage{
-nsink_calc_removal(input_data)
+nsink_calc_removal(input_data, method = c("raster", "hybrid"))
 }
 \arguments{
 \item{input_data}{A list of input datasets created with
 \code{\link{nsink_prep_data}}.}
+
+\item{method}{The type of data used for summarizing removal along the flowpath.
+Raster data is extracted with a flowpath for the entire length of
+the flowpath.  If hybrid is selected, only the land portion uses
+raster data, the remainder of the flowpath is summarized based on
+the vector streamlines. Default is raster}
 }
 \value{
-A raster stack with one layer with nitrogen removal and a second
-        layer with the type of removal (e.g. hydric soils, lakes, streams)
+If the rater method is used,  a raster stack with one layer with
+        nitrogen removal, a second layer with the type of removal (e.g.
+        hydric soils, lakes, streams), and a third layer with a clean raster
+        template is returned.  If the hybrid method is used a list is
+        returned with land_removal, stream_removal, and lake removal.
 }
 \description{
 Starting with base data layers of NHDPlus, SSURGO, impervious surface, flow
