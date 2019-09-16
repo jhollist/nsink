@@ -78,8 +78,8 @@ nsink_calc_removal <- function(input_data){
 
     return(list(raster_method = raster::stack(merged_removal, merged_type),
                 land_removal = removal$land_removal,
-                network_removal = rbind(removal$stream_removal,
-                                        removal$lake_removal)))
+                network_removal = rbind(removal$stream_removal_v,
+                                        removal$lake_removal_v)))
   } else {
     stop("The input data do not contain the expected data.  Check the object and
          re-run with nsink_prep_data().")

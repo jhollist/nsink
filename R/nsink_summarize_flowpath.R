@@ -75,27 +75,47 @@ nsink_summarize_flowpath <- function(flowpath, removal,
     land_removal_type <- raster::extract(removal$raster_method[[2]],
                                          st_sf(flowpath$flowpath_ends[[1]]),
                                          along = TRUE)[[1]]
+    # This should removes hydric cells after the flowpath has entered a lake
+    # This can happen as a result of the rasterization.
+    # In theory, once a flowpath has entered the hydrologic network it should not
+    # leave the network to then flow over land, which is what would need to happen
+    # if a hydric soils are encountered after being in a lake.
+    idx <- zoo::rollapply(land_removal_type, 2, function(x) ifelse(x[1] == 3 & x[2] == 1, TRUE, FALSE))
+    idx <- c(FALSE,idx)
+    land_removal_type[which(idx)] <- 3
     land_removal_df <- data.frame(stream_comid = 0, lake_comid = 0,
-                                  land_removal, segement_type = land_removal_type)
+                                  n_removal, segement_type = land_removal_type)
     land_removal_df <- mutate(land_removal_df,
-                              land_removal = case_when(is.na(land_removal) ~ 0, # Need to override type, is saying hydric but with 0 removal.
+                              n_removal = case_when(is.na(n_removal) ~ 0,
                                                        land_removal_type == 3 ~
                                                          0,
                                                        TRUE ~ land_removal),
                               segment_type = case_when(land_removal_type == 1 ~
                                                          "Hydric",
                                                        land_removal_type == 3 ~
-                                                         "Lake",
+                                                         "Lake/Pond",
                                                        TRUE ~ "No Removal or Unknown"),
                               segment_id = nsink_create_segment_ids(paste(segment_type,
-                                                                          land_removal)))
+                                                                          n_removal)))
 
     #TODO get per segment removal from network
     n_removal_df <- select(st_drop_geometry(removal$network_removal), stream_comid, n_removal)
     flowpath_removal <- left_join(flowpath$flowpath_network, n_removal_df)
     flowpath_removal_df <- st_drop_geometry(flowpath_removal)
     flowpath_removal_df <- unique(flowpath_removal_df)
-    #TODO add it all together
+    flowpath_removal_df <- mutate(flowpath_removal_df,
+                                  segment_type = case_when(ftype == "ArtificalPath" ~
+                                                              "Lake/Pond",
+                                                            ftype == "StreamRiver" ~
+                                                              "Stream",
+                                                            TRUE ~ "No Removal or Unknown"))
+    flowpath_removal_df <- select(flowpath_removal_df, stream_comid, lake_comid,
+                                  n_removal, segment_type)
+    flowpath_removal_df <- mutate(flowpath_removal_df,
+                                  segment_id = nsink_create_segment_ids(paste(segment_type,
+                                                                              n_removal)))
+    # TODO Look at NA in n_removal
+    # TODO add it all together
 
   }
 }

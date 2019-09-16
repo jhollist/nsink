@@ -49,7 +49,7 @@ fp <- nsink_generate_flowpath(start_loc, niantic_nsink_data)
 fp_hybrid <- nsink_generate_flowpath(start_loc, niantic_nsink_data,
                                      method = "hybrid")
 nsink_summarize_flowpath(fp, removal)
-nsink_summarize_flowpath(fp_hybrid, removal_hybrid, method = "hybrid")
+nsink_summarize_flowpath(fp_hybrid, removal, method = "hybrid")
 }
 TODO Raster method: Deal with adjacent hydrics, prior to entering stream
      network with different removal by combining and averaging?  If I get
