@@ -4,17 +4,11 @@
 \alias{nsink_calc_removal}
 \title{Calculates N-Sink nitrogen removal percent}
 \usage{
-nsink_calc_removal(input_data, method = c("raster", "hybrid"))
+nsink_calc_removal(input_data)
 }
 \arguments{
 \item{input_data}{A list of input datasets created with
 \code{\link{nsink_prep_data}}.}
-
-\item{method}{The type of data used for summarizing removal along the flowpath.
-Raster data is extracted with a flowpath for the entire length of
-the flowpath.  If hybrid is selected, only the land portion uses
-raster data, the remainder of the flowpath is summarized based on
-the vector streamlines. Default is raster}
 }
 \value{
 If the rater method is used,  a raster stack with one layer with
@@ -40,6 +34,7 @@ niantic_data <- nsink_get_data(niantic_huc)
 aea <- "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=23 +lon_0=-96 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
 niantic_nsink_data <- nsink_prep_data(niantic_huc, projection = aea)
 nsink_calc_removal(niantic_nsink_data)
+nsink_calc_removal(niantic_nsink_data, method = "hybrid")
 }
 }
 \references{

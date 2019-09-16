@@ -32,36 +32,36 @@
 #' niantic_data <- nsink_get_data(niantic_huc)
 #' aea <- "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=23 +lon_0=-96 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
 #' niantic_nsink_data <- nsink_prep_data(niantic_huc, projection = aea)
-#' removal_rasters <- nsink_calc_removal(niantic_nsink_data)
-#' removal_hybrid <- nsink_calc_removal(niantic_nsink_data, method = "hybrid")
+#' removal <- nsink_calc_removal(niantic_nsink_data)
 #' pt <- c(1948121,2295822)
 #' start_loc <- st_sf(st_sfc(st_point(c(pt)), crs = aea))
 #' fp <- nsink_generate_flowpath(start_loc, niantic_nsink_data)
 #' fp_hybrid <- nsink_generate_flowpath(start_loc, niantic_nsink_data,
 #'                                      method = "hybrid")
-#' nsink_summarize_flowpath(fp, removal_rasters)
-#' nsink_summarize_flowpath(fp_hybrid, removal_hybrid, method = "hybrid")
+#' nsink_summarize_flowpath(fp, removal)
+#' nsink_summarize_flowpath(fp_hybrid, removal, method = "hybrid")
 #' }
-#' TODO Deal with adjacent hydrics, prior to entering stream network with
-#'      different removal by combining and averaging?
-#' TODO Why are there adjacent lakes with different removal values?
-#' TODO Remove hydric that occurs once flowpath enters the stream network.
-#'      Replace with values from either side
+#' TODO Raster method: Deal with adjacent hydrics, prior to entering stream
+#'      network with different removal by combining and averaging?  If I get
+#'      hybrid method working might not need to do this.
+#' TODO Raster method: Remove hydric that occurs once flowpath enters the stream
+#'      network. Replace with values from either side. If I get hybrid method
+#'      working might not need to do this.
 #'
 nsink_summarize_flowpath <- function(flowpath, removal,
                                      method = c("raster", "hybrid"), filter_window = 3){
   method <- match.arg(method)
   if(method == "raster"){
-    fp_removal_raster <- rasterize(flowpath, removal[[1]], 1, max) *
-      removal[[1]]
-    fp_type_raster <- rasterize(flowpath, removal[[2]], 1, max) *
-      removal[[2]]
-    removal <- extract(removal[[1]], flowpath, along = TRUE)[[1]]
-    type <- extract(removal[[2]], flowpath, along = TRUE)[[1]]
-    removal <- rollmax(removal, filter_window)
+    fp_removal_raster <- rasterize(flowpath, removal$raster_method[[1]], 1, max) *
+      removal$raster_method[[1]]
+    fp_type_raster <- rasterize(flowpath, removal$raster_method[[2]], 1, max) *
+      removal$raster_method[[2]]
+    remove <- raster::extract(removal$raster_method[[1]], flowpath, along = TRUE)[[1]]
+    type <- extract(removal$raster_method[[2]], flowpath, along = TRUE)[[1]]
+    remove <- rollmax(remove, filter_window)
     type <- rollmax(type, filter_window)
-    total_removal <- nsink_calc_total_removal(removal) #This looks like what is left, not removal
-    removal_summary <- nsink_create_summary(removal, type)
+    total_removal <- nsink_calc_total_removal(remove) #This looks like what is left, not removal
+    removal_summary <- nsink_create_summary(remove, type)
     output <- list(flowpath_removal = fp_removal_raster,
                    flowpath_type = fp_type_raster,
                    total_removal = total_removal,
@@ -70,7 +70,31 @@ nsink_summarize_flowpath <- function(flowpath, removal,
   } else if(method == "hybrid"){
     browser()
     #TODO extract land removal for flowpath ends
+    land_removal <- raster::extract(removal$land_removal, st_sf(flowpath$flowpath_ends[[1]]),
+                            along = TRUE)[[1]]
+    land_removal_type <- raster::extract(removal$raster_method[[2]],
+                                         st_sf(flowpath$flowpath_ends[[1]]),
+                                         along = TRUE)[[1]]
+    land_removal_df <- data.frame(stream_comid = 0, lake_comid = 0,
+                                  land_removal, segement_type = land_removal_type)
+    land_removal_df <- mutate(land_removal_df,
+                              land_removal = case_when(is.na(land_removal) ~ 0, # Need to override type, is saying hydric but with 0 removal.
+                                                       land_removal_type == 3 ~
+                                                         0,
+                                                       TRUE ~ land_removal),
+                              segment_type = case_when(land_removal_type == 1 ~
+                                                         "Hydric",
+                                                       land_removal_type == 3 ~
+                                                         "Lake",
+                                                       TRUE ~ "No Removal or Unknown"),
+                              segment_id = nsink_create_segment_ids(paste(segment_type,
+                                                                          land_removal)))
+
     #TODO get per segment removal from network
+    n_removal_df <- select(st_drop_geometry(removal$network_removal), stream_comid, n_removal)
+    flowpath_removal <- left_join(flowpath$flowpath_network, n_removal_df)
+    flowpath_removal_df <- st_drop_geometry(flowpath_removal)
+    flowpath_removal_df <- unique(flowpath_removal_df)
     #TODO add it all together
 
   }
@@ -84,7 +108,7 @@ nsink_summarize_flowpath <- function(flowpath, removal,
 #'
 #' @param flowpath_vector a vector of removal values extracted from a nitrogen
 #'                        removal raster generated by
-#'                        \code{\link{nsink_extract_flowpath}}.
+#'                        \code{\link{nsink_calc_removal}}.
 
 #' @return A single numeric vector for total nitrogen removal along the flowpath
 #'
@@ -136,9 +160,9 @@ nsink_create_segment_ids <- function(x){
 #' a data frame that summarizes the removal along that flowpath
 #'
 #' @param removal_vector A flowpath vector of nitrogen removal generated by
-#'                       \code{\link{nsink_extract_flowpath}}.
+#'                       \code{\link{nsink_calc_removal}}.
 #' @param type_vector A flowpath vector of removal type generated by
-#'                    \code{\link{nsink_extract_flowpath}}.
+#'                    \code{\link{nsink_calc_removal}}.
 #'
 #' @return a data frame summarizing nitrogen removal along a flowpath
 #' @import dplyr

@@ -7,7 +7,7 @@
 nsink_calc_land_removal(input_data)
 }
 \arguments{
-\item{input_data}{A named list with "ssurgo", "impervious", and
+\item{input_data}{A named list with "ssurgo", "impervious", "lakes", and
 "raster_template".}
 }
 \value{

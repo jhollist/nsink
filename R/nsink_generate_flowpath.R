@@ -45,8 +45,11 @@ nsink_generate_flowpath <- function(starting_location, input_data,
   combo_fp <- st_sf(combo_fp, crs =  st_crs(input_data$streams))
   combo_fp
   if(method == "raster"){return(combo_fp)}
-  if(method == "hybrid"){return(list(flowpath_ends = fp_ends,
-                                     flowpath_network = fp_flowlines))}
+  if(method == "hybrid"){
+    fp_ends <- st_sfc(fp_ends)
+    fp_ends <- st_sf(fp_ends, crs = st_crs(input_data$streams))
+    return(list(flowpath_ends = fp_ends, flowpath_network = fp_flowlines))
+  }
 }
 
 #' Get flowpath beginning and ends
