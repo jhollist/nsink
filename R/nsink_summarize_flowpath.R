@@ -69,8 +69,14 @@ nsink_summarize_flowpath <- function(flowpath, removal,
   } else if(method == "hybrid"){
 
     #TODO extract land removal for flowpath ends
+    #browser()
+    #vel <- velox(removal$land_removal)
+    #land_removal <- vel$extract(st_sf(flowpath$flowpath_ends[[1]]))
     land_removal <- raster::extract(removal$land_removal, st_sf(flowpath$flowpath_ends[[1]]),
                             along = TRUE)[[1]]
+    #vel <- velox(removal$raster_method[[2]])
+    #land_removal_type <- vel$extract(st_sf(flowpath$flowpath_ends[[1]]))
+
     land_removal_type <- raster::extract(removal$raster_method[[2]],
                                          st_sf(flowpath$flowpath_ends[[1]]),
                                          along = TRUE)[[1]]
