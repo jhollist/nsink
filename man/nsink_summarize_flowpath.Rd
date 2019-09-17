@@ -23,8 +23,7 @@ for \code{width} from \code{\link{rollmax}}. Only used
 if the raster method is chosen.}
 }
 \value{
-A list is returned that contains rasterized removal flowpath, a
-rasterized type flowpath, total removal, and summary removal stasitics
+A data frame is returned that with a summary of nitrogen removal
 }
 \description{
 Nitrogen removal varies along a flowpath as they include different land cover

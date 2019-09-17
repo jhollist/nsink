@@ -17,8 +17,7 @@
 #'                      window. Default value is 3.  See argument description
 #'                      for \code{width} from \code{\link{rollmax}}. Only used
 #'                      if the raster method is chosen.
-#' @return A list is returned that contains rasterized removal flowpath, a
-#' rasterized type flowpath, total removal, and summary removal stasitics
+#' @return A data frame is returned that with a summary of nitrogen removal
 #'
 #' @importFrom zoo rollmax
 #' @importFrom raster rasterize extract
@@ -52,23 +51,23 @@ nsink_summarize_flowpath <- function(flowpath, removal,
                                      method = c("raster", "hybrid"), filter_window = 3){
   method <- match.arg(method)
   if(method == "raster"){
-    fp_removal_raster <- rasterize(flowpath, removal$raster_method[[1]], 1, max) *
-      removal$raster_method[[1]]
-    fp_type_raster <- rasterize(flowpath, removal$raster_method[[2]], 1, max) *
-      removal$raster_method[[2]]
+    #fp_removal_raster <- rasterize(flowpath, removal$raster_method[[1]], 1, max) *
+    #  removal$raster_method[[1]]
+    #fp_type_raster <- rasterize(flowpath, removal$raster_method[[2]], 1, max) *
+    #  removal$raster_method[[2]]
     remove <- raster::extract(removal$raster_method[[1]], flowpath, along = TRUE)[[1]]
     type <- extract(removal$raster_method[[2]], flowpath, along = TRUE)[[1]]
     remove <- rollmax(remove, filter_window)
     type <- rollmax(type, filter_window)
     total_removal <- nsink_calc_total_removal(remove) #This looks like what is left, not removal
     removal_summary <- nsink_create_summary(remove, type)
-    output <- list(flowpath_removal = fp_removal_raster,
-                   flowpath_type = fp_type_raster,
-                   total_removal = total_removal,
-                   removal_summary = removal_summary)
-    return(output)
+    #output <- list(flowpath_removal = fp_removal_raster,
+    #               flowpath_type = fp_type_raster,
+    #               total_removal = total_removal,
+    #               removal_summary = removal_summary)
+    return(removal_summary)
   } else if(method == "hybrid"){
-    browser()
+
     #TODO extract land removal for flowpath ends
     land_removal <- raster::extract(removal$land_removal, st_sf(flowpath$flowpath_ends[[1]]),
                             along = TRUE)[[1]]
@@ -84,17 +83,12 @@ nsink_summarize_flowpath <- function(flowpath, removal,
     idx <- c(FALSE,idx)
     land_removal_type[which(idx)] <- 3
     land_removal_df <- data.frame(stream_comid = 0, lake_comid = 0,
-                                  n_removal, segement_type = land_removal_type)
+                                  n_removal = land_removal, segment_type = land_removal_type)
     land_removal_df <- mutate(land_removal_df,
                               n_removal = case_when(is.na(n_removal) ~ 0,
-                                                       land_removal_type == 3 ~
+                                                       segment_type == 3 ~
                                                          0,
-                                                       TRUE ~ land_removal),
-                              segment_type = case_when(land_removal_type == 1 ~
-                                                         "Hydric",
-                                                       land_removal_type == 3 ~
-                                                         "Lake/Pond",
-                                                       TRUE ~ "No Removal or Unknown"),
+                                                       TRUE ~ n_removal),
                               segment_id = nsink_create_segment_ids(paste(segment_type,
                                                                           n_removal)))
 
@@ -104,19 +98,21 @@ nsink_summarize_flowpath <- function(flowpath, removal,
     flowpath_removal_df <- st_drop_geometry(flowpath_removal)
     flowpath_removal_df <- unique(flowpath_removal_df)
     flowpath_removal_df <- mutate(flowpath_removal_df,
-                                  segment_type = case_when(ftype == "ArtificalPath" ~
+                                  segment_type = case_when(ftype == "ArtificialPath" ~
                                                               "Lake/Pond",
-                                                            ftype == "StreamRiver" ~
+                                                           ftype == "StreamRiver" ~
                                                               "Stream",
-                                                            TRUE ~ "No Removal or Unknown"))
+                                                            TRUE ~ "Unknown"),
+                                  length = lengthkm*1000)
     flowpath_removal_df <- select(flowpath_removal_df, stream_comid, lake_comid,
-                                  n_removal, segment_type)
+                                  n_removal, segment_type, length)
     flowpath_removal_df <- mutate(flowpath_removal_df,
                                   segment_id = nsink_create_segment_ids(paste(segment_type,
                                                                               n_removal)))
-    # TODO Look at NA in n_removal
+    # TODO NA in n_removal caused by missing time of travel.  See todo in nsink_calc_removal
     # TODO add it all together
-
+    removal_summary <- nsink_create_summary_hybrid(land_removal_df, flowpath_removal_df)
+    return(removal_summary)
   }
 }
 
@@ -183,7 +179,6 @@ nsink_create_segment_ids <- function(x){
 #'                       \code{\link{nsink_calc_removal}}.
 #' @param type_vector A flowpath vector of removal type generated by
 #'                    \code{\link{nsink_calc_removal}}.
-#'
 #' @return a data frame summarizing nitrogen removal along a flowpath
 #' @import dplyr
 #' @keywords internal
@@ -211,7 +206,50 @@ nsink_create_summary <- function(removal_vector, type_vector){
 }
 
 
+#' Create a nitrogen removal summary using the hybrid method
+#'
+#' This functions takes a nitrogen removal and removal type data frame for land
+#' and the flowpath network  and creates a data frame that summarizes the
+#' removal along that flowpath.
+#'
+#' @param land_removal A data frame of land based nitrogen removal via the
+#'                     generated flowpath and hydric removal raster.
+#' @param network_removal A data frame of stream network nitrogen removal via
+#'                        calculated stream and lake removal
+#' @return a data frame summarizing nitrogen removal along a flowpath
+#' @import dplyr
+#' @keywords internal
+nsink_create_summary_hybrid <- function(land_removal, network_removal){
 
+  land_removal_df <- mutate(land_removal,
+                            segment_type = case_when(segment_type == 0 ~ "No Removal",
+                                                     segment_type == 1 ~ "Hydric",
+                                                     segment_type == 2 ~ "Stream",
+                                                     segment_type == 3 ~ "Lake/Pond"))
+  land_removal_df <- group_by(land_removal_df, segment_id, segment_type)
+  land_removal_df <- summarize(land_removal_df, length = n()*30,
+                               n_removal = max(n_removal))
+  land_removal_df <- ungroup(land_removal_df)
+
+  network_removal_df <- select(network_removal, segment_id, segment_type,
+                               length, n_removal)
+  flowpath_removal_df <- rbind(land_removal_df, network_removal_df)
+  # Converting NA removal to 0 - need to have alternative.
+  # see nsink_calc_removal TODO
+  flowpath_removal_df <- mutate(flowpath_removal_df, n_removal =
+                                  case_when(is.na(n_removal) ~ 0,
+                                            TRUE ~ n_removal))
+
+  n <- nrow(flowpath_removal_df)
+  flowpath_removal_summary <- mutate(flowpath_removal_df,
+                                     n_in = round(cumprod(c(100,1-n_removal))[-n],2),
+                                     n_out = round(cumprod(c(100,1-n_removal))[-1],2),
+                                     percent_removal = round(n_removal*100,3))
+  flowpath_removal_summary <- select(flowpath_removal_summary, segment_type,
+                                     length, percent_removal, n_in, n_out)
+
+  flowpath_removal_summary
+}
 
 
 

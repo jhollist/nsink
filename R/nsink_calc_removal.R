@@ -31,7 +31,6 @@
 #' aea <- "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=23 +lon_0=-96 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
 #' niantic_nsink_data <- nsink_prep_data(niantic_huc, projection = aea)
 #' nsink_calc_removal(niantic_nsink_data)
-#' nsink_calc_removal(niantic_nsink_data, method = "hybrid")
 #' }
 nsink_calc_removal <- function(input_data){
   if(all(names(input_data) %in% c("streams","lakes", "fdr", "impervious", "ssurgo",
@@ -130,6 +129,8 @@ nsink_calc_stream_removal <- function(input_data, method = c("raster", "hybrid")
                                      input_data$tot,
                                      by = c("stream_comid" = "stream_comid"))
   stream_removal <- filter(stream_removal, ftype != "ArtificialPath")
+  # TODO When time of travel not available in NHDPlus, need to use other methods
+  #      to estimate time of travel (in Kellogg et al.)
   stream_removal <- mutate(stream_removal, totma = case_when(totma == -9999 ~ NA_real_,
                                                     TRUE ~ totma))
   stream_removal <- mutate(stream_removal, n_removal =
@@ -157,8 +158,12 @@ nsink_calc_stream_removal <- function(input_data, method = c("raster", "hybrid")
 nsink_calc_lake_removal <- function(input_data, method = c("raster", "hybrid")){
   method <- match.arg(method)
   residence_time <- left_join(input_data$streams, input_data$tot)
-  residence_time <- filter(residence_time, lake_comid > 0,
-                                  totma != -9999)
+  residence_time <- filter(residence_time, lake_comid > 0)
+  # TODO When time of travel not available in NHDPlus, need to use other methods
+  #      to calculate residence time (in Kellogg et al)
+  residence_time <- mutate(residence_time, totma = case_when(totma == -9999 ~
+                                                               NA_real_,
+                                                             TRUE ~ totma))
   residence_time <- group_by(residence_time, lake_comid)
   residence_time <- summarize(residence_time, lake_residence_time_yrs =
                                        sum(totma*0.002737851))
@@ -176,6 +181,7 @@ nsink_calc_lake_removal <- function(input_data, method = c("raster", "hybrid")){
                                                       TRUE ~ n_removal))
 
   lake_removal_sf <- lake_removal
+
 
   st_geometry(lake_removal) <- NULL
   lake_removal_flowpath <- left_join(residence_time_sf, lake_removal)
