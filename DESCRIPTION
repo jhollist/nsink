@@ -36,3 +36,7 @@ LazyData: true
 URL: https://github.com/jhollist/nsink
 BugReports: https://github.com/jhollist/nsink/issues
 RoxygenNote: 6.1.1
+Suggests: 
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr

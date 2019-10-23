@@ -17,7 +17,7 @@ raster-vector approach that takes very little time to set up for each
 new watershed and relies on readily available data. Thus, its
 application is national for the United States.
 
-Proposed (as of 2019-09-11) functions for the `nsink` package are:
+Proposed (as of 2019-10-23) functions for the `nsink` package are:
 
   - `nsink_get_data()` - Pass HUC, get data, use cache to avoid repeat
     downloads
@@ -39,6 +39,18 @@ Proposed (as of 2019-09-11) functions for the `nsink` package are:
     segment along the flowpath.
   - `nsink_generate_static_maps()` - Function to create static maps for
     a HUC.
+      - `nsink_generate_removal()` - Already exists in prep data, but
+        need to create a nice clean raster version of removal and output
+        as a tif (probably)
+      - `nsink_generate_n_loading_index()` - Use NLCD as the basis for
+        this. Essentially a reclass of NLCD to index of n loading. Q has
+        these numbers. 0 to 1
+      - `nsink_generate_n_removal_heat_map` - This is the per pixel
+        total flowpath removal. Probably can’t do every pixel, so sub
+        sample of watershed pixels and interpolate final surface. Should
+        be a parallel thing as each pixel is independent. 0 to 1
+      - `nsink_generate_n_delivery_index()` - This is n\_loading\_index
+        multiplied by n\_removal\_heat\_map. 0 to 1
 
 The API for this package is still very much a work in progress and may
 change at anytime with possible breakage of past functionality. Use at

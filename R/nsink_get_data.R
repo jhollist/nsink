@@ -54,7 +54,7 @@ nsink_get_data <- function(huc, data_dir = paste0(getwd(),"/nsink_data"),
   nsink_run_7z(paste0(data_dir, "/", basename(fdr_url)), paste0(data_dir, "/fdr"), force)
   nsink_run_7z(paste0(data_dir, "/", basename(wbd_url)), paste0(data_dir, "/wbd"), force)
   })
-
+browser()
   # Use actual huc to limit downloads on impervious and ssurgo
   huc_sf <- sf::st_read(paste0(data_dir, "/wbd/WBD_Subwatershed.shp"))
   huc_12 <- huc_sf[huc_sf$HUC_12 == huc, ]
@@ -72,12 +72,13 @@ nsink_get_data <- function(huc, data_dir = paste0(getwd(),"/nsink_data"),
   repeat_it <- TRUE
 
   while(is.logical(repeat_it)){
+
     repeat_it <- tryCatch(ssurgo <- FedData::get_ssurgo(as(huc_12, "Spatial"),
                                                         label = huc,
                                                         extraction.dir =
-                                                          paste0(data_dir, "/ssurgo"),
-                                                        raw.dir = paste0(data_dir,
-                                                                         "/ssurgo"),
+                                                          normalizPath(paste0(data_dir, "/ssurgo")),
+                                                        raw.dir = normalizPath(paste0(data_dir,
+                                                                         "/ssurgo")),
                                                         force.redo = force),
              error = function(e) TRUE)
   }

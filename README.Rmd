@@ -28,6 +28,10 @@ Proposed (as of `r lubridate::today()`) functions for the `nsink` package are:
 - `nsink_generate_flowpath()` - This generates a single flowpath for a point selected on the landscape.  The flowpath is contstructed of the raster flow direction generated flowpath on land, and then uses the NHDPlus flowpath once the raster flowpath intersects the NHDPlus flowpath.
 - `nsink_summarize_flowpath()` - Summarizes flowpath removal and returns a list with flowpath rasters for removal and type, the total removal for the flowpath, and a summary data frame of removal per segment along the flowpath.
 - `nsink_generate_static_maps()` - Function to create static maps for a HUC.
+  - `nsink_generate_removal()` - Already exists in prep data, but need to create a nice clean raster version of removal and output as a tif (probably)
+  - `nsink_generate_n_loading_index()` - Use NLCD as the basis for this.  Essentially a reclass of NLCD to index of n loading.  Q has these numbers. 0 to 1
+  - `nsink_generate_n_removal_heat_map` - This is the per pixel total flowpath removal.  Probably can't do every pixel, so sub sample of watershed pixels and interpolate final surface.  Should be a parallel thing as each pixel is independent. 0 to 1
+  - `nsink_generate_n_delivery_index()` - This is n_loading_index multiplied by n_removal_heat_map.  0 to 1
 
 
 The API for this package is still very much a work in progress and may change at anytime with possible breakage of past functionality.  Use at own risk!
