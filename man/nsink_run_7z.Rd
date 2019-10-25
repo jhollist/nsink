@@ -9,7 +9,7 @@ nsink_run_7z(zipfile, destdir, extract_again = FALSE)
 \arguments{
 \item{zipfile}{The zipfile to be extracted}
 
-\item{destdir}{Where to put the extract files}
+\item{destdir}{Where to put the extracted files}
 
 \item{force}{Whether or not to extract again if the destination files
 already exist}

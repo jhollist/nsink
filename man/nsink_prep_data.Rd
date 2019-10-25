@@ -4,8 +4,7 @@
 \alias{nsink_prep_data}
 \title{Prepares N-Sink data for a given HUC}
 \usage{
-nsink_prep_data(huc, projection, data_dir = paste0(getwd(),
-  "/nsink_data"))
+nsink_prep_data(huc, projection, data_dir = normalizePath("nsink_data/"))
 }
 \arguments{
 \item{huc}{A character string of the HUC12 ID.  Use
@@ -13,8 +12,8 @@ nsink_prep_data(huc, projection, data_dir = paste0(getwd(),
 
 \item{projection}{EPSG code or proj4 string}
 
-\item{data_dir}{Base directory that contains N-Sink data folders.  Data may be downloaded
-with the \code{\link{nsink_get_data}} function.}
+\item{data_dir}{Base directory that contains N-Sink data folders.  Data may
+be downloaded with the \code{\link{nsink_get_data}} function.}
 }
 \value{
 returns a list of sf, raster, or tabular objects for each of the

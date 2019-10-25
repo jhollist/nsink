@@ -17,16 +17,17 @@
 #' niantic_huc <- nsink_get_huc_id("Niantic River")$huc_12
 #' nsink_get_data(huc = niantic_huc)
 #' }
-nsink_get_data <- function(huc, data_dir = paste0(getwd(),"/nsink_data"),
+nsink_get_data <- function(huc, data_dir = normalizePath("nsink_data"),
                            force = FALSE){
+
 
   huc <- as.character(huc)
   if(nchar(gsub("[[:alpha:]]+","", huc)) != 12) {
     stop("The supplied huc does not appear to be a 12 digit value")
   }
 
-  # Check for/create data directory
-  if(!dir.exists(data_dir)){dir.create(data_dir)}
+  # Check for/create/clean data directory
+  data_dir <- nsink_fix_data_directory(data_dir)
 
   # Get vpu
   vpu <- wbd_lookup[wbd_lookup$HUC_12 == huc,]$VPUID
@@ -48,21 +49,21 @@ nsink_get_data <- function(huc, data_dir = paste0(getwd(),"/nsink_data"),
 
   # unzip nhdplus data
   suppressMessages({
-  nsink_run_7z(paste0(data_dir, "/", basename(attr_url)), paste0(data_dir, "/attr"), force)
-  nsink_run_7z(paste0(data_dir, "/", basename(erom_url)), paste0(data_dir, "/erom"), force)
-  nsink_run_7z(paste0(data_dir, "/", basename(nhd_url)), paste0(data_dir, "/nhd"), force)
-  nsink_run_7z(paste0(data_dir, "/", basename(fdr_url)), paste0(data_dir, "/fdr"), force)
-  nsink_run_7z(paste0(data_dir, "/", basename(wbd_url)), paste0(data_dir, "/wbd"), force)
+  nsink_run_7z(paste0(data_dir, basename(attr_url)), paste0(data_dir, "attr"), force)
+  nsink_run_7z(paste0(data_dir, basename(erom_url)), paste0(data_dir, "erom"), force)
+  nsink_run_7z(paste0(data_dir, basename(nhd_url)), paste0(data_dir, "nhd"), force)
+  nsink_run_7z(paste0(data_dir, basename(fdr_url)), paste0(data_dir, "fdr"), force)
+  nsink_run_7z(paste0(data_dir, basename(wbd_url)), paste0(data_dir, "wbd"), force)
   })
 
   # Use actual huc to limit downloads on impervious and ssurgo
-  huc_sf <- sf::st_read(paste0(data_dir, "/wbd/WBD_Subwatershed.shp"))
+  huc_sf <- sf::st_read(paste0(data_dir, "wbd/WBD_Subwatershed.shp"))
   huc_12 <- huc_sf[huc_sf$HUC_12 == huc, ]
 
   # Get impervious
   imp <- FedData::get_nlcd(as(huc_12, "Spatial"), dataset = "impervious",
-                    label = huc, extraction.dir = paste0(data_dir, "/imperv"),
-                    raw.dir = paste0(data_dir, "/imperv"),
+                    label = huc, extraction.dir = paste0(data_dir, "imperv"),
+                    raw.dir = paste0(data_dir, "imperv"),
                     force.redo = force)
 
   # Get SSURGO
@@ -75,11 +76,9 @@ nsink_get_data <- function(huc, data_dir = paste0(getwd(),"/nsink_data"),
 
     repeat_it <- tryCatch(
       ssurgo <- FedData::get_ssurgo(as(huc_12, "Spatial"), label = huc,
-                                    extraction.dir = normalizePath(paste0(
-                                      data_dir, "/ssurgo")),
-                                    raw.dir = normalizePath(paste0(
-                                      data_dir, "/ssurgo")), force.redo =
-                                      force),
+                                    extraction.dir = paste0(data_dir, "ssurgo"),
+                                    raw.dir = paste0(data_dir, "ssurgo"),
+                                    force.redo = force),
              error = function(e) TRUE)
   }
 

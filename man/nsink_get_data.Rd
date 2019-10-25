@@ -4,7 +4,7 @@
 \alias{nsink_get_data}
 \title{Get's N-Sink data for a given HUC}
 \usage{
-nsink_get_data(huc, data_dir = paste0(getwd(), "/nsink_data"),
+nsink_get_data(huc, data_dir = normalizePath("nsink_data"),
   force = FALSE)
 }
 \arguments{
