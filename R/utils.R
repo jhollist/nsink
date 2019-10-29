@@ -85,7 +85,7 @@ nsink_run_7z <- function(zipfile, destdir, extract_again = FALSE){
 #' @keywords internal
 nsink_fix_data_directory <- function(data_dir){
   if(!dir.exists(data_dir)){dir.create(data_dir)}
-  data_dir <- if(!grepl("\\\\$|/$",data_dir)){paste0(data_dir, "/")}
+  if(!grepl("\\\\$|/$",data_dir)){data_dir <- paste0(data_dir, "/")}
   data_dir <- normalizePath(data_dir)
   data_dir
 }

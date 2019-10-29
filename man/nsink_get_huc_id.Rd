@@ -4,10 +4,13 @@
 \alias{nsink_get_huc_id}
 \title{Look up HUC 12 ID from a HUC name}
 \usage{
-nsink_get_huc_id(huc_name)
+nsink_get_huc_id(huc_name, case_sens = FALSE)
 }
 \arguments{
 \item{huc_name}{character string of a HUC Name}
+
+\item{case_sens}{Logical indicating whether or not this should be case
+sensitive. Defaults to FALSE.}
 }
 \value{
 A data frame with HUC_12 and HU_12_NAME that match the huc_name

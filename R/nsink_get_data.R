@@ -66,6 +66,12 @@ nsink_get_data <- function(huc, data_dir = normalizePath("nsink_data"),
                     raw.dir = paste0(data_dir, "imperv"),
                     force.redo = force)
 
+  # Get 2011 NLCD
+  nlcd <- FedData::get_nlcd(as(huc_12, "Spatial"), dataset = "landcover",
+                           label = huc, extraction.dir = paste0(data_dir, "nlcd"),
+                           raw.dir = paste0(data_dir, "nlcd"),
+                           force.redo = force)
+
   # Get SSURGO
   # This would occasional have connection reset and FedData would throw
   # an error.  Connection would eventually work.  This code repeats it until it works
@@ -91,13 +97,21 @@ nsink_get_data <- function(huc, data_dir = normalizePath("nsink_data"),
 #' This function takes a HUC Name and returns all possible matching HUC 12 IDs.
 #'
 #' @param huc_name character string of a HUC Name
+#' @param case_sens Logical indicating whether or not this should be case
+#'                  sensitive. Defaults to FALSE.
 #' @return A data frame with HUC_12 and HU_12_NAME that match the huc_name
 #' @importFrom dplyr tibble
 #' @export
 #' @examples
 #' nsink_get_huc_id(huc_name = "Niantic River")
-nsink_get_huc_id <- function(huc_name){
-  idx <- stringr::str_detect(wbd_lookup$HU_12_NAME,huc_name)
+nsink_get_huc_id <- function(huc_name, case_sens = FALSE){
+  if(case_sens){
+    idx <- stringr::str_detect(wbd_lookup$HU_12_NAME,huc_name)
+  } else {
+    idx <- stringr::str_detect(tolower(wbd_lookup$HU_12_NAME),
+                               tolower(huc_name))
+  }
+
   idx[is.na(idx)] <- FALSE
   wbd_match <- wbd_lookup[idx,]
   tibble(huc_12 = wbd_match$HUC_12, huc_12_name = wbd_match$HU_12_NAME,

@@ -8,9 +8,9 @@
 #'
 #' @param huc A character string of the HUC12 ID.  Use
 #'            \code{\link{nsink_get_huc_id}} to look up ID by name.
+#' @param projection EPSG code as an integer or proj4 string as a character
 #' @param data_dir Base directory that contains N-Sink data folders.  Data may
 #'                 be downloaded with the \code{\link{nsink_get_data}} function.
-#' @param projection EPSG code or proj4 string
 #' @return returns a list of sf, raster, or tabular objects for each of the
 #'         required datasets plus the huc.
 #' @export
@@ -19,15 +19,17 @@
 #' \dontrun{
 #' library(nsink)
 #' aea <- "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=23 +lon_0=-96 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
+#' epsg <- 3748L
 #' niantic_huc <- nsink_get_huc_id("Niantic River")$huc_12
 #' nsink_prep_data(huc = niantic_huc, projection = aea)
+#' nsink_prep_data(huc = niantic_huc, projection = epsg)
 #' }
 nsink_prep_data <- function(huc, projection,
                             data_dir = normalizePath("nsink_data/")){
   # Check for/create/clean data directory
   data_dir <- nsink_fix_data_directory(data_dir)
   dirs <- list.dirs(data_dir, full.names = FALSE, recursive = FALSE)
-  if(all(c("attr","erom","fdr","imperv","nhd","ssurgo", "wbd") %in% dirs)){
+  if(all(c("attr","erom","fdr","imperv","nhd","ssurgo", "wbd", "nlcd") %in% dirs)){
     huc_sf <- st_read(paste0(data_dir, "wbd/WBD_Subwatershed.shp"))
     huc_sf <- st_transform(huc_sf[huc_sf$HUC_12 == huc,],
                                crs = projection)
@@ -36,8 +38,9 @@ nsink_prep_data <- function(huc, projection,
          lakes = nsink_prep_lakes(huc_sf, data_dir),
          fdr = nsink_prep_fdr(huc_sf, huc_raster, data_dir),
          impervious = nsink_prep_impervious(huc_sf,  huc_raster, data_dir),
+         nlcd = nsink_prep_nlcd(huc_sf, huc_raster, data_dir),
          ssurgo = nsink_prep_ssurgo(huc_sf, data_dir),
-         q = nsink_prep_q(data_dir), #names are messed up on this...
+         q = nsink_prep_q(data_dir),
          tot = nsink_prep_tot(data_dir),
          lakemorpho = nsink_prep_lakemorpho(data_dir),
          huc = huc_sf,
@@ -114,8 +117,8 @@ nsink_prep_lakes <- function(huc_sf, data_dir){
 nsink_prep_fdr <- function(huc_sf, huc_raster, data_dir){
   if(dir.exists(paste0(data_dir, "fdr"))){
     fdr <- raster::raster(paste0(data_dir, "fdr"))
-    fdr <- raster::crop(fdr, as(huc_sf, "Spatial"))
     fdr <- raster::projectRaster(fdr, huc_raster, method = "ngb")
+    fdr <- raster::crop(fdr, as(huc_sf, "Spatial"))
   } else {
     stop("The required data file does not exist.  Run nsink_get_data().")
   }
@@ -144,6 +147,30 @@ nsink_prep_impervious <- function(huc_sf, huc_raster, data_dir){
     stop("The required data file does not exist.  Run nsink_get_data().")
   }
   impervious
+}
+
+#' Prepare NLCD data for N-Sink
+#'
+#' Standardizes NLCD data by transforming data, clipping to HUC, ...
+#'
+#' @param huc_sf An sf object of the Watershed Boundaries Dataset HUC12
+#' @param huc_raster A raster object of the Watershed Boundaries Dataset HUC12
+#' @param data_dir Base directory that contains N-Sink data folders.  Data may
+#'                 be downloaded with the \code{\link{nsink_get_data}} function.
+#' @return returns a raster object of the NLCD for the huc_sf
+#' @keywords  internal
+nsink_prep_nlcd <- function(huc_sf, huc_raster, data_dir){
+  if(file.exists(paste0(data_dir, "nlcd/",
+                        as.character(huc_sf$HUC_12),
+                        "_NLCD_2011_impervious.tif"))){
+    nlcd <- raster::raster(paste0(data_dir, "imperv/",
+                                        as.character(huc_sf$HUC_12),
+                                        "_NLCD_2011_landcover.tif"))
+    nlcd <- raster::projectRaster(nlcd, huc_raster)
+  } else {
+    stop("The required data file does not exist.  Run nsink_get_data().")
+  }
+  nlcd
 }
 
 #' Prepare SSURGO data for N-Sink
