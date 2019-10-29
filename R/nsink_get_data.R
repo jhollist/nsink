@@ -5,7 +5,8 @@
 #' copies of those datasets.
 #' @param huc A character string of a HUC12 identifier.  Currently can run only a single HUC at a time.
 #' @param data_dir A directory to store N-Sink data downloads.  Defaults to
-#'                 current working directory.
+#'                 "nsink_data" inside of the current working directory.
+#'                 Created if it doesn't exist.
 #' @param force Logical to determine if files should be downloaded
 #'                       again if they already exist locally.
 #' @export
