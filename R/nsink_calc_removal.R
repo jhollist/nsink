@@ -33,9 +33,9 @@
 #' nsink_calc_removal(niantic_nsink_data)
 #' }
 nsink_calc_removal <- function(input_data){
-  if(all(names(input_data) %in% c("streams","lakes", "fdr", "impervious", "ssurgo",
-                            "q", "tot", "huc", "raster_template",
-                            "lakemorpho"))){
+  if(all(names(input_data) %in% c("streams","lakes", "fdr", "impervious",
+                                  "nlcd", "ssurgo","q", "tot", "huc",
+                                  "raster_template", "lakemorpho"))){
 
     removal <- list(land_removal = nsink_calc_land_removal(input_data[c("ssurgo",
                                                          "impervious",
@@ -103,6 +103,10 @@ nsink_calc_land_removal <- function(input_data){
                                             input_data$raster_template,
                                             field = "n_removal", background = 0,
                                             fun = "max")
+  land_removal_vec <- group_by(land_removal, hydric_pct)
+  land_removal_vec <- summarize(land_removal_vec, n_removal = unique(n_removal))
+  land_removal_vec <- ungroup(land_removal_vec)
+  #Need to yank imperv from vec and figure out how to return this
   impervious <- input_data$impervious
   impervious[impervious > 0] <- NA
   impervious[!is.na(impervious)] <- 1

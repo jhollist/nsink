@@ -162,8 +162,8 @@ nsink_prep_impervious <- function(huc_sf, huc_raster, data_dir){
 nsink_prep_nlcd <- function(huc_sf, huc_raster, data_dir){
   if(file.exists(paste0(data_dir, "nlcd/",
                         as.character(huc_sf$HUC_12),
-                        "_NLCD_2011_impervious.tif"))){
-    nlcd <- raster::raster(paste0(data_dir, "imperv/",
+                        "_NLCD_2011_landcover.tif"))){
+    nlcd <- raster::raster(paste0(data_dir, "nlcd/",
                                         as.character(huc_sf$HUC_12),
                                         "_NLCD_2011_landcover.tif"))
     nlcd <- raster::projectRaster(nlcd, huc_raster)

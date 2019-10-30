@@ -11,7 +11,8 @@ nsink_get_data(huc, data_dir = normalizePath("nsink_data"),
 \item{huc}{A character string of a HUC12 identifier.  Currently can run only a single HUC at a time.}
 
 \item{data_dir}{A directory to store N-Sink data downloads.  Defaults to
-current working directory.}
+"nsink_data" inside of the current working directory.
+Created if it doesn't exist.}
 
 \item{force}{Logical to determine if files should be downloaded
 again if they already exist locally.}

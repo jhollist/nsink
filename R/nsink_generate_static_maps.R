@@ -10,8 +10,17 @@
 #'                 \code{\link{nsink_prep_data}} function. A new folder named
 #'                 "static_maps" with the .tif files will be created in this
 #'                 folder.
+#' @param custom_load Place holder for a custom loading index.  Currently uses
+#'                    values culled from the literature.  Custom loads are not yet
+#'                    implemented
+#' @export
+#' @examples
+#' nsink_generate_static_maps(palmer_prep_data, palmer_removal, "palmer_nsink_data/")
+#'
 nsink_generate_static_maps <- function(input_data, removal,
-                                       data_dir = normalizePath("nsink_data/")){
+                                       data_dir = normalizePath("nsink_data/"),
+                                       custom_load = NULL){
+  browser()
   # Check for/create/clean data directory
   data_dir <- nsink_fix_data_directory(data_dir)
 
@@ -25,7 +34,23 @@ nsink_generate_static_maps <- function(input_data, removal,
   raster::writeRaster()
 }
 
-nsink_generate_n_loading_index <- function(){}
+#' Generates the Nitrogen Loading Index
+#'
+#' This function reclassifies the NLCD data to an index of Nitrogen loading.
+#' The index ranges from 0 to 1.
+#'
+#' @param input_data list of input data
+#' @param custom_load Place holder for a custom loading index.  Currently uses
+#'                    values culled from the literature and stored as a dataset,
+#'                    \code{n_load_idx_lookup}, which is loaded with
+#'                    \code{nsink}.  Custom loads are not yet implemented.
+#' @keywords internal
+nsink_generate_n_loading_index <- function(input_data, custom_load = NULL){
+  browser()
+  nlcd <- input_data$nlcd
+  #Need to add in NLCD codes
+
+}
 
 nsink_generate_n_removal_heatmap <- function(){}
 
