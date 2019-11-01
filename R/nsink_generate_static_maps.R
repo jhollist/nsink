@@ -15,8 +15,15 @@
 #'                    implemented
 #' @export
 #' @examples
-#' nsink_generate_static_maps(palmer_prep_data, palmer_removal, "palmer_nsink_data/")
-#'
+#' \dontrun{
+#' library(nsink)
+#' niantic_huc <- nsink_get_huc_id("Niantic River")$huc_12
+#' niantic_data <- nsink_get_data(niantic_huc)
+#' aea <- "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=23 +lon_0=-96 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
+#' niantic_nsink_data <- nsink_prep_data(niantic_huc, projection = aea)
+#' niantic_removal <- nsink_calc_removal(niantic_nsink_data)
+#' nsink_generate_static_maps(niantic_nsink_data, niantic_removal, "palmer_nsink_data/")
+#'}
 nsink_generate_static_maps <- function(input_data, removal,
                                        data_dir = normalizePath("nsink_data/"),
                                        custom_load = NULL){
@@ -46,11 +53,23 @@ nsink_generate_static_maps <- function(input_data, removal,
 #'                    \code{nsink}.  Custom loads are not yet implemented.
 #' @keywords internal
 nsink_generate_n_loading_index <- function(input_data, custom_load = NULL){
-  browser()
+
   nlcd <- input_data$nlcd
   #Need to add in NLCD codes
-
+  rcl_m <- matrix(cbind(n_load_idx_lookup$codes,
+                        n_load_idx_lookup$n_loading_index), ncol = 2)
+  raster::reclassify(nlcd, rcl_m)
 }
 
-nsink_generate_n_removal_heatmap <- function(){}
+#' Generate Nitrogen Removal Heatmap
+#'
+#' Generates the heatmap
+#' @param removal
+#' @param density
+#' @param ncpu
+#' @examples
+#' @keywords internal
+nsink_generate_n_removal_heatmap <- function(removal, density, ncpu){
+  browser()
+}
 

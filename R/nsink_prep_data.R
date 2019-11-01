@@ -166,7 +166,7 @@ nsink_prep_nlcd <- function(huc_sf, huc_raster, data_dir){
     nlcd <- raster::raster(paste0(data_dir, "nlcd/",
                                         as.character(huc_sf$HUC_12),
                                         "_NLCD_2011_landcover.tif"))
-    nlcd <- raster::projectRaster(nlcd, huc_raster)
+    nlcd <- raster::projectRaster(nlcd, huc_raster, method = "ngb")
   } else {
     stop("The required data file does not exist.  Run nsink_get_data().")
   }
