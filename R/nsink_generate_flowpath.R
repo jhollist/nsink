@@ -24,11 +24,13 @@
 #' niantic_nsink_data <- nsink_prep_data(niantic_huc, projection = aea)
 #' removal_rasters <- getnsink_calc_removal(niantic_nsink_data)
 #' pt <- c(1948121,2295822)
+#' pt <- c(1956582, 2287697)
 #' start_loc <- st_sf(st_sfc(st_point(c(pt)), crs = aea))
-#' fp <- nsink_generate_flowpath(start_loc, niantic_nsink_data)
+#' fp <- nsink_generate_flowpath(start_loc, niantic_nsink_data, method = "hybrid")
 #' }
 nsink_generate_flowpath <- function(starting_location, input_data,
                                     method = c("raster", "hybrid")){
+
   method <- match.arg(method)
   if(st_crs(starting_location) != st_crs(input_data$streams)){
     stop(paste0("The coordinate reference systems for your starting location and the input data do not match.  Re-project to a common reference system."))
@@ -37,18 +39,24 @@ nsink_generate_flowpath <- function(starting_location, input_data,
   fp <- raster::xyFromCell(input_data$raster_template, fp)
   fp <- st_sfc(st_linestring(fp), crs =st_crs(input_data$streams))
   fp_ends <- nsink_get_flowpath_ends(fp, input_data$streams)
-  fp_flowlines <- nsink_get_flowline(fp_ends, input_data$streams, input_data$tot)
-  combo_fp <- rbind(fp_ends[1], select(fp_flowlines, geometry))
+  # This is for cases where flowpath doesn't intersect existing flowlines
+  if(fp_ends[1] != fp_ends[2]){
+    fp_flowlines <- nsink_get_flowline(fp_ends, input_data$streams, input_data$tot)
+    combo_fp <- rbind(fp_ends[1], select(fp_flowlines, geometry))
+  } else {
+    fp_flowlines <- NULL
+    combo_fp <- fp_ends[1]
+  }
   combo_fp <- unique(st_coordinates(combo_fp)[,-3])
   combo_fp <- st_linestring(combo_fp)
   combo_fp <- st_sfc(combo_fp)
   combo_fp <- st_sf(combo_fp, crs =  st_crs(input_data$streams))
-  combo_fp
   if(method == "raster"){return(combo_fp)}
   if(method == "hybrid"){
     fp_ends <- st_sfc(fp_ends)
     fp_ends <- st_sf(fp_ends, crs = st_crs(input_data$streams))
-    return(list(flowpath_ends = fp_ends, flowpath_network = fp_flowlines))
+    return(list(flowpath_ends = fp_ends, flowpath_network = fp_flowlines,
+                combination_flowpath = combo_fp))
   }
 }
 
@@ -91,7 +99,6 @@ nsink_get_flowpath_ends <- function(flowpath, streams){
 #' @importFrom igraph graph_from_data_frame shortest_paths edge_attr
 #' @keywords internal
 nsink_get_flowline <- function(flowpath_ends, streams, tot){
-
   streams_tot <- left_join(streams, tot)
   streams_df <- select(streams_tot, fromnode, tonode, stream_comid)
   st_geometry(streams_df) <- NULL
@@ -109,7 +116,7 @@ nsink_get_flowline <- function(flowpath_ends, streams, tot){
 
   fp_flowlines <- slice(streams, match(fl_comids, streams$stream_comid))
   fp_flowlines <- st_snap(fp_flowlines, fp_end_pt, tolerance = 1)
-  fp_flowlines <- st_split(fp_flowlines, st_combine(fp_end_pt))
+  fp_flowlines <- lwgeom::st_split(fp_flowlines, st_combine(fp_end_pt))
   fp_flowlines <- st_collection_extract(fp_flowlines, "LINESTRING")
   fp_flowlines <- filter(fp_flowlines, !st_overlaps(st_snap(fp_flowlines,
                                                             flowpath_ends[1],

@@ -35,10 +35,12 @@
 #' pt <- c(1948121,2295822)
 #' start_loc <- st_sf(st_sfc(st_point(c(pt)), crs = aea))
 #' fp <- nsink_generate_flowpath(start_loc, niantic_nsink_data)
-#' fp_hybrid <- nsink_generate_flowpath(start_loc, niantic_nsink_data,
-#'                                      method = "hybrid")
 #' nsink_summarize_flowpath(fp, removal)
-#' nsink_summarize_flowpath(fp_hybrid, removal, method = "hybrid")
+#' pt <- c(1956582, 2287697)
+#' start_loc <- st_sf(st_sfc(st_point(c(pt)), crs = aea))
+#' fp <- nsink_generate_flowpath(start_loc, niantic_nsink_data,
+#'                                      method = "hybrid")
+#' nsink_summarize_flowpath(fp, removal, method = "hybrid")
 #' }
 #' TODO Raster method: Deal with adjacent hydrics, prior to entering stream
 #'      network with different removal by combining and averaging?  If I get
@@ -69,28 +71,17 @@ nsink_summarize_flowpath <- function(flowpath, removal,
   } else if(method == "hybrid"){
 
     #TODO extract land removal for flowpath ends
-    #browser()
-    #vel <- velox(removal$land_removal)
-    #land_removal <- vel$extract(st_sf(flowpath$flowpath_ends[[1]]))
-    land_removal <- raster::extract(removal$land_removal, st_sf(flowpath$flowpath_ends[[1]]),
+    browser()
+    land_removal <- raster::extract(removal$land_removal,
+                                    st_sf(flowpath$flowpath_ends[[1]]),
                             along = TRUE)[[1]]
-    #vel <- velox(removal$raster_method[[2]])
-    #land_removal_type <- vel$extract(st_sf(flowpath$flowpath_ends[[1]]))
 
-    land_removal_type <- raster::extract(removal$raster_method[[2]],
-                                         st_sf(flowpath$flowpath_ends[[1]]),
-                                         along = TRUE)[[1]]
-    # This should removes hydric cells after the flowpath has entered a lake
-    # This can happen as a result of the rasterization.
-    # In theory, once a flowpath has entered the hydrologic network it should not
-    # leave the network to then flow over land, which is what would need to happen
-    # if a hydric soils are encountered after being in a lake.
-    idx <- zoo::rollapply(land_removal_type, 2, function(x) ifelse(x[1] == 3 & x[2] == 1, TRUE, FALSE))
-    idx <- c(FALSE,idx)
-    land_removal_type[which(idx)] <- 3
     land_removal_df <- data.frame(stream_comid = 0, lake_comid = 0,
-                                  n_removal = land_removal, segment_type = land_removal_type)
+                                  n_removal = land_removal, segment_type = NA)
     land_removal_df <- mutate(land_removal_df,
+                              segment_type = case_when(n_removal > 0 ~
+                                                         1,
+                                                       TRUE ~ 3),
                               n_removal = case_when(is.na(n_removal) ~ 0,
                                                        segment_type == 3 ~
                                                          0,
@@ -99,22 +90,29 @@ nsink_summarize_flowpath <- function(flowpath, removal,
                                                                           n_removal)))
 
     #TODO get per segment removal from network
-    n_removal_df <- select(st_drop_geometry(removal$network_removal), stream_comid, n_removal)
-    flowpath_removal <- left_join(flowpath$flowpath_network, n_removal_df)
-    flowpath_removal_df <- st_drop_geometry(flowpath_removal)
-    flowpath_removal_df <- unique(flowpath_removal_df)
-    flowpath_removal_df <- mutate(flowpath_removal_df,
-                                  segment_type = case_when(ftype == "ArtificialPath" ~
-                                                              "Lake/Pond",
-                                                           ftype == "StreamRiver" ~
-                                                              "Stream",
-                                                            TRUE ~ "Unknown"),
-                                  length = lengthkm*1000)
-    flowpath_removal_df <- select(flowpath_removal_df, stream_comid, lake_comid,
-                                  n_removal, segment_type, length)
-    flowpath_removal_df <- mutate(flowpath_removal_df,
-                                  segment_id = nsink_create_segment_ids(paste(segment_type,
-                                                                              n_removal)))
+    if(!is.null(flowpath$flowpath_network)){
+      n_removal_df <- select(st_drop_geometry(removal$network_removal),
+                             stream_comid, n_removal)
+      flowpath_removal <- left_join(flowpath$flowpath_network, n_removal_df)
+      flowpath_removal_df <- st_drop_geometry(flowpath_removal)
+      flowpath_removal_df <- unique(flowpath_removal_df)
+      flowpath_removal_df <- mutate(flowpath_removal_df,
+                                    segment_type =
+                                      case_when(ftype == "ArtificialPath" ~
+                                                  "Lake/Pond",
+                                                ftype == "StreamRiver" ~
+                                                  "Stream",
+                                                TRUE ~ "Unknown"),
+                                    length = lengthkm*1000)
+      flowpath_removal_df <- select(flowpath_removal_df, stream_comid,
+                                    lake_comid, n_removal, segment_type, length)
+      flowpath_removal_df <- mutate(flowpath_removal_df,
+                                    segment_id =
+                                      nsink_create_segment_ids(paste(segment_type,
+                                                                     n_removal)))
+    } else {
+      flowpath_removal_df <- NULL
+    }
     # TODO NA in n_removal caused by missing time of travel.  See todo in nsink_calc_removal
     # TODO add it all together
     removal_summary <- nsink_create_summary_hybrid(land_removal_df, flowpath_removal_df)
@@ -226,7 +224,6 @@ nsink_create_summary <- function(removal_vector, type_vector){
 #' @import dplyr
 #' @keywords internal
 nsink_create_summary_hybrid <- function(land_removal, network_removal){
-
   land_removal_df <- mutate(land_removal,
                             segment_type = case_when(segment_type == 0 ~ "No Removal",
                                                      segment_type == 1 ~ "Hydric",
@@ -237,9 +234,13 @@ nsink_create_summary_hybrid <- function(land_removal, network_removal){
                                n_removal = max(n_removal))
   land_removal_df <- ungroup(land_removal_df)
 
-  network_removal_df <- select(network_removal, segment_id, segment_type,
+  if(!is.null(network_removal)){
+    network_removal_df <- select(network_removal, segment_id, segment_type,
                                length, n_removal)
-  flowpath_removal_df <- rbind(land_removal_df, network_removal_df)
+    flowpath_removal_df <- rbind(land_removal_df, network_removal_df)
+  } else {
+    flowpath_removal_df <- land_removal_df
+  }
   # Converting NA removal to 0 - need to have alternative.
   # see nsink_calc_removal TODO
   flowpath_removal_df <- mutate(flowpath_removal_df, n_removal =
