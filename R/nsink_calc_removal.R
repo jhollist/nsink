@@ -39,7 +39,12 @@ nsink_calc_removal <- function(input_data){
 
     removal <- list(land_removal = nsink_calc_land_removal(input_data[c("ssurgo",
                                                          "impervious",
-                                                         "raster_template")]),
+                                                         "raster_template")],
+                                                         method = "raster"),
+    land_removal_v = nsink_calc_land_removal(input_data[c("ssurgo",
+                                                        "impervious",
+                                                        "raster_template")],
+                                           method = "hybrid"),
     stream_removal_r = nsink_calc_stream_removal(input_data[c("streams",
                                                              "q",
                                                              "tot",
@@ -76,7 +81,7 @@ nsink_calc_removal <- function(input_data){
                                                 huc = input_data$huc))
 
     return(list(raster_method = raster::stack(merged_removal, merged_type),
-                land_removal = removal$land_removal,
+                land_removal = removal$land_removal_v,
                 network_removal = rbind(removal$stream_removal_v,
                                         removal$lake_removal_v)))
   } else {
@@ -90,28 +95,36 @@ nsink_calc_removal <- function(input_data){
 #'
 #' @param input_data A named list with "ssurgo", "impervious", "lakes", and
 #'                   "raster_template".
+#' @param method Character indicating which type of data to return.  See
+#'             \code{\link{nsink_calc_removal}} for detals
 #' @return raster of land based nitrogen removal
 #' @import dplyr sf
 #' @keywords internal
-nsink_calc_land_removal <- function(input_data){
+nsink_calc_land_removal <- function(input_data, method = c("raster", "hybrid")){
+  method <- match.arg(method)
   land_removal <- mutate(input_data$ssurgo,
                                 n_removal = 0.8 * (hydric_pct/100))
   land_removal <- mutate(land_removal, n_removal = case_when(n_removal == 0 ~
                                                           NA_real_,
                                                         TRUE ~ n_removal))
+  land_removal <- group_by(land_removal, hydric_pct)
+  land_removal <- summarize(land_removal, n_removal = unique(n_removal))
+  land_removal <- ungroup(land_removal)
   land_removal_rast <- fasterize::fasterize(land_removal,
                                             input_data$raster_template,
                                             field = "n_removal", background = 0,
                                             fun = "max")
-  land_removal_vec <- group_by(land_removal, hydric_pct)
-  land_removal_vec <- summarize(land_removal_vec, n_removal = unique(n_removal))
-  land_removal_vec <- ungroup(land_removal_vec)
+
   #Need to yank imperv from vec and figure out how to return this
   impervious <- input_data$impervious
   impervious[impervious > 0] <- NA
   impervious[!is.na(impervious)] <- 1
-
-  raster::mask(land_removal_rast, impervious)
+  imp_land_removal <- raster::mask(land_removal_rast, impervious)
+  if(method == "raster"){
+    return(imp_land_removal)
+  } else if(method == "hybrid"){
+    st_as_sf(raster::rasterToPolygons(imp_land_removal, dissolve = TRUE))
+  }
 }
 
 #' Calculates stream-based nitrogen removal

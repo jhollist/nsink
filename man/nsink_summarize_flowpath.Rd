@@ -45,9 +45,11 @@ removal <- nsink_calc_removal(niantic_nsink_data)
 pt <- c(1948121,2295822)
 start_loc <- st_sf(st_sfc(st_point(c(pt)), crs = aea))
 fp <- nsink_generate_flowpath(start_loc, niantic_nsink_data)
-fp_hybrid <- nsink_generate_flowpath(start_loc, niantic_nsink_data,
-                                     method = "hybrid")
 nsink_summarize_flowpath(fp, removal)
+pt <- c(1956582, 2287697)
+start_loc <- st_sf(st_sfc(st_point(c(pt)), crs = aea))
+fp <- nsink_generate_flowpath(start_loc, niantic_nsink_data,
+                                     method = "hybrid")
 nsink_summarize_flowpath(fp, removal, method = "hybrid")
 }
 TODO Raster method: Deal with adjacent hydrics, prior to entering stream

@@ -55,8 +55,7 @@ nsink_generate_flowpath <- function(starting_location, input_data,
   if(method == "hybrid"){
     fp_ends <- st_sfc(fp_ends)
     fp_ends <- st_sf(fp_ends, crs = st_crs(input_data$streams))
-    return(list(flowpath_ends = fp_ends, flowpath_network = fp_flowlines,
-                combination_flowpath = combo_fp))
+    return(list(flowpath_ends = fp_ends, flowpath_network = fp_flowlines))
   }
 }
 

@@ -71,7 +71,13 @@ nsink_summarize_flowpath <- function(flowpath, removal,
   } else if(method == "hybrid"){
 
     #TODO extract land removal for flowpath ends
+    #TODO Nov 20, 2019 - get flowpath ends and length and removal of intersecting land removal
     browser()
+
+    # The following line pulls out the removals and returns those on the lines.
+    # Need to join this with the rest of the land removal flowpath that is in impervious
+    st_intersection(removal$land_removal, flowpath$flowpath_ends[1,])
+
     land_removal <- raster::extract(removal$land_removal,
                                     st_sf(flowpath$flowpath_ends[[1]]),
                             along = TRUE)[[1]]
