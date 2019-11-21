@@ -102,9 +102,19 @@ nsink_generate_n_removal_heatmap <- function(input_data, removal, fact, ncpu){
                                                    function(x)
                                                      fp_removal(x, input_data,
                                                                 removal)))
+  num_pts <- round(st_area(input_data$huc)/(30*30))
+  interp_points <- as(st_sample(input_data$huc, num_pts ,type = "regular"),
+                      "Spatial")
+  interp_points <- sp::SpatialPixels(interp_points)
+  #interp_points <- st_sf(interp_points, data = data.frame(fp_removal = NA))
   #try gstat::idw
+  interpolated_pts <- gstat::idw(fp_removal ~ 1,
+                                 as(sample_pts_removal, "Spatial"),
+                                 interp_points,
+                                 idp = 1.25)
 
-
-
+  n_removal_heat_map <- raster::raster(interpolated_pts)
+  n_removal_heat_map <- raster::aggregate(n_removal_heat_map, fact = 5)
+  mapview::mapview(n_removal_heat_map)
 }
 
