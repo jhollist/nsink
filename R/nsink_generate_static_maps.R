@@ -102,7 +102,7 @@ nsink_generate_n_removal_heatmap <- function(input_data, removal, fact, ncpu){
                                                    function(x)
                                                      fp_removal(x, input_data,
                                                                 removal)))
-
+  #try gstat::idw
 
 
 
