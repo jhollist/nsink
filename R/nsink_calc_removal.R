@@ -116,10 +116,12 @@ nsink_calc_land_removal <- function(input_data, method = c("raster", "hybrid")){
                                             fun = "max")
 
   #Need to yank imperv from vec and figure out how to return this
+
   impervious <- input_data$impervious
   impervious[impervious > 0] <- NA
   impervious[!is.na(impervious)] <- 1
-  imp_land_removal <- raster::mask(land_removal_rast, impervious)
+  impervious[is.na(impervious)] <- 0
+  imp_land_removal <- land_removal_rast * impervious
   if(method == "raster"){
     return(imp_land_removal)
   } else if(method == "hybrid"){

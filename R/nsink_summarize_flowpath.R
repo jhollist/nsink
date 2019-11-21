@@ -29,7 +29,8 @@
 #' library(lwgeom)
 #' niantic_huc <- nsink_get_huc_id("Niantic River")$huc_12
 #' niantic_data <- nsink_get_data(niantic_huc)
-#' aea <- "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=23 +lon_0=-96 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
+#' aea <- "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=23 +lon_0=-96 +x_0=0 +y_0=0
+#' +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
 #' niantic_nsink_data <- nsink_prep_data(niantic_huc, projection = aea)
 #' removal <- nsink_calc_removal(niantic_nsink_data)
 #' pt <- c(1948121,2295822)
@@ -70,30 +71,21 @@ nsink_summarize_flowpath <- function(flowpath, removal,
     return(removal_summary)
   } else if(method == "hybrid"){
 
-    #TODO extract land removal for flowpath ends
-    #TODO Nov 20, 2019 - get flowpath ends and length and removal of intersecting land removal
-    browser()
-
-    # The following line pulls out the removals and returns those on the lines.
-    # Need to join this with the rest of the land removal flowpath that is in impervious
-    st_intersection(removal$land_removal, flowpath$flowpath_ends[1,])
-
-    land_removal <- raster::extract(removal$land_removal,
-                                    st_sf(flowpath$flowpath_ends[[1]]),
-                            along = TRUE)[[1]]
+    land_removal <- st_intersection(removal$land_removal, flowpath$flowpath_ends[[1]])
 
     land_removal_df <- data.frame(stream_comid = 0, lake_comid = 0,
-                                  n_removal = land_removal, segment_type = NA)
+                                  n_removal = land_removal$layer, segment_type = NA)
     land_removal_df <- mutate(land_removal_df,
                               segment_type = case_when(n_removal > 0 ~
                                                          1,
-                                                       TRUE ~ 3),
+                                                       TRUE ~ 0),
                               n_removal = case_when(is.na(n_removal) ~ 0,
-                                                       segment_type == 3 ~
+                                                       segment_type == 0 ~
                                                          0,
                                                        TRUE ~ n_removal),
                               segment_id = nsink_create_segment_ids(paste(segment_type,
-                                                                          n_removal)))
+                                                                          n_removal)),
+                              length = as.numeric(st_length(land_removal)))
 
     #TODO get per segment removal from network
     if(!is.null(flowpath$flowpath_network)){
@@ -236,7 +228,7 @@ nsink_create_summary_hybrid <- function(land_removal, network_removal){
                                                      segment_type == 2 ~ "Stream",
                                                      segment_type == 3 ~ "Lake/Pond"))
   land_removal_df <- group_by(land_removal_df, segment_id, segment_type)
-  land_removal_df <- summarize(land_removal_df, length = n()*30,
+  land_removal_df <- summarize(land_removal_df, length = sum(length),
                                n_removal = max(n_removal))
   land_removal_df <- ungroup(land_removal_df)
 
