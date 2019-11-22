@@ -109,7 +109,7 @@ nsink_generate_n_removal_heatmap <- function(input_data, removal, fact, ncpu){
 
 
 
-  num_pts <- round(st_area(input_data$huc)/(30*30))
+  num_pts <- round(st_area(input_data$huc)/(10*10))
   interp_points <- as(st_sample(input_data$huc, num_pts ,type = "regular"),
                       "Spatial")
   interp_points <- sp::SpatialPixels(interp_points)
@@ -119,14 +119,15 @@ nsink_generate_n_removal_heatmap <- function(input_data, removal, fact, ncpu){
   interpolated_pts <- gstat::idw(fp_removal ~ 1,
                                  as(sample_pts_removal, "Spatial"),
                                  interp_points,
-                                 idp = 1.25)
+                                 nmin = 5, nmax = 10,
+                                 idp = 0.5)
 
   idw_n_removal_heat_map <- raster::raster(interpolated_pts)
-  idw_n_removal_heat_map_agg <- raster::aggregate(idw_n_removal_heat_map, fact = 4)
+  idw_n_removal_heat_map_agg <- raster::aggregate(idw_n_removal_heat_map, fun = max, fact = 2)
   mapview::mapview(100-idw_n_removal_heat_map) + input_data$streams + input_data$lakes
 
   # TIN with interp::interpp
-  grid <- st_make_grid(sample_pts_removal, cellsize = 30, what = "centers") %>%
+  grid <- st_make_grid(sample_pts_removal, cellsize = c(30,30), what = "centers") %>%
     st_as_sf() %>%
     cbind(.,st_coordinates(.))
 
