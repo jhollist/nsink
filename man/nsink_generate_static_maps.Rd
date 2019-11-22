@@ -4,8 +4,7 @@
 \alias{nsink_generate_static_maps}
 \title{Generate N-Sink Static Maps for a given HUC}
 \usage{
-nsink_generate_static_maps(input_data, removal, fact,
-  data_dir = normalizePath("nsink_data/"), custom_load = NULL)
+nsink_generate_static_maps(input_data, removal, fact, custom_load = NULL)
 }
 \arguments{
 \item{input_data}{A list of input datasets created with
@@ -19,13 +18,6 @@ the input HUC.  It is used to determine the number of points,
 determined through a regular sample, to caluclate removal.  For
 instance a value of 90 would roughly equate to a point per every
 90 meters.}
-
-\item{data_dir}{Base directory that contains N-Sink data folders and prepped
-data.  Data may be downloaded with the
-\code{\link{nsink_get_data}} function and prepared with the
-\code{\link{nsink_prep_data}} function. A new folder named
-"static_maps" with the .tif files will be created in this
-folder.}
 
 \item{custom_load}{Place holder for a custom loading index.  Currently uses
 values culled from the literature.  Custom loads are not yet

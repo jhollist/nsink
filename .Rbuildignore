@@ -18,3 +18,4 @@
 ^paper.bib$
 ^paper.md$
 ^nsink_docs$
+^nsink_output$

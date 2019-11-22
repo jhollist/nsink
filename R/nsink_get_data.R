@@ -89,6 +89,9 @@ nsink_get_data <- function(huc, data_dir = normalizePath("nsink_data"),
              error = function(e) TRUE)
   }
 
+
+  #file.remove(list.files(data_dir, "*.7z",full.names = T))
+
   # Return a list with the huc and the data_dir
   list(huc = huc, data_dir = data_dir)
 }
