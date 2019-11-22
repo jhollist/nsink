@@ -141,12 +141,12 @@ nsink_calc_land_removal <- function(input_data, method = c("raster", "hybrid")){
 nsink_calc_stream_removal <- function(input_data, method = c("raster", "hybrid")){
   method <- match.arg(method)
   stream_removal <- mutate_if(input_data$streams, is.factor, as.character())
-  stream_removal <- left_join(stream_removal,
+  stream_removal <- suppressMessages(left_join(stream_removal,
                                      input_data$q,
-                                     by = c("stream_comid" = "stream_comid"))
-  stream_removal <- left_join(stream_removal,
+                                     by = c("stream_comid" = "stream_comid")))
+  stream_removal <- suppressMessages(left_join(stream_removal,
                                      input_data$tot,
-                                     by = c("stream_comid" = "stream_comid"))
+                                     by = c("stream_comid" = "stream_comid")))
   stream_removal <- filter(stream_removal, ftype != "ArtificialPath")
   # TODO When time of travel not available in NHDPlus, need to use other methods
   #      to estimate time of travel (in Kellogg et al.)
@@ -176,7 +176,8 @@ nsink_calc_stream_removal <- function(input_data, method = c("raster", "hybrid")
 #' @keywords internal
 nsink_calc_lake_removal <- function(input_data, method = c("raster", "hybrid")){
   method <- match.arg(method)
-  residence_time <- left_join(input_data$streams, input_data$tot)
+
+  residence_time <- suppressMessages(left_join(input_data$streams, input_data$tot))
   residence_time <- filter(residence_time, lake_comid > 0)
   # TODO When time of travel not available in NHDPlus, need to use other methods
   #      to calculate residence time (in Kellogg et al)
@@ -190,8 +191,8 @@ nsink_calc_lake_removal <- function(input_data, method = c("raster", "hybrid")){
   residence_time_sf <- residence_time
   st_geometry(residence_time) <- NULL
 
-  lake_removal <- left_join(input_data$lakes, input_data$lakemorpho)
-  lake_removal <- left_join(lake_removal, residence_time)
+  lake_removal <- suppressMessages(left_join(input_data$lakes, input_data$lakemorpho))
+  lake_removal <- suppressMessages(left_join(lake_removal, residence_time))
   lake_removal <- mutate(lake_removal, meandused = case_when(meandused < 0 ~ NA_real_,
                                                       TRUE ~ meandused))
   lake_removal <- mutate(lake_removal, n_removal =
@@ -203,14 +204,14 @@ nsink_calc_lake_removal <- function(input_data, method = c("raster", "hybrid")){
 
 
   st_geometry(lake_removal) <- NULL
-  lake_removal_flowpath <- left_join(residence_time_sf, lake_removal)
+  lake_removal_flowpath <- suppressMessages(left_join(residence_time_sf, lake_removal))
   if(method == "raster"){
     return(fasterize::fasterize(lake_removal_sf, input_data$raster_template,
                        field = "n_removal", fun = "max"))
   } else if (method == "hybrid"){
     comids <- select(input_data$streams, stream_comid, lake_comid)
     st_geometry(comids) <- NULL
-    lake_removal_flowpath <- left_join(lake_removal_flowpath, comids)
+    lake_removal_flowpath <- suppressMessages(left_join(lake_removal_flowpath, comids))
     lake_removal_flowpath <- select(lake_removal_flowpath, stream_comid, lake_comid, gnis_name,
                            ftype, n_removal)
     return(lake_removal_flowpath)

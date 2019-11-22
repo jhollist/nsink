@@ -9,15 +9,12 @@
 #'             determined through a regular sample, to caluclate removal.  For
 #'             instance a value of 90 would roughly equate to a point per every
 #'             90 meters.
-#' @param data_dir Base directory that contains N-Sink data folders and prepped
-#'                 data.  Data may be downloaded with the
-#'                 \code{\link{nsink_get_data}} function and prepared with the
-#'                 \code{\link{nsink_prep_data}} function. A new folder named
-#'                 "static_maps" with the .tif files will be created in this
-#'                 folder.
 #' @param custom_load Place holder for a custom loading index.  Currently uses
 #'                    values culled from the literature.  Custom loads are not yet
 #'                    implemented
+#' @return This function returns a list or rasters: nitrogen removal efficiency,
+#'         nitrogen loading index, nitrogen transport efficiency, and the
+#'         nitrogen delivery index.
 #' @export
 #' @examples
 #' \dontrun{
@@ -28,15 +25,11 @@
 #' +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
 #' niantic_nsink_data <- nsink_prep_data(niantic_huc, projection = aea)
 #' niantic_removal <- nsink_calc_removal(niantic_nsink_data)
-#' nsink_generate_static_maps(niantic_nsink_data, niantic_removal, fact = 3000,
+#' nsink_generate_static_maps(niantic_nsink_data, niantic_removal, fact = 300,
 #'                            "nsink_data/")
 #'}
 nsink_generate_static_maps <- function(input_data, removal, fact,
-                                       data_dir = normalizePath("nsink_data/"),
                                        custom_load = NULL){
-
-  # Check for/create/clean data directory
-  data_dir <- nsink_fix_data_directory(data_dir)
 
   # Create static rasters
   removal_map <- removal$raster_method[["layer.1"]]
@@ -44,10 +37,15 @@ nsink_generate_static_maps <- function(input_data, removal, fact,
   n_delivery_heat <- 100 - nsink_generate_n_removal_heatmap(input_data,
                                                             removal, fact,
                                                             ncpu = 1)
+  n_delivery_heat <- raster::projectRaster(n_delivery_heat,
+                                           input_data$raster_template)
+  n_load_idx <- raster::projectRaster(n_load_idx,input_data$raster_template)
   n_delivery_index <- n_load_idx * n_delivery_heat
-  browser()
-  # Write out static rasters to tif
-  raster::writeRaster()
+
+  list(removal_effic = removal_map,
+       loading_idx = n_load_idx,
+       transport_effic = n_delivery_heat,
+       delivery_idx = n_delivery_index)
 }
 
 #' Generates the Nitrogen Loading Index
@@ -64,7 +62,6 @@ nsink_generate_static_maps <- function(input_data, removal, fact,
 nsink_generate_n_loading_index <- function(input_data, custom_load = NULL){
 
   nlcd <- input_data$nlcd
-  #Need to add in NLCD codes
   rcl_m <- matrix(cbind(n_load_idx_lookup$codes,
                         n_load_idx_lookup$n_loading_index), ncol = 2)
   raster::reclassify(nlcd, rcl_m)

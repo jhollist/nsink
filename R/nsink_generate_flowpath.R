@@ -98,7 +98,7 @@ nsink_get_flowpath_ends <- function(flowpath, streams){
 #' @importFrom igraph graph_from_data_frame shortest_paths edge_attr
 #' @keywords internal
 nsink_get_flowline <- function(flowpath_ends, streams, tot){
-  streams_tot <- left_join(streams, tot)
+  streams_tot <- suppressMessages(left_join(streams, tot))
   streams_df <- select(streams_tot, fromnode, tonode, stream_comid)
   st_geometry(streams_df) <- NULL
   streams_df <- mutate_all(streams_df, as.character)

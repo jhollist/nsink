@@ -91,7 +91,7 @@ nsink_summarize_flowpath <- function(flowpath, removal,
     if(!is.null(flowpath$flowpath_network)){
       n_removal_df <- select(st_drop_geometry(removal$network_removal),
                              stream_comid, n_removal)
-      flowpath_removal <- left_join(flowpath$flowpath_network, n_removal_df)
+      flowpath_removal <- suppressMessages(left_join(flowpath$flowpath_network, n_removal_df))
       flowpath_removal_df <- st_drop_geometry(flowpath_removal)
       flowpath_removal_df <- unique(flowpath_removal_df)
       flowpath_removal_df <- mutate(flowpath_removal_df,
