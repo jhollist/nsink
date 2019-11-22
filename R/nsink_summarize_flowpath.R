@@ -222,6 +222,7 @@ nsink_create_summary <- function(removal_vector, type_vector){
 #' @import dplyr
 #' @keywords internal
 nsink_create_summary_hybrid <- function(land_removal, network_removal){
+
   land_removal_df <- mutate(land_removal,
                             segment_type = case_when(segment_type == 0 ~ "No Removal",
                                                      segment_type == 1 ~ "Hydric",
@@ -232,6 +233,18 @@ nsink_create_summary_hybrid <- function(land_removal, network_removal){
                                n_removal = max(n_removal))
   land_removal_df <- ungroup(land_removal_df)
 
+  wgt_avg_removal <- function(length, removal){
+    sum(length*removal, na.rm = TRUE)/sum(length, na.rm = TRUE)
+  }
+
+  land_removal_df <- group_by(land_removal_df, segment_type)
+  land_removal_df <- summarize(land_removal_df,
+                               segment_id = max(segment_id),
+                               n_removal = wgt_avg_removal(length, n_removal),
+                               length = sum(length))
+  land_removal_df <- ungroup(land_removal_df)
+  land_removal_df <- select(land_removal_df, segment_id, segment_type, length,
+                            n_removal)
   if(!is.null(network_removal)){
     network_removal_df <- select(network_removal, segment_id, segment_type,
                                length, n_removal)
