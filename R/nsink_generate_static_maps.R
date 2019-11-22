@@ -87,8 +87,12 @@ nsink_generate_n_loading_index <- function(input_data, custom_load = NULL){
 #' @keywords internal
 nsink_generate_n_removal_heatmap <- function(input_data, removal, fact, ncpu){
   browser()
+  fact <- 300
   num_pts <- round(st_area(input_data$huc)/(fact*fact))
   sample_pts <- st_sample(input_data$huc, num_pts ,type = "regular")
+  #bnd_pts <- st_cast(st_geometry(input_data$huc), "POINT")
+  #sample_pts <- rbind(st_sf(bnd_pts), st_sf(sample_pts))
+  #sample_pts <- cbind(sample_pts, st_coordinates(sample_pts))
 
   fp_removal <- function(pt, input_data, removal){
     pt <- st_sf(st_sfc(pt, crs = st_crs(input_data$huc)))
@@ -102,19 +106,57 @@ nsink_generate_n_removal_heatmap <- function(input_data, removal, fact, ncpu){
                                                    function(x)
                                                      fp_removal(x, input_data,
                                                                 removal)))
+
+
+
   num_pts <- round(st_area(input_data$huc)/(30*30))
   interp_points <- as(st_sample(input_data$huc, num_pts ,type = "regular"),
                       "Spatial")
   interp_points <- sp::SpatialPixels(interp_points)
-  #interp_points <- st_sf(interp_points, data = data.frame(fp_removal = NA))
+  interp_points <- st_sf(interp_points, data = data.frame(fp_removal = NA))
+
   #try gstat::idw
   interpolated_pts <- gstat::idw(fp_removal ~ 1,
                                  as(sample_pts_removal, "Spatial"),
                                  interp_points,
                                  idp = 1.25)
 
-  n_removal_heat_map <- raster::raster(interpolated_pts)
-  n_removal_heat_map <- raster::aggregate(n_removal_heat_map, fact = 5)
-  mapview::mapview(n_removal_heat_map)
+  idw_n_removal_heat_map <- raster::raster(interpolated_pts)
+  idw_n_removal_heat_map_agg <- raster::aggregate(idw_n_removal_heat_map, fact = 4)
+  mapview::mapview(100-idw_n_removal_heat_map) + input_data$streams + input_data$lakes
+
+  # TIN with interp::interpp
+  grid <- st_make_grid(sample_pts_removal, cellsize = 30, what = "centers") %>%
+    st_as_sf() %>%
+    cbind(.,st_coordinates(.))
+
+  tin_n_removal <- interp::interpp(x = st_coordinates(sample_pts_removal)[,1],
+                  y = st_coordinates(sample_pts_removal)[,2],
+                  z = sample_pts_removal$fp_removal,
+                  xo = grid$X,
+                  yo = grid$Y,
+                  duplicate = "strip")
+
+  tin_n_removal_heat_map <-raster::rasterFromXYZ(data.frame(tin_n_removal),
+                                                 res = 30,crs = input_data$raster_template)
+
+  # Spline
+  grid <- st_make_grid(sample_pts_removal, cellsize = c(30, 30), what = "centers") %>%
+    st_as_sf() %>%
+    cbind(., st_coordinates(.))
+
+  library(mgcv)
+  sample_pts_removal <- cbind(sample_pts_removal, st_coordinates(sample_pts_removal))
+  gam_spline <- gam(fp_removal ~ s(X, Y, k = 100), data = sample_pts_removal, method = "REML")
+  grid$gam_spline <- 100 - predict(gam_spline, newdata = grid, type = "response")
+
+  spline_n_removal_heat_map <- grid %>%
+    st_set_geometry(NULL) %>%
+    select(X, Y, gam_spline) %>%
+    raster::rasterFromXYZ(crs = raster::crs(input_data$raster_template)) %>%
+    raster::mask(input_data$huc)
+
+  mapview::mapview(spline_n_removal_heat_map) + input_data$streams + input_data$lakes
+
 }
 
