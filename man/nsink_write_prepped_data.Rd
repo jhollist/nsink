@@ -4,7 +4,7 @@
 \alias{nsink_write_prepped_data}
 \title{Write prepped data to files}
 \usage{
-nsink_write_prepped_data(prepped_data, output_folder, force)
+nsink_write_prepped_data(prepped_data, output_folder)
 }
 \arguments{
 \item{prepped_data}{A list of prepped data, as output by

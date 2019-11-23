@@ -4,7 +4,7 @@
 \alias{nsink_write_static_maps}
 \title{Write static maps to files}
 \usage{
-nsink_write_static_maps(static_maps, output_folder, force)
+nsink_write_static_maps(static_maps, output_folder)
 }
 \arguments{
 \item{static_maps}{A list of static maps, as output by
