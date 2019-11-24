@@ -33,21 +33,28 @@ nsink_build <- function(huc, projection,
   output_folder <- nsink_fix_data_directory(output_folder)
 
   # Get raw data
+  message("Getting data...")
   nsink_raw_data <- nsink_get_data(huc = huc, data_dir = output_folder,
                                    force = force)
   # Prep raw data
+  message("Prepping data...")
   nsink_prepped_data <- nsink_prep_data(huc = huc, projection = projection,
                                         data_dir = output_folder)
   # Calculate nitrogen removal
+  message("Calculating removal...")
   nsink_removal <- nsink_calc_removal(nsink_prepped_data)
 
   # Generate the static maps
+  message("Creating static maps...")
   nsink_static_maps <- nsink_generate_static_maps(
     input_data = nsink_prepped_data, removal = nsink_removal, fact = fact)
 
   # Write everything out to a folder
+  message("Writing files...")
   nsink_write_prepped_data(nsink_prepped_data, output_folder)
   nsink_write_static_maps(nsink_static_maps, output_folder)
+
+  beepr::beep(8)
 }
 
 #' Write prepped data to files
