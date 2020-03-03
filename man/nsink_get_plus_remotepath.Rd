@@ -4,8 +4,11 @@
 \alias{nsink_get_plus_remotepath}
 \title{Get remote path for NHDPlus components}
 \usage{
-nsink_get_plus_remotepath(vpu, component = c("NHDSnapshot", "FdrFac",
-  "EROMExtension", "WBDSnapshot", "NHDPlusAttributes"))
+nsink_get_plus_remotepath(
+  vpu,
+  component = c("NHDSnapshot", "FdrFac", "EROMExtension", "WBDSnapshot",
+    "NHDPlusAttributes")
+)
 }
 \arguments{
 \item{vpu}{Vector processing unit for NHDPlus}

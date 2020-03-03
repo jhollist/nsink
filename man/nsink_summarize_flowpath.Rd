@@ -4,8 +4,12 @@
 \alias{nsink_summarize_flowpath}
 \title{Summarize nitrogen removal along a flowpath}
 \usage{
-nsink_summarize_flowpath(flowpath, removal, method = c("raster",
-  "hybrid"), filter_window = 3)
+nsink_summarize_flowpath(
+  flowpath,
+  removal,
+  method = c("raster", "hybrid"),
+  filter_window = 3
+)
 }
 \arguments{
 \item{flowpath}{a flowpath to summarize nitrogen removal}

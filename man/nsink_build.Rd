@@ -4,9 +4,13 @@
 \alias{nsink_build}
 \title{Build out required datasets for N-Sink}
 \usage{
-nsink_build(huc, projection,
-  output_folder = normalizePath("nsink_output"), force = FALSE,
-  fact = 300)
+nsink_build(
+  huc,
+  projection,
+  output_folder = normalizePath("nsink_output"),
+  force = FALSE,
+  fact = 300
+)
 }
 \arguments{
 \item{huc}{A character with the 12 digit HUC ID.  Maybe searched with

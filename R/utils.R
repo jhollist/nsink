@@ -31,8 +31,10 @@ nsink_get_plus_remotepath <- function (vpu, component = c("NHDSnapshot",
                                                           "WBDSnapshot",
                                                           "NHDPlusAttributes")){
   component <- match.arg(component)
+  browser()
   baseurl <- paste0("http://www.horizon-systems.com/nhdplus/NHDPlusV2_", vpu,
                     ".php")
+
   res <- suppressMessages(rvest::html_attrs(rvest::html_nodes(
     xml2::read_html(baseurl),"a")))
   res <- unlist(res[grepl(component, res)])

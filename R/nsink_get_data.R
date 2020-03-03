@@ -31,7 +31,7 @@ nsink_get_data <- function(huc, data_dir = normalizePath("nsink_data"),
   data_dir <- nsink_fix_data_directory(data_dir)
 
   # Get vpu
-  vpu <- wbd_lookup[wbd_lookup$HUC_12 == huc,]$VPUID
+  vpu <- unique(wbd_lookup[wbd_lookup$HUC_12 == huc,]$VPUID)
   vpu <- vpu[!is.na(vpu)]
 
   # urls
@@ -98,19 +98,21 @@ nsink_get_data <- function(huc, data_dir = normalizePath("nsink_data"),
 
 #' Look up HUC 12 ID from a HUC name
 #'
-#' This function takes a HUC Name and returns all possible matching HUC 12 IDs.
+#' This function takes a HUC Name and returns matching HUC 12 IDs.  The default
+#' behavior is to select all possible matching IDs without matching the case of
+#' the string.  If an exact match is required, use the  \code{exact} argument.
 #'
-#' @param huc_name character string of a HUC Name
-#' @param case_sens Logical indicating whether or not this should be case
-#'                  sensitive. Defaults to FALSE.
+#' @param huc_name character string of a HUC Name or partial HUC name
+#' @param exact Logical indicating whether or not to do an exact match
 #' @return A data frame with HUC_12 and HU_12_NAME that match the huc_name
 #' @importFrom dplyr tibble
 #' @export
 #' @examples
 #' nsink_get_huc_id(huc_name = "Niantic River")
-nsink_get_huc_id <- function(huc_name, case_sens = FALSE){
-  if(case_sens){
-    idx <- stringr::str_detect(wbd_lookup$HU_12_NAME,huc_name)
+nsink_get_huc_id <- function(huc_name, exact = FALSE){
+
+  if(exact){
+    idx <- wbd_lookup$HU_12_NAME == huc_name
   } else {
     idx <- stringr::str_detect(tolower(wbd_lookup$HU_12_NAME),
                                tolower(huc_name))

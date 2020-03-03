@@ -4,8 +4,11 @@
 \alias{nsink_generate_flowpath}
 \title{Generate and clean a flowpath for N-Sink}
 \usage{
-nsink_generate_flowpath(starting_location, input_data,
-  method = c("raster", "hybrid"))
+nsink_generate_flowpath(
+  starting_location,
+  input_data,
+  method = c("raster", "hybrid")
+)
 }
 \arguments{
 \item{starting_location}{An \code{\link{sf}} point location as a starting

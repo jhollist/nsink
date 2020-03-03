@@ -31,9 +31,12 @@ nsink_prep_data <- function(huc, projection,
   dirs <- list.dirs(data_dir, full.names = FALSE, recursive = FALSE)
   if(all(c("attr","erom","fdr","imperv","nhd","ssurgo", "wbd", "nlcd") %in% dirs)){
     huc_sf <- st_read(paste0(data_dir, "wbd/WBD_Subwatershed.shp"))
-    huc_sf <- st_transform(huc_sf[huc_sf$HUC_12 == huc,],
-                               crs = projection)
-    huc_raster <- fasterize::raster(huc_sf, resolution = 30)
+    huc_sf <- huc_sf[huc_sf$HUC_12 == huc,]
+    huc_sf <- group_by(huc_sf, HUC_12)
+    huc_sf <- summarize(huc_sf, huc_12 = unique(as.character(HUC_12)))
+    huc_sf <- ungroup(huc_sf)
+    huc_sf <- st_transform(huc_sf, crs = projection)
+    huc_raster <- fasterize::raster(as(huc_sf, "Spatial"), resolution = 30)
     list(streams = nsink_prep_streams(huc_sf, data_dir),
          lakes = nsink_prep_lakes(huc_sf, data_dir),
          fdr = nsink_prep_fdr(huc_sf, huc_raster, data_dir),
@@ -136,11 +139,12 @@ nsink_prep_fdr <- function(huc_sf, huc_raster, data_dir){
 #' @return returns a raster object of the impervious cover for the huc_sf
 #' @keywords  internal
 nsink_prep_impervious <- function(huc_sf, huc_raster, data_dir){
+  huc12 <- unique(as.character(huc_sf$HUC_12))
   if(file.exists(paste0(data_dir, "imperv/",
-                        as.character(huc_sf$HUC_12),
+                        huc12,
                         "_NLCD_2011_impervious.tif"))){
   impervious <- raster::raster(paste0(data_dir, "imperv/",
-                                      as.character(huc_sf$HUC_12),
+                                      huc12,
                                       "_NLCD_2011_impervious.tif"))
   impervious <- raster::projectRaster(impervious, huc_raster)
   } else {
@@ -160,11 +164,13 @@ nsink_prep_impervious <- function(huc_sf, huc_raster, data_dir){
 #' @return returns a raster object of the NLCD for the huc_sf
 #' @keywords  internal
 nsink_prep_nlcd <- function(huc_sf, huc_raster, data_dir){
+  huc12 <- unique(as.character(huc_sf$HUC_12))
   if(file.exists(paste0(data_dir, "nlcd/",
-                        as.character(huc_sf$HUC_12),
+                        huc12,
                         "_NLCD_2011_landcover.tif"))){
+
     nlcd <- raster::raster(paste0(data_dir, "nlcd/",
-                                        as.character(huc_sf$HUC_12),
+                                        huc12,
                                         "_NLCD_2011_landcover.tif"))
     nlcd <- raster::projectRaster(nlcd, huc_raster, method = "ngb")
   } else {
@@ -185,15 +191,16 @@ nsink_prep_nlcd <- function(huc_sf, huc_raster, data_dir){
 #' @import dplyr sf
 #' @keywords  internal
 nsink_prep_ssurgo <- function(huc_sf, data_dir){
-  if(file.exists(paste0(data_dir, "ssurgo/", as.character(huc_sf$HUC_12),
+  huc12 <- unique(as.character(huc_sf$HUC_12))
+  if(file.exists(paste0(data_dir, "ssurgo/", huc12,
                         "_SSURGO_Mapunits.shp"))){
     ssurgo <- st_read(paste0(data_dir, "ssurgo/",
-                                 as.character(huc_sf$HUC_12),
+                                 huc12,
                                  "_SSURGO_Mapunits.shp"))
     ssurgo <- st_transform(ssurgo, st_crs(huc_sf))
     ssurgo <- rename_all(ssurgo, tolower)
     ssurgo <- mutate(ssurgo, mukey = as(mukey, "character"))
-    ssurgo_tbl <- read.csv(paste0(data_dir, "ssurgo/", as.character(huc_sf$HUC_12),
+    ssurgo_tbl <- read.csv(paste0(data_dir, "ssurgo/", huc12,
                                   "_SSURGO_component.csv"))
     ssurgo_tbl <- mutate(ssurgo_tbl, mukey = as(mukey, "character"))
     ssurgo_tbl <- select(ssurgo_tbl, mukey, cokey, hydricrating,

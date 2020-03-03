@@ -4,8 +4,11 @@
 \alias{get_nhd_plus}
 \title{function to download nhd files}
 \usage{
-get_nhd_plus(download_url, data_dir = normalizePath("nsink_data/"),
-  download_again = FALSE)
+get_nhd_plus(
+  download_url,
+  data_dir = normalizePath("nsink_data/"),
+  download_again = FALSE
+)
 }
 \arguments{
 \item{download_url}{url to download}

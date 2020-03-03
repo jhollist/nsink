@@ -4,19 +4,20 @@
 \alias{nsink_get_huc_id}
 \title{Look up HUC 12 ID from a HUC name}
 \usage{
-nsink_get_huc_id(huc_name, case_sens = FALSE)
+nsink_get_huc_id(huc_name, exact = FALSE)
 }
 \arguments{
-\item{huc_name}{character string of a HUC Name}
+\item{huc_name}{character string of a HUC Name or partial HUC name}
 
-\item{case_sens}{Logical indicating whether or not this should be case
-sensitive. Defaults to FALSE.}
+\item{exact}{Logical indicating whether or not to do an exact match}
 }
 \value{
 A data frame with HUC_12 and HU_12_NAME that match the huc_name
 }
 \description{
-This function takes a HUC Name and returns all possible matching HUC 12 IDs.
+This function takes a HUC Name and returns matching HUC 12 IDs.  The default
+behavior is to select all possible matching IDs without matching the case of
+the string.  If an exact match is required, use the  \code{exact} argument.
 }
 \examples{
 nsink_get_huc_id(huc_name = "Niantic River")
