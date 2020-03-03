@@ -31,15 +31,15 @@ nsink_get_data <- function(huc, data_dir = normalizePath("nsink_data"),
   data_dir <- nsink_fix_data_directory(data_dir)
 
   # Get vpu
-  vpu <- unique(wbd_lookup[wbd_lookup$HUC_12 == huc,]$VPUID)
-  vpu <- vpu[!is.na(vpu)]
+  rpu <- unique(wbd_lookup[wbd_lookup$HUC_12 == huc,]$RPU)
+  rpu <- rpu[!is.na(rpu)]
 
   # urls
-  attr_url <- nsink_get_plus_remotepath(vpu, "NHDPlusAttributes")
-  erom_url <- nsink_get_plus_remotepath(vpu, "EROMExtension")
-  nhd_url <- nsink_get_plus_remotepath(vpu, "NHDSnapshot")
-  fdr_url <- nsink_get_plus_remotepath(vpu, "FdrFac")
-  wbd_url <- nsink_get_plus_remotepath(vpu, "WBDSnapshot")
+  attr_url <- nsink_get_plus_remotepath(rpu, "NHDPlusAttributes")
+  erom_url <- nsink_get_plus_remotepath(rpu, "EROMExtension")
+  nhd_url <- nsink_get_plus_remotepath(rpu, "NHDSnapshot")
+  fdr_url <- nsink_get_plus_remotepath(rpu, "FdrFac")
+  wbd_url <- nsink_get_plus_remotepath(rpu, "WBDSnapshot")
 
   # get nhdplus data
   attr <- get_nhd_plus(attr_url, data_dir, force)

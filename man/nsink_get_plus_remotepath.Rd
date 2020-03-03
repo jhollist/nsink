@@ -5,13 +5,13 @@
 \title{Get remote path for NHDPlus components}
 \usage{
 nsink_get_plus_remotepath(
-  vpu,
+  rpu,
   component = c("NHDSnapshot", "FdrFac", "EROMExtension", "WBDSnapshot",
     "NHDPlusAttributes")
 )
 }
 \arguments{
-\item{vpu}{Vector processing unit for NHDPlus}
+\item{rpu}{raster processing unit for NHDPlus. available in nsink:::wbd_lookup}
 
 \item{component}{which component to download}
 }

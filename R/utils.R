@@ -21,18 +21,23 @@ get_nhd_plus <- function(download_url,
 #' Code modified from https://github.com/jsta/nhdR/blob/master/R/utils.R.  Still
 #' need to figure out best way to acknowledge jsta as author and include GPL
 #'
-#' @param vpu Vector processing unit for NHDPlus
+#' @param rpu raster processing unit for NHDPlus. available in nsink:::wbd_lookup
 #' @param component which component to download
 #' @keywords internal
 
-nsink_get_plus_remotepath <- function (vpu, component = c("NHDSnapshot",
+nsink_get_plus_remotepath <- function (rpu, component = c("NHDSnapshot",
                                                           "FdrFac",
                                                           "EROMExtension",
                                                           "WBDSnapshot",
                                                           "NHDPlusAttributes")){
   component <- match.arg(component)
   browser()
-  baseurl <- paste0("http://www.horizon-systems.com/nhdplus/NHDPlusV2_", vpu,
+  # https://s3.amazonaws.com/edap-nhdplus/NHDPlusV21/Data/NHDPlusNE/NHDPlusV21_NE_01_NHDSnapshot_04.7z
+  url_components <- wbd_lookup[wbd_lookup$RPU == rpu,]
+  url_components <- select(url_components, DrainageID, VPUID, RPU)
+  url_components <- unique(url_components)
+  # Need to build URL from components and figure out how to deal with multiple rpus
+  baseurl <- paste0("http://www.horizon-systems.com/nhdplus/NHDPlusV2_", rpu,
                     ".php")
 
   res <- suppressMessages(rvest::html_attrs(rvest::html_nodes(
