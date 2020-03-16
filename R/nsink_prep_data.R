@@ -141,11 +141,9 @@ nsink_prep_fdr <- function(huc_sf, huc_raster, data_dir){
 nsink_prep_impervious <- function(huc_sf, huc_raster, data_dir){
   huc12 <- unique(as.character(huc_sf$HUC_12))
   if(file.exists(paste0(data_dir, "imperv/",
-                        huc12,
-                        "_NLCD_2011_impervious.tif"))){
+                        "NLCD_2016_Impervious_L48.tif"))){
   impervious <- raster::raster(paste0(data_dir, "imperv/",
-                                      huc12,
-                                      "_NLCD_2011_impervious.tif"))
+                                      "NLCD_2016_Impervious_L48.tif"))
   impervious <- raster::projectRaster(impervious, huc_raster)
   } else {
     stop("The required data file does not exist.  Run nsink_get_data().")
@@ -166,12 +164,10 @@ nsink_prep_impervious <- function(huc_sf, huc_raster, data_dir){
 nsink_prep_nlcd <- function(huc_sf, huc_raster, data_dir){
   huc12 <- unique(as.character(huc_sf$HUC_12))
   if(file.exists(paste0(data_dir, "nlcd/",
-                        huc12,
-                        "_NLCD_2011_landcover.tif"))){
+                        "NLCD_2016_Land_Cover_L48.tif"))){
 
     nlcd <- raster::raster(paste0(data_dir, "nlcd/",
-                                        huc12,
-                                        "_NLCD_2011_landcover.tif"))
+                                        "NLCD_2016_Land_Cover_L48.tif"))
     nlcd <- raster::projectRaster(nlcd, huc_raster, method = "ngb")
   } else {
     stop("The required data file does not exist.  Run nsink_get_data().")

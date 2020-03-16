@@ -16,7 +16,7 @@
 #' \dontrun{
 #' library(nsink)
 #' niantic_huc <- nsink_get_huc_id("Niantic River")$huc_12
-#' nsink_get_data(huc = niantic_huc)
+#' nsink_get_data(huc = niantic_huc, data_dir = "aaargh")
 #' }
 nsink_get_data <- function(huc, data_dir = normalizePath("nsink_data"),
                            force = FALSE){
@@ -62,15 +62,13 @@ nsink_get_data <- function(huc, data_dir = normalizePath("nsink_data"),
   huc_12 <- huc_sf[huc_sf$HUC_12 == huc, ]
 
   # Get impervious
-  imp <- FedData::get_nlcd(as(huc_12, "Spatial"), dataset = "impervious",
+  imp <- FedData::get_nlcd(template = as(huc_12, "Spatial"), dataset = "Impervious",
                     label = huc, extraction.dir = paste0(data_dir, "imperv"),
-                    raw.dir = paste0(data_dir, "imperv"),
                     force.redo = force)
 
   # Get 2011 NLCD
-  nlcd <- FedData::get_nlcd(as(huc_12, "Spatial"), dataset = "landcover",
+  nlcd <- FedData::get_nlcd(template = as(huc_12, "Spatial"), dataset = "Land_Cover",
                            label = huc, extraction.dir = paste0(data_dir, "nlcd"),
-                           raw.dir = paste0(data_dir, "nlcd"),
                            force.redo = force)
 
   # Get SSURGO

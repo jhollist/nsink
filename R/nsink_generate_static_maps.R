@@ -32,6 +32,7 @@ nsink_generate_static_maps <- function(input_data, removal, fact,
                                        custom_load = NULL){
 
   # Create static rasters
+
   removal_map <- removal$raster_method[["layer.1"]]
   n_load_idx <- nsink_generate_n_loading_index(input_data)
   n_delivery_heat <- 100 - nsink_generate_n_removal_heatmap(input_data,
@@ -87,7 +88,7 @@ nsink_generate_n_loading_index <- function(input_data, custom_load = NULL){
 nsink_generate_n_removal_heatmap <- function(input_data, removal, fact, ncpu){
 
   num_pts <- round(st_area(input_data$huc)/(fact*fact))
-  sample_pts <- st_sample(input_data$huc, num_pts ,type = "regular")
+  sample_pts <- st_sample(input_data$huc, as.numeric(num_pts) ,type = "regular")
   pb <- dplyr::progress_estimated(length(sample_pts))
 
   fp_removal <- function(pt, input_data, removal){
@@ -105,7 +106,7 @@ nsink_generate_n_removal_heatmap <- function(input_data, removal, fact, ncpu){
                                                                 removal)))
 
   num_pts <- round(st_area(input_data$huc)/(30*30))
-  interp_points <- as(st_sample(input_data$huc, num_pts ,type = "regular"),
+  interp_points <- as(st_sample(input_data$huc, as.numeric(num_pts) ,type = "regular"),
                       "Spatial")
   interp_points <- sp::SpatialPixels(interp_points)
 

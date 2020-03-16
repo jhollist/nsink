@@ -31,23 +31,40 @@ nsink_get_plus_remotepath <- function (rpu, component = c("NHDSnapshot",
                                                           "WBDSnapshot",
                                                           "NHDPlusAttributes")){
   component <- match.arg(component)
-  browser()
-  # https://s3.amazonaws.com/edap-nhdplus/NHDPlusV21/Data/NHDPlusNE/NHDPlusV21_NE_01_NHDSnapshot_04.7z
+  if(component == "NHDSnapshot"){component <- "NHDSnapshot_04"}
+  if(component == "FdrFac"){component <- paste0(rpu,"_FdrFac_01")}
+  if(component == "EROMExtension"){component <- "EROMExtension_06"}
+  if(component == "WBDSnapshot"){component <- "WBDSnapshot_03"}
+  if(component == "NHDPlusAttributes"){component <- "NHDPlusAttributes_09"}
+
+
   url_components <- wbd_lookup[wbd_lookup$RPU == rpu,]
   url_components <- select(url_components, DrainageID, VPUID, RPU)
   url_components <- unique(url_components)
-  # Need to build URL from components and figure out how to deal with multiple rpus
-  baseurl <- paste0("http://www.horizon-systems.com/nhdplus/NHDPlusV2_", rpu,
-                    ".php")
+  baseurl <- paste0("https://s3.amazonaws.com/edap-nhdplus/NHDPlusV21/Data/NHDPlus",
+                    url_components$DrainageID)
+  url1 <- paste0(baseurl,
+                 "/NHDPlusV21_",
+                 url_components$DrainageID, "_",
+                 url_components$VPUID,"_",
+                 component, ".7z")
+  url2 <- paste0(baseurl,
+                 "/NHDPlus",
+                 url_components$VPUID,
+                 "/NHDPlusV21_",
+                 url_components$DrainageID, "_",
+                 url_components$VPUID,"_",
+                 component, ".7z")
 
-  res <- suppressMessages(rvest::html_attrs(rvest::html_nodes(
-    xml2::read_html(baseurl),"a")))
-  res <- unlist(res[grepl(component, res)])
-  res <- res[!grepl("FGDB", res)]
-  res <- res[!grepl(".pdf", res)]
-  res <- res[!grepl("ftp://", res)]
-  res
+  if(!httr::http_error(url1)){
+    return(url1)
+  } else if(!httr::http_error(url2)) {
+    return(url2)
+  } else {
+    stop(paste("Neither", url1, "or", url2, "is a valid URL"))
+  }
 }
+
 
 #' Finds 7-zip
 #'
