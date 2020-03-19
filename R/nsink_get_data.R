@@ -16,7 +16,7 @@
 #' \dontrun{
 #' library(nsink)
 #' niantic_huc <- nsink_get_huc_id("Niantic River")$huc_12
-#' nsink_get_data(huc = niantic_huc, data_dir = "aaargh")
+#' nsink_get_data(huc = niantic_huc)
 #' }
 nsink_get_data <- function(huc, data_dir = normalizePath("nsink_data"),
                            force = FALSE){
@@ -74,7 +74,7 @@ nsink_get_data <- function(huc, data_dir = normalizePath("nsink_data"),
   # Get SSURGO
   # This would occasional have connection reset and FedData would throw
   # an error.  Connection would eventually work.  This code repeats it until it works
-  # I call this my "definition of insanity" method
+  # FedData::get_ssurgo will throw parsing warnings if data already downloaded.
   repeat_it <- TRUE
 
   while(is.logical(repeat_it)){
@@ -86,9 +86,6 @@ nsink_get_data <- function(huc, data_dir = normalizePath("nsink_data"),
                                     force.redo = force),
              error = function(e) TRUE)
   }
-
-
-  #file.remove(list.files(data_dir, "*.7z",full.names = T))
 
   # Return a list with the huc and the data_dir
   list(huc = huc, data_dir = data_dir)

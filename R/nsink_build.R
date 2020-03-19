@@ -28,7 +28,7 @@ nsink_build <- function(huc, projection,
                         force = FALSE,
                         fact = 300
                         ){
-
+  browser()
   # Check for/create/clean data directory
   if(!dir.exists(output_folder)){dir.create(output_folder)}
   output_folder <- nsink_fix_data_directory(output_folder)

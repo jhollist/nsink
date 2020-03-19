@@ -42,7 +42,11 @@ nsink_generate_static_maps <- function(input_data, removal, fact,
                                            input_data$raster_template)
   n_load_idx <- raster::projectRaster(n_load_idx,input_data$raster_template,
                                       method = "ngb")
+  n_delivery_heat <- raster::projectRaster(n_delivery_heat,input_data$raster_template,
+                                           method = "ngb")
   n_delivery_index <- n_load_idx * n_delivery_heat
+
+  summary(raster::getValues(n_delivery_index))
 
   lapply(list(removal_effic = removal_map,
        loading_idx = n_load_idx,
@@ -63,6 +67,7 @@ nsink_generate_static_maps <- function(input_data, removal, fact,
 #'                    \code{nsink}.  Custom loads are not yet implemented.
 #' @keywords internal
 nsink_generate_n_loading_index <- function(input_data, custom_load = NULL){
+
   nlcd <- input_data$nlcd
   rcl_m <- matrix(cbind(n_load_idx_lookup$codes,
                         n_load_idx_lookup$n_loading_index), ncol = 2)
