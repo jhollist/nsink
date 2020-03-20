@@ -11,18 +11,24 @@
 #'
 #' @param huc A character with the 12 digit HUC ID.  Maybe searched with
 #'            \code{\link{nsink_get_huc_id}}
-#' @param projection
-#' @param output_folder
-#' @param force
-#' @param fact
+#' @param projection Projection to use for all spatial data, passed as a PROJ
+#'                   string
+#' @param output_folder Folder to store downloaded data and process nsink files
+#' @param force Logical value used to force a new download if data already
+#'              exists on file system
+#' @param fact The \code{fact} controls the density of points to use when
+#'             creating the nitrogen removal heat map.  The area of the
+#'             watershed is sampled with points that are separated by the
+#'             \code{fact} value.  The larger the value, the fewer the points.
 #' @export
 #' @return a list providing details on the huc used and the output location of
 #'         the dataset
 #' @examples
+#' \dontrun{
 #' library(nsink)
 #' aea <- "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=23 +lon_0=-96 +x_0=0 +y_0=0
 #' +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
-#' nsink_build(nsink_get_huc_id("Niantic River")$huc_12, aea)
+#' nsink_build(nsink_get_huc_id("Niantic River")$huc_12, aea)}
 nsink_build <- function(huc, projection,
                         output_folder = normalizePath("nsink_output"),
                         force = FALSE,
@@ -98,9 +104,8 @@ nsink_write_prepped_data <- function(prepped_data, output_folder) {
   )
   readr::write_csv(prepped_data$q, paste0(output_folder, "q.csv"))
   readr::write_csv(prepped_data$tot, paste0(output_folder, "tot.csv"))
-  readr::write_csv(
-    prepped_data$lakemorpho,
-    paste0(output_folder, "lakemorpho.csv")
+  readr::write_csv(prepped_data$lakemorpho,
+                   paste0(output_folder, "lakemorpho.csv")
   )
 }
 
@@ -110,7 +115,7 @@ nsink_write_prepped_data <- function(prepped_data, output_folder) {
 #'
 #' @param static_maps A list of static maps, as output by
 #'                     \code{\link{nsink_generate_static_maps}}
-#' @param output_folder
+#' @param output_folder Output folder in which to save static maps as .tif
 #' @keywords internal
 nsink_write_static_maps <- function(static_maps, output_folder) {
   raster::writeRaster(static_maps$removal_effic,
