@@ -147,8 +147,6 @@ nsink_calc_land_removal <- function(input_data, method = c("raster", "hybrid")) 
     fun = "max"
   )
 
-  # Need to yank imperv from vec and figure out how to return this
-
   impervious <- input_data$impervious
   impervious[impervious > 0] <- NA
   impervious[!is.na(impervious)] <- 1
@@ -263,11 +261,10 @@ nsink_calc_lake_removal <- function(input_data, method = c("raster", "hybrid")) 
   } else if (method == "hybrid") {
     comids <- select(input_data$streams, stream_comid, lake_comid)
     st_geometry(comids) <- NULL
-    lake_removal_flowpath <- suppressMessages(left_join(lake_removal_flowpath, comids))
-    lake_removal_flowpath <- select(
-      lake_removal_flowpath, stream_comid, lake_comid, gnis_name,
-      ftype, n_removal
-    )
+    lake_removal_flowpath <- suppressMessages(left_join(lake_removal_flowpath,
+                                                        comids))
+    lake_removal_flowpath <- select(lake_removal_flowpath, stream_comid,
+                                    lake_comid, gnis_name, ftype, n_removal)
     return(lake_removal_flowpath)
   }
 }
@@ -280,16 +277,13 @@ nsink_calc_lake_removal <- function(input_data, method = c("raster", "hybrid")) 
 #' @return raster of landscape nitrogen removal
 #' @keywords internal
 nsink_merge_removal <- function(removal_rasters) {
-  removal <- raster::merge(
-    removal_rasters$lake_removal,
-    removal_rasters$land_removal
-  )
+  removal <- raster::merge(removal_rasters$lake_removal,
+                           removal_rasters$land_removal)
   removal <- raster::mask(removal, as(removal_rasters$huc, "Spatial"))
   removal[is.na(removal)] <- 0
   removal <- raster::focal(removal, matrix(1, nrow = 3, ncol = 3), max)
   removal <- raster::projectRaster(removal, removal_rasters$raster_template,
-    method = "ngb"
-  )
+                                   method = "ngb")
   removal <- raster::merge(removal_rasters$stream_removal, removal)
   removal
 }
@@ -321,14 +315,12 @@ nsink_calc_removal_type <- function(removal_rasters) {
   hydric_type <- type_it(removal_rasters$land_removal, "hydric")
   stream_type <- type_it(removal_rasters$stream_removal, "stream")
   lake_type <- type_it(removal_rasters$lake_removal, "lake")
-
   types <- raster::merge(lake_type, hydric_type)
   types <- raster::mask(types, removal_rasters$huc)
   types[is.na(types)] <- 0
   types <- raster::focal(types, matrix(1, nrow = 3, ncol = 3), max)
   types <- raster::projectRaster(types, removal_rasters$raster_template,
-    method = "ngb"
-  )
+                                 method = "ngb")
   types <- raster::merge(stream_type, types)
   types
 }
