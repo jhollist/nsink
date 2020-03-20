@@ -19,11 +19,9 @@
 #' nsink_get_data(huc = niantic_huc)
 #' }
 nsink_get_data <- function(huc, data_dir = normalizePath("nsink_data"),
-                           force = FALSE){
-
-
+                           force = FALSE) {
   huc <- as.character(huc)
-  if(nchar(gsub("[[:alpha:]]+","", huc)) != 12) {
+  if (nchar(gsub("[[:alpha:]]+", "", huc)) != 12) {
     stop("The supplied huc does not appear to be a 12 digit value")
   }
 
@@ -31,7 +29,7 @@ nsink_get_data <- function(huc, data_dir = normalizePath("nsink_data"),
   data_dir <- nsink_fix_data_directory(data_dir)
 
   # Get vpu
-  rpu <- unique(wbd_lookup[wbd_lookup$HUC_12 == huc,]$RPU)
+  rpu <- unique(wbd_lookup[wbd_lookup$HUC_12 == huc, ]$RPU)
   rpu <- rpu[!is.na(rpu)]
 
   # urls
@@ -50,11 +48,11 @@ nsink_get_data <- function(huc, data_dir = normalizePath("nsink_data"),
 
   # unzip nhdplus data
   suppressMessages({
-  nsink_run_7z(paste0(data_dir, basename(attr_url)), paste0(data_dir, "attr"), force)
-  nsink_run_7z(paste0(data_dir, basename(erom_url)), paste0(data_dir, "erom"), force)
-  nsink_run_7z(paste0(data_dir, basename(nhd_url)), paste0(data_dir, "nhd"), force)
-  nsink_run_7z(paste0(data_dir, basename(fdr_url)), paste0(data_dir, "fdr"), force)
-  nsink_run_7z(paste0(data_dir, basename(wbd_url)), paste0(data_dir, "wbd"), force)
+    nsink_run_7z(paste0(data_dir, basename(attr_url)), paste0(data_dir, "attr"), force)
+    nsink_run_7z(paste0(data_dir, basename(erom_url)), paste0(data_dir, "erom"), force)
+    nsink_run_7z(paste0(data_dir, basename(nhd_url)), paste0(data_dir, "nhd"), force)
+    nsink_run_7z(paste0(data_dir, basename(fdr_url)), paste0(data_dir, "fdr"), force)
+    nsink_run_7z(paste0(data_dir, basename(wbd_url)), paste0(data_dir, "wbd"), force)
   })
 
   # Use actual huc to limit downloads on impervious and ssurgo
@@ -62,14 +60,18 @@ nsink_get_data <- function(huc, data_dir = normalizePath("nsink_data"),
   huc_12 <- huc_sf[huc_sf$HUC_12 == huc, ]
 
   # Get impervious
-  imp <- FedData::get_nlcd(template = as(huc_12, "Spatial"), dataset = "Impervious",
-                    label = huc, extraction.dir = paste0(data_dir, "imperv"),
-                    force.redo = force)
+  imp <- FedData::get_nlcd(
+    template = as(huc_12, "Spatial"), dataset = "Impervious",
+    label = huc, extraction.dir = paste0(data_dir, "imperv"),
+    force.redo = force
+  )
 
   # Get 2011 NLCD
-  nlcd <- FedData::get_nlcd(template = as(huc_12, "Spatial"), dataset = "Land_Cover",
-                           label = huc, extraction.dir = paste0(data_dir, "nlcd"),
-                           force.redo = force)
+  nlcd <- FedData::get_nlcd(
+    template = as(huc_12, "Spatial"), dataset = "Land_Cover",
+    label = huc, extraction.dir = paste0(data_dir, "nlcd"),
+    force.redo = force
+  )
 
   # Get SSURGO
   # This would occasional have connection reset and FedData would throw
@@ -77,14 +79,16 @@ nsink_get_data <- function(huc, data_dir = normalizePath("nsink_data"),
   # FedData::get_ssurgo will throw parsing warnings if data already downloaded.
   repeat_it <- TRUE
 
-  while(is.logical(repeat_it)){
-
+  while (is.logical(repeat_it)) {
     repeat_it <- tryCatch(
-      ssurgo <- FedData::get_ssurgo(as(huc_12, "Spatial"), label = huc,
-                                    extraction.dir = paste0(data_dir, "ssurgo"),
-                                    raw.dir = paste0(data_dir, "ssurgo"),
-                                    force.redo = force),
-             error = function(e) TRUE)
+      ssurgo <- FedData::get_ssurgo(as(huc_12, "Spatial"),
+        label = huc,
+        extraction.dir = paste0(data_dir, "ssurgo"),
+        raw.dir = paste0(data_dir, "ssurgo"),
+        force.redo = force
+      ),
+      error = function(e) TRUE
+    )
   }
 
   # Return a list with the huc and the data_dir
@@ -104,17 +108,20 @@ nsink_get_data <- function(huc, data_dir = normalizePath("nsink_data"),
 #' @export
 #' @examples
 #' nsink_get_huc_id(huc_name = "Niantic River")
-nsink_get_huc_id <- function(huc_name, exact = FALSE){
-
-  if(exact){
+nsink_get_huc_id <- function(huc_name, exact = FALSE) {
+  if (exact) {
     idx <- wbd_lookup$HU_12_NAME == huc_name
   } else {
-    idx <- stringr::str_detect(tolower(wbd_lookup$HU_12_NAME),
-                               tolower(huc_name))
+    idx <- stringr::str_detect(
+      tolower(wbd_lookup$HU_12_NAME),
+      tolower(huc_name)
+    )
   }
 
   idx[is.na(idx)] <- FALSE
-  wbd_match <- wbd_lookup[idx,]
-  tibble(huc_12 = wbd_match$HUC_12, huc_12_name = wbd_match$HU_12_NAME,
-         state = wbd_match$STATES)
+  wbd_match <- wbd_lookup[idx, ]
+  tibble(
+    huc_12 = wbd_match$HUC_12, huc_12_name = wbd_match$HU_12_NAME,
+    state = wbd_match$STATES
+  )
 }

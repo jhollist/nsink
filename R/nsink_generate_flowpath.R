@@ -111,7 +111,7 @@ nsink_get_flowline <- function(flowpath_ends, streams, tot){
   idx <- shortest_paths(streams_g, from_nd, to_nd, output = "epath",
                         mode = "out")$epath[[1]]
   fl_comids <- edge_attr(streams_g, "stream_comid", idx)
-  fp_end_pt <- tail(st_cast(flowpath_ends[1], "POINT"), 1)  #check this, doesn't seem correct
+  fp_end_pt <- tail(st_cast(flowpath_ends[1], "POINT"), 1)
 
   fp_flowlines <- slice(streams, match(fl_comids, streams$stream_comid))
   fp_flowlines <- st_snap(fp_flowlines, fp_end_pt, tolerance = 1)

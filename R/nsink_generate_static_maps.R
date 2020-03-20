@@ -25,34 +25,45 @@
 #' +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
 #' niantic_nsink_data <- nsink_prep_data(niantic_huc, projection = aea, "niantic_nsink")
 #' niantic_removal <- nsink_calc_removal(niantic_nsink_data)
-#' nsink_generate_static_maps(niantic_nsink_data, niantic_removal, fact = 900,
-#'                            "nsink_data/")
-#'}
+#' nsink_generate_static_maps(niantic_nsink_data, niantic_removal,
+#'   fact = 900,
+#'   "nsink_data/"
+#' )
+#' }
 nsink_generate_static_maps <- function(input_data, removal, fact,
-                                       custom_load = NULL){
+                                       custom_load = NULL) {
 
   # Create static rasters
 
   removal_map <- removal$raster_method[["layer.1"]]
   n_load_idx <- nsink_generate_n_loading_index(input_data)
   n_delivery_heat <- 100 - nsink_generate_n_removal_heatmap(input_data,
-                                                            removal, fact,
-                                                            ncpu = 1)
-  n_delivery_heat <- raster::projectRaster(n_delivery_heat,
-                                           input_data$raster_template)
-  n_load_idx <- raster::projectRaster(n_load_idx,input_data$raster_template,
-                                      method = "ngb")
-  n_delivery_heat <- raster::projectRaster(n_delivery_heat,input_data$raster_template,
-                                           method = "ngb")
+    removal, fact,
+    ncpu = 1
+  )
+  n_delivery_heat <- raster::projectRaster(
+    n_delivery_heat,
+    input_data$raster_template
+  )
+  n_load_idx <- raster::projectRaster(n_load_idx, input_data$raster_template,
+    method = "ngb"
+  )
+  n_delivery_heat <- raster::projectRaster(n_delivery_heat, input_data$raster_template,
+    method = "ngb"
+  )
   n_delivery_index <- n_load_idx * n_delivery_heat
 
   summary(raster::getValues(n_delivery_index))
 
-  lapply(list(removal_effic = removal_map,
-       loading_idx = n_load_idx,
-       transport_effic = n_delivery_heat,
-       delivery_idx = n_delivery_index),
-       function(x) round(x, 4))
+  lapply(
+    list(
+      removal_effic = removal_map,
+      loading_idx = n_load_idx,
+      transport_effic = n_delivery_heat,
+      delivery_idx = n_delivery_index
+    ),
+    function(x) round(x, 4)
+  )
 }
 
 #' Generates the Nitrogen Loading Index
@@ -66,11 +77,12 @@ nsink_generate_static_maps <- function(input_data, removal, fact,
 #'                    \code{n_load_idx_lookup}, which is loaded with
 #'                    \code{nsink}.  Custom loads are not yet implemented.
 #' @keywords internal
-nsink_generate_n_loading_index <- function(input_data, custom_load = NULL){
-
+nsink_generate_n_loading_index <- function(input_data, custom_load = NULL) {
   nlcd <- input_data$nlcd
-  rcl_m <- matrix(cbind(n_load_idx_lookup$codes,
-                        n_load_idx_lookup$n_loading_index), ncol = 2)
+  rcl_m <- matrix(cbind(
+    n_load_idx_lookup$codes,
+    n_load_idx_lookup$n_loading_index
+  ), ncol = 2)
   raster::reclassify(nlcd, rcl_m)
 }
 
@@ -90,39 +102,46 @@ nsink_generate_n_loading_index <- function(input_data, custom_load = NULL){
 #' @importFrom sf st_area st_sample st_sf st_sfc st_crs
 #'
 #' @keywords internal
-nsink_generate_n_removal_heatmap <- function(input_data, removal, fact, ncpu){
-
-  num_pts <- round(st_area(input_data$huc)/(fact*fact))
-  sample_pts <- st_sample(input_data$huc, as.numeric(num_pts) ,type = "regular")
+nsink_generate_n_removal_heatmap <- function(input_data, removal, fact, ncpu) {
+  num_pts <- round(st_area(input_data$huc) / (fact * fact))
+  sample_pts <- st_sample(input_data$huc, as.numeric(num_pts), type = "regular")
   pb <- dplyr::progress_estimated(length(sample_pts))
 
-  fp_removal <- function(pt, input_data, removal){
+  fp_removal <- function(pt, input_data, removal) {
     pb$tick()$print()
     pt <- st_sf(st_sfc(pt, crs = st_crs(input_data$huc)))
     fp <- nsink_generate_flowpath(pt, input_data, method = "hybrid")
     fp_summary <- nsink_summarize_flowpath(fp, removal, method = "hybrid")
-    data.frame(fp_removal = 100-min(fp_summary$n_out))
+    data.frame(fp_removal = 100 - min(fp_summary$n_out))
   }
 
   sample_pts_removal <- st_sf(sample_pts,
-                              data = purrr::map_df(sample_pts,
-                                                   function(x)
-                                                     fp_removal(x, input_data,
-                                                                removal)))
+    data = purrr::map_df(
+      sample_pts,
+      function(x) {
+        fp_removal(
+          x, input_data,
+          removal
+        )
+      }
+    )
+  )
 
-  num_pts <- round(st_area(input_data$huc)/(30*30))
-  interp_points <- as(st_sample(input_data$huc, as.numeric(num_pts) ,type = "regular"),
-                      "Spatial")
+  num_pts <- round(st_area(input_data$huc) / (30 * 30))
+  interp_points <- as(
+    st_sample(input_data$huc, as.numeric(num_pts), type = "regular"),
+    "Spatial"
+  )
   interp_points <- sp::SpatialPixels(interp_points)
 
   interpolated_pts <- gstat::idw(fp_removal ~ 1,
-                                 as(sample_pts_removal, "Spatial"),
-                                 interp_points,
-                                 nmin = 5, nmax = 10,
-                                 idp = 0.5)
+    as(sample_pts_removal, "Spatial"),
+    interp_points,
+    nmin = 5, nmax = 10,
+    idp = 0.5
+  )
 
   idw_n_removal_heat_map <- raster::raster(interpolated_pts)
   idw_n_removal_heat_map_agg <- raster::aggregate(idw_n_removal_heat_map, fun = max, fact = 3)
   idw_n_removal_heat_map_agg
 }
-

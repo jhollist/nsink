@@ -25,32 +25,36 @@
 #' nsink_prep_data(huc = niantic_huc, projection = epsg)
 #' }
 nsink_prep_data <- function(huc, projection,
-                            data_dir = normalizePath("nsink_data/")){
+                            data_dir = normalizePath("nsink_data/")) {
   # Check for/create/clean data directory
   data_dir <- nsink_fix_data_directory(data_dir)
   dirs <- list.dirs(data_dir, full.names = FALSE, recursive = FALSE)
-  if(all(c("attr","erom","fdr","imperv","nhd","ssurgo", "wbd", "nlcd") %in% dirs)){
+  if (all(c("attr", "erom", "fdr", "imperv", "nhd", "ssurgo", "wbd", "nlcd") %in% dirs)) {
     huc_sf <- st_read(paste0(data_dir, "wbd/WBD_Subwatershed.shp"))
-    huc_sf <- huc_sf[huc_sf$HUC_12 == huc,]
+    huc_sf <- huc_sf[huc_sf$HUC_12 == huc, ]
     huc_sf <- group_by(huc_sf, HUC_12)
     huc_sf <- summarize(huc_sf, huc_12 = unique(as.character(HUC_12)))
     huc_sf <- ungroup(huc_sf)
     huc_sf <- st_transform(huc_sf, crs = projection)
     huc_raster <- fasterize::raster(as(huc_sf, "Spatial"), resolution = 30)
-    list(streams = nsink_prep_streams(huc_sf, data_dir),
-         lakes = nsink_prep_lakes(huc_sf, data_dir),
-         fdr = nsink_prep_fdr(huc_sf, huc_raster, data_dir),
-         impervious = nsink_prep_impervious(huc_sf,  huc_raster, data_dir),
-         nlcd = nsink_prep_nlcd(huc_sf, huc_raster, data_dir),
-         ssurgo = nsink_prep_ssurgo(huc_sf, data_dir),
-         q = nsink_prep_q(data_dir),
-         tot = nsink_prep_tot(data_dir),
-         lakemorpho = nsink_prep_lakemorpho(data_dir),
-         huc = huc_sf,
-         raster_template = huc_raster)
+    list(
+      streams = nsink_prep_streams(huc_sf, data_dir),
+      lakes = nsink_prep_lakes(huc_sf, data_dir),
+      fdr = nsink_prep_fdr(huc_sf, huc_raster, data_dir),
+      impervious = nsink_prep_impervious(huc_sf, huc_raster, data_dir),
+      nlcd = nsink_prep_nlcd(huc_sf, huc_raster, data_dir),
+      ssurgo = nsink_prep_ssurgo(huc_sf, data_dir),
+      q = nsink_prep_q(data_dir),
+      tot = nsink_prep_tot(data_dir),
+      lakemorpho = nsink_prep_lakemorpho(data_dir),
+      huc = huc_sf,
+      raster_template = huc_raster
+    )
   } else {
-    stop(paste0("The required data does not appear to be available in ",
-                data_dir, ". Run nsink_get_data()."))
+    stop(paste0(
+      "The required data does not appear to be available in ",
+      data_dir, ". Run nsink_get_data()."
+    ))
   }
 }
 
@@ -64,15 +68,16 @@ nsink_prep_data <- function(huc, projection,
 #' @return returns an sf object of the NHDPlus streams for the huc_sf
 #' @import dplyr sf
 #' @keywords  internal
-nsink_prep_streams <- function(huc_sf, data_dir){
-
-  if(file.exists(paste0(data_dir, "nhd/NHDFlowline.shp"))){
+nsink_prep_streams <- function(huc_sf, data_dir) {
+  if (file.exists(paste0(data_dir, "nhd/NHDFlowline.shp"))) {
     streams <- st_read(paste0(data_dir, "nhd/NHDFlowline.shp"))
     streams <- st_transform(streams, st_crs(huc_sf))
     streams <- st_zm(streams)
     streams <- rename_all(streams, tolower)
-    streams <- rename(streams, stream_comid = comid,
-                             lake_comid = wbareacomi)
+    streams <- rename(streams,
+      stream_comid = comid,
+      lake_comid = wbareacomi
+    )
     streams <- slice(streams, st_contains(huc_sf, streams)[[1]])
     streams <- st_crop(streams, st_bbox(huc_sf))
     streams <- mutate_if(streams, is.factor, as.character())
@@ -93,8 +98,8 @@ nsink_prep_streams <- function(huc_sf, data_dir){
 #' @return returns an sf object of the NHDPlus lakes for the huc_sf
 #' @import dplyr sf
 #' @keywords  internal
-nsink_prep_lakes <- function(huc_sf, data_dir){
-  if(file.exists(paste0(data_dir, "nhd/NHDWaterbody.shp"))){
+nsink_prep_lakes <- function(huc_sf, data_dir) {
+  if (file.exists(paste0(data_dir, "nhd/NHDWaterbody.shp"))) {
     lakes <- st_read(paste0(data_dir, "nhd/NHDWaterbody.shp"))
     lakes <- st_transform(lakes, st_crs(huc_sf))
     lakes <- rename_all(lakes, tolower)
@@ -117,8 +122,8 @@ nsink_prep_lakes <- function(huc_sf, data_dir){
 #'                 downloaded with the \code{\link{nsink_get_data}} function.
 #' @return returns a raster object of the flow direction for the huc_sf
 #' @keywords  internal
-nsink_prep_fdr <- function(huc_sf, huc_raster, data_dir){
-  if(dir.exists(paste0(data_dir, "fdr"))){
+nsink_prep_fdr <- function(huc_sf, huc_raster, data_dir) {
+  if (dir.exists(paste0(data_dir, "fdr"))) {
     fdr <- raster::raster(paste0(data_dir, "fdr"))
     fdr <- raster::projectRaster(fdr, huc_raster, method = "ngb")
     fdr <- raster::crop(fdr, as(huc_sf, "Spatial"))
@@ -138,13 +143,17 @@ nsink_prep_fdr <- function(huc_sf, huc_raster, data_dir){
 #'                 be downloaded with the \code{\link{nsink_get_data}} function.
 #' @return returns a raster object of the impervious cover for the huc_sf
 #' @keywords  internal
-nsink_prep_impervious <- function(huc_sf, huc_raster, data_dir){
+nsink_prep_impervious <- function(huc_sf, huc_raster, data_dir) {
   huc12 <- unique(as.character(huc_sf$HUC_12))
-  if(file.exists(paste0(data_dir, "imperv/",
-                        "NLCD_2016_Impervious_L48.tif"))){
-  impervious <- raster::raster(paste0(data_dir, "imperv/",
-                                      "NLCD_2016_Impervious_L48.tif"))
-  impervious <- raster::projectRaster(impervious, huc_raster)
+  if (file.exists(paste0(
+    data_dir, "imperv/",
+    "NLCD_2016_Impervious_L48.tif"
+  ))) {
+    impervious <- raster::raster(paste0(
+      data_dir, "imperv/",
+      "NLCD_2016_Impervious_L48.tif"
+    ))
+    impervious <- raster::projectRaster(impervious, huc_raster)
   } else {
     stop("The required data file does not exist.  Run nsink_get_data().")
   }
@@ -161,13 +170,16 @@ nsink_prep_impervious <- function(huc_sf, huc_raster, data_dir){
 #'                 be downloaded with the \code{\link{nsink_get_data}} function.
 #' @return returns a raster object of the NLCD for the huc_sf
 #' @keywords  internal
-nsink_prep_nlcd <- function(huc_sf, huc_raster, data_dir){
+nsink_prep_nlcd <- function(huc_sf, huc_raster, data_dir) {
   huc12 <- unique(as.character(huc_sf$HUC_12))
-  if(file.exists(paste0(data_dir, "nlcd/",
-                        "NLCD_2016_Land_Cover_L48.tif"))){
-
-    nlcd <- raster::raster(paste0(data_dir, "nlcd/",
-                                        "NLCD_2016_Land_Cover_L48.tif"))
+  if (file.exists(paste0(
+    data_dir, "nlcd/",
+    "NLCD_2016_Land_Cover_L48.tif"
+  ))) {
+    nlcd <- raster::raster(paste0(
+      data_dir, "nlcd/",
+      "NLCD_2016_Land_Cover_L48.tif"
+    ))
     nlcd <- raster::projectRaster(nlcd, huc_raster, method = "ngb")
   } else {
     stop("The required data file does not exist.  Run nsink_get_data().")
@@ -186,21 +198,29 @@ nsink_prep_nlcd <- function(huc_sf, huc_raster, data_dir){
 #'         for the huc_sf
 #' @import dplyr sf
 #' @keywords  internal
-nsink_prep_ssurgo <- function(huc_sf, data_dir){
+nsink_prep_ssurgo <- function(huc_sf, data_dir) {
   huc12 <- unique(as.character(huc_sf$HUC_12))
-  if(file.exists(paste0(data_dir, "ssurgo/", huc12,
-                        "_SSURGO_Mapunits.shp"))){
-    ssurgo <- st_read(paste0(data_dir, "ssurgo/",
-                                 huc12,
-                                 "_SSURGO_Mapunits.shp"))
+  if (file.exists(paste0(
+    data_dir, "ssurgo/", huc12,
+    "_SSURGO_Mapunits.shp"
+  ))) {
+    ssurgo <- st_read(paste0(
+      data_dir, "ssurgo/",
+      huc12,
+      "_SSURGO_Mapunits.shp"
+    ))
     ssurgo <- st_transform(ssurgo, st_crs(huc_sf))
     ssurgo <- rename_all(ssurgo, tolower)
     ssurgo <- mutate(ssurgo, mukey = as(mukey, "character"))
-    ssurgo_tbl <- read.csv(paste0(data_dir, "ssurgo/", huc12,
-                                  "_SSURGO_component.csv"))
+    ssurgo_tbl <- read.csv(paste0(
+      data_dir, "ssurgo/", huc12,
+      "_SSURGO_component.csv"
+    ))
     ssurgo_tbl <- mutate(ssurgo_tbl, mukey = as(mukey, "character"))
-    ssurgo_tbl <- select(ssurgo_tbl, mukey, cokey, hydricrating,
-                                comppct.r)
+    ssurgo_tbl <- select(
+      ssurgo_tbl, mukey, cokey, hydricrating,
+      comppct.r
+    )
     ssurgo_tbl <- filter(ssurgo_tbl, hydricrating == "Yes")
     ssurgo_tbl <- group_by(ssurgo_tbl, mukey, hydricrating)
     ssurgo_tbl <- summarize(ssurgo_tbl, hydric_pct = sum(comppct.r))
@@ -221,12 +241,14 @@ nsink_prep_ssurgo <- function(huc_sf, data_dir){
 #' @return returns a tibble of the flow data
 #' @import dplyr
 #' @keywords  internal
-nsink_prep_q <- function(data_dir){
-  if(file.exists(paste0(data_dir, "erom/EROM_MA0001.DBF"))){
+nsink_prep_q <- function(data_dir) {
+  if (file.exists(paste0(data_dir, "erom/EROM_MA0001.DBF"))) {
     q <- foreign::read.dbf(paste0(data_dir, "erom/EROM_MA0001.DBF"))
     q <- select(q, stream_comid = ComID, q_cfs = Q0001E)
-    q <- mutate(q, q_cms = q_cfs * 0.028316846592,
-                mean_reach_depth = 0.2612 * (q_cms ^ 0.3966))
+    q <- mutate(q,
+      q_cms = q_cfs * 0.028316846592,
+      mean_reach_depth = 0.2612 * (q_cms^0.3966)
+    )
     q <- mutate_if(q, is.factor, as.character())
   } else {
     stop("The required data file does not exist.  Run nsink_get_data().")
@@ -243,8 +265,8 @@ nsink_prep_q <- function(data_dir){
 #' @return returns a tibble of the time of travel data
 #' @import dplyr
 #' @keywords  internal
-nsink_prep_tot <- function(data_dir){
-  if(file.exists(paste0(data_dir, "attr/PlusFlowlineVAA.dbf"))){
+nsink_prep_tot <- function(data_dir) {
+  if (file.exists(paste0(data_dir, "attr/PlusFlowlineVAA.dbf"))) {
     tot <- foreign::read.dbf(paste0(data_dir, "attr/PlusFlowlineVAA.dbf"))
     tot <- rename_all(tot, tolower)
     tot <- select(tot, stream_comid = comid, totma = totma, fromnode, tonode)
@@ -264,10 +286,12 @@ nsink_prep_tot <- function(data_dir){
 #' @return returns a tibble of the lake morphology data
 #' @import dplyr
 #' @keywords  internal
-nsink_prep_lakemorpho <- function(data_dir){
-  if(file.exists(paste0(data_dir, "attr/PlusWaterbodyLakeMorphology.dbf"))){
-    lakemorpho <- foreign::read.dbf(paste0(data_dir,
-                                    "attr/PlusWaterbodyLakeMorphology.dbf"))
+nsink_prep_lakemorpho <- function(data_dir) {
+  if (file.exists(paste0(data_dir, "attr/PlusWaterbodyLakeMorphology.dbf"))) {
+    lakemorpho <- foreign::read.dbf(paste0(
+      data_dir,
+      "attr/PlusWaterbodyLakeMorphology.dbf"
+    ))
     lakemorpho <- rename_all(lakemorpho, tolower)
     lakemorpho <- rename(lakemorpho, lake_comid = comid)
     lakemorpho <- mutate_if(lakemorpho, is.factor, as.character())
@@ -276,4 +300,3 @@ nsink_prep_lakemorpho <- function(data_dir){
   }
   as_tibble(lakemorpho)
 }
-
