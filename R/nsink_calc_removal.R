@@ -10,11 +10,11 @@
 #'
 #' @param input_data A list of input datasets created with
 #'                   \code{\link{nsink_prep_data}}.
-#' @return If the rater method is used,  a raster stack with one layer with
+#' @return A list with three items, 1) a raster stack with one layer with
 #'         nitrogen removal, a second layer with the type of removal (e.g.
-#'         hydric soils, lakes, streams), and a third layer with a clean raster
-#'         template is returned.  If the hybrid method is used a list is
-#'         returned with land_removal, stream_removal, and lake removal.
+#'         hydric soils, lakes, streams), 2) a polygon representing removal from
+#'         land, and 3) removal from the stream network, including stream
+#'         removal, and lake removal.
 #'
 #' @references Kellogg, D. Q., Gold, A. J., Cox, S., Addy, K., & August, P. V.
 #'             (2010). A geospatial approach for assessing denitrification sinks
@@ -27,10 +27,11 @@
 #' \dontrun{
 #' library(nsink)
 #' niantic_huc <- nsink_get_huc_id("Niantic River")$huc_12
-#' niantic_data <- nsink_get_data(niantic_huc)
+#' niantic_data <- nsink_get_data(niantic_huc, data_dir = "nsink_data")
 #' aea <- "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=23 +lon_0=-96 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
-#' niantic_nsink_data <- nsink_prep_data(niantic_huc, projection = aea)
-#' nsink_calc_removal(niantic_nsink_data)
+#' niantic_nsink_data <- nsink_prep_data(niantic_huc, projection = aea ,
+#'                                       data_dir = "nsink_data")
+#' removal <- nsink_calc_removal(niantic_nsink_data)
 #' }
 nsink_calc_removal <- function(input_data) {
   if (all(names(input_data) %in% c(
