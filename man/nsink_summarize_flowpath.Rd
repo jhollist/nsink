@@ -7,7 +7,7 @@
 nsink_summarize_flowpath(
   flowpath,
   removal,
-  method = c("raster", "hybrid"),
+  method = c("hybrid", "raster"),
   filter_window = 3
 )
 }
@@ -42,26 +42,15 @@ library(nsink)
 library(sf)
 library(lwgeom)
 niantic_huc <- nsink_get_huc_id("Niantic River")$huc_12
-niantic_data <- nsink_get_data(niantic_huc)
+niantic_data <- nsink_get_data(niantic_huc, data_dir = "nsink_data")
 aea <- "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=23 +lon_0=-96 +x_0=0 +y_0=0
 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
-niantic_nsink_data <- nsink_prep_data(niantic_huc, projection = aea)
+niantic_nsink_data <- nsink_prep_data(niantic_huc, projection = aea,
+                                      data_dir = "nsink_data")
 removal <- nsink_calc_removal(niantic_nsink_data)
-pt <- c(1948121,2295822)
+pt <- c(1948121, 2295822)
 start_loc <- st_sf(st_sfc(st_point(c(pt)), crs = aea))
 fp <- nsink_generate_flowpath(start_loc, niantic_nsink_data)
-nsink_summarize_flowpath(fp, removal)
-pt <- c(1956582, 2287697)
-start_loc <- st_sf(st_sfc(st_point(c(pt)), crs = aea))
-fp <- nsink_generate_flowpath(start_loc, niantic_nsink_data,
-                                     method = "hybrid")
 nsink_summarize_flowpath(fp, removal, method = "hybrid")
 }
-TODO Raster method: Deal with adjacent hydrics, prior to entering stream
-     network with different removal by combining and averaging?  If I get
-     hybrid method working might not need to do this.
-TODO Raster method: Remove hydric that occurs once flowpath enters the stream
-     network. Replace with values from either side. If I get hybrid method
-     working might not need to do this.
-
 }

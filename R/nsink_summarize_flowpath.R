@@ -25,27 +25,20 @@
 #' @examples
 #' \dontrun{
 #' library(nsink)
-#' library(sf)
-#' library(lwgeom)
 #' niantic_huc <- nsink_get_huc_id("Niantic River")$huc_12
-#' niantic_data <- nsink_get_data(niantic_huc)
+#' niantic_data <- nsink_get_data(niantic_huc, data_dir = "nsink_data")
 #' aea <- "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=23 +lon_0=-96 +x_0=0 +y_0=0
 #' +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
-#' niantic_nsink_data <- nsink_prep_data(niantic_huc, projection = aea)
+#' niantic_nsink_data <- nsink_prep_data(niantic_huc, projection = aea,
+#'                                       data_dir = "nsink_data")
 #' removal <- nsink_calc_removal(niantic_nsink_data)
 #' pt <- c(1948121, 2295822)
 #' start_loc <- st_sf(st_sfc(st_point(c(pt)), crs = aea))
 #' fp <- nsink_generate_flowpath(start_loc, niantic_nsink_data)
-#' nsink_summarize_flowpath(fp, removal)
-#' pt <- c(1956582, 2287697)
-#' start_loc <- st_sf(st_sfc(st_point(c(pt)), crs = aea))
-#' fp <- nsink_generate_flowpath(start_loc, niantic_nsink_data,
-#'   method = "hybrid"
-#' )
 #' nsink_summarize_flowpath(fp, removal, method = "hybrid")
 #' }
 nsink_summarize_flowpath <- function(flowpath, removal,
-                                     method = c("raster", "hybrid"), filter_window = 3) {
+                                     method = c("hybrid", "raster"), filter_window = 3) {
   method <- match.arg(method)
   if (method == "raster") {
     # fp_removal_raster <- rasterize(flowpath, removal$raster_method[[1]], 1, max) *
@@ -64,6 +57,7 @@ nsink_summarize_flowpath <- function(flowpath, removal,
     #               removal_summary = removal_summary)
     return(removal_summary)
   } else if (method == "hybrid") {
+
     land_removal <- st_intersection(removal$land_removal, flowpath$flowpath_ends[[1]])
 
     land_removal_df <- data.frame(
@@ -89,7 +83,6 @@ nsink_summarize_flowpath <- function(flowpath, removal,
       length = as.numeric(st_length(land_removal))
     )
 
-    # TODO get per segment removal from network
     if (!is.null(flowpath$flowpath_network)) {
       n_removal_df <- select(
         st_drop_geometry(removal$network_removal),
@@ -123,8 +116,7 @@ nsink_summarize_flowpath <- function(flowpath, removal,
     } else {
       flowpath_removal_df <- NULL
     }
-    # TODO NA in n_removal caused by missing time of travel.  See todo in nsink_calc_removal
-    # TODO add it all together
+
     removal_summary <- nsink_create_summary_hybrid(land_removal_df, flowpath_removal_df)
     return(removal_summary)
   }
@@ -286,7 +278,6 @@ nsink_create_summary_hybrid <- function(land_removal, network_removal) {
   }
 
   # Converting NA removal to 0 - need to have alternative.
-  # see nsink_calc_removal TODO
   flowpath_removal_df <- mutate(flowpath_removal_df,
     n_removal =
       case_when(

@@ -35,12 +35,12 @@ Generate N-Sink Static Maps for a given HUC
 \dontrun{
 library(nsink)
 niantic_huc <- nsink_get_huc_id("Niantic River")$huc_12
-niantic_data <- nsink_get_data(niantic_huc)
+niantic_data <- nsink_get_data(niantic_huc, data_dir = "nsink_data")
 aea <- "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=23 +lon_0=-96 +x_0=0 +y_0=0
 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
-niantic_nsink_data <- nsink_prep_data(niantic_huc, projection = aea, "niantic_nsink")
+niantic_nsink_data <- nsink_prep_data(niantic_huc, projection = aea,
+                                      data_dir = "nsink_data")
 niantic_removal <- nsink_calc_removal(niantic_nsink_data)
-nsink_generate_static_maps(niantic_nsink_data, niantic_removal, fact = 900,
-                           "nsink_data/")
+nsink_generate_static_maps(niantic_nsink_data, niantic_removal,fact = 900)
 }
 }
