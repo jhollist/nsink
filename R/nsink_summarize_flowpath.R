@@ -35,7 +35,7 @@
 #' pt <- c(1948121, 2295822)
 #' start_loc <- st_sf(st_sfc(st_point(c(pt)), crs = aea))
 #' fp <- nsink_generate_flowpath(start_loc, niantic_nsink_data)
-#' nsink_summarize_flowpath(fp, removal, method = "hybrid")
+#' flow_summary <- nsink_summarize_flowpath(fp, removal, method = "hybrid")
 #' }
 nsink_summarize_flowpath <- function(flowpath, removal,
                                      method = c("hybrid", "raster"), filter_window = 3) {
