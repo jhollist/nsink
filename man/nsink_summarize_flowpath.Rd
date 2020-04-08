@@ -36,5 +36,6 @@ pt <- c(1948121, 2295822)
 start_loc <- st_sf(st_sfc(st_point(c(pt)), crs = aea))
 fp <- nsink_generate_flowpath(start_loc, niantic_nsink_data)
 flow_summary <- nsink_summarize_flowpath(fp, removal)
+flow_summary
 }
 }
