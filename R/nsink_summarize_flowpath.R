@@ -117,7 +117,10 @@ nsink_summarize_flowpath <- function(flowpath, removal,
       flowpath_removal_df <- NULL
     }
 
-    removal_summary <- nsink_create_summary_hybrid(land_removal_df, flowpath_removal_df)
+    removal_summary <- nsink_create_summary_hybrid(land_removal_df, flowpath_removal_df) %>%
+      mutate(length = round(length,0),
+             percent_removal = signif(percent_removal, 3),
+             n_in = signif(n_in, 3), n_out = signif(n_out, 3))
     return(removal_summary)
   }
 }
@@ -252,6 +255,10 @@ nsink_create_summary_hybrid <- function(land_removal, network_removal) {
   )
   land_removal_df <- ungroup(land_removal_df)
 
+  # Passing in and out of hydric soil can trigger removal at each step
+  # This would result in unusually high removal
+  # This calculates a weighted average across all hydric soils on land
+  # Slight departure from original method.
   wgt_avg_removal <- function(length, removal) {
     sum(length * removal, na.rm = TRUE) / sum(length, na.rm = TRUE)
   }
@@ -268,16 +275,21 @@ nsink_create_summary_hybrid <- function(land_removal, network_removal) {
     n_removal
   )
   if (!is.null(network_removal)) {
-    network_removal_df <- select(
-      network_removal, segment_id, segment_type,
-      length, n_removal
-    )
+    # Multiple stream segments in a single lake also increases removal for a
+    # lake by a factor of the number of segments.  This code results in only a
+    # single n removal per lake based on that lakes estimated percent removal
+    network_removal_df <- select(network_removal, segment_id, segment_type,
+                                 length, n_removal) %>%
+      group_by(segment_id) %>%
+      mutate(length = sum(length)) %>%
+      filter(!duplicated(segment_id)) %>%
+      ungroup()
     flowpath_removal_df <- rbind(land_removal_df, network_removal_df)
   } else {
     flowpath_removal_df <- land_removal_df
   }
 
-  # Converting NA removal to 0 - need to have alternative.
+  # Converting NA removal to 0
   flowpath_removal_df <- mutate(flowpath_removal_df,
     n_removal =
       case_when(

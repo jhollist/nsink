@@ -39,8 +39,6 @@ estimate of total flow path removal as well as removal by type.
 \examples{
 \dontrun{
 library(nsink)
-library(sf)
-library(lwgeom)
 niantic_huc <- nsink_get_huc_id("Niantic River")$huc_12
 niantic_data <- nsink_get_data(niantic_huc, data_dir = "nsink_data")
 aea <- "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=23 +lon_0=-96 +x_0=0 +y_0=0
@@ -51,6 +49,6 @@ removal <- nsink_calc_removal(niantic_nsink_data)
 pt <- c(1948121, 2295822)
 start_loc <- st_sf(st_sfc(st_point(c(pt)), crs = aea))
 fp <- nsink_generate_flowpath(start_loc, niantic_nsink_data)
-nsink_summarize_flowpath(fp, removal, method = "hybrid")
+flow_summary <- nsink_summarize_flowpath(fp, removal, method = "hybrid")
 }
 }

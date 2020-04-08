@@ -149,9 +149,8 @@ nsink_calc_land_removal <- function(input_data, method = c("raster", "hybrid")) 
   )
 
   impervious <- input_data$impervious
-  impervious[impervious > 0] <- NA
-  impervious[!is.na(impervious)] <- 1
-  impervious[is.na(impervious)] <- 0
+  impervious[impervious >= 0] <- 0
+  impervious[is.na(impervious)] <- 1
   imp_land_removal <- land_removal_rast * impervious
   if (method == "raster") {
     return(imp_land_removal)
