@@ -4,11 +4,7 @@
 \alias{nsink_generate_flowpath}
 \title{Generate and clean a flowpath for N-Sink}
 \usage{
-nsink_generate_flowpath(
-  starting_location,
-  input_data,
-  method = c("hybrid", "raster")
-)
+nsink_generate_flowpath(starting_location, input_data)
 }
 \arguments{
 \item{starting_location}{An \code{\link{sf}} point location as a starting
@@ -24,9 +20,10 @@ An \code{\link{sf}} LINESTRING object of the flowpath that starts at
         the \code{starting_location} and ends at the ouflow of the HUC.
 }
 \description{
-This function takes an XY location as a starting point and generates a hybrid
-(flow direction derived flowpath on land plus NHDPlus vector downstream
-flowpath) flowpath for use in the N-Sink nitrogen removal analysis.
+This function takes an XY location as a starting point and generates a
+flowpath for use in the N-Sink nitrogen removal analysis. The flopath is a
+combination of a flow direction derived flowpath on land plus NHDPlus derived
+stream-reach flowpath.
 }
 \examples{
 \dontrun{
@@ -38,7 +35,6 @@ niantic_nsink_data <- nsink_prep_data(niantic_huc, projection = aea,
                                       data_dir = "nsink_data")
 pt <- c(1948121, 2295822)
 start_loc <- st_sf(st_sfc(st_point(c(pt)), crs = aea))
-fp <- nsink_generate_flowpath(start_loc, niantic_nsink_data,
-                              method = "hybrid")
+fp <- nsink_generate_flowpath(start_loc, niantic_nsink_data)
 }
 }

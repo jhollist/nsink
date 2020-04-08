@@ -4,17 +4,14 @@
 \alias{nsink_calc_land_removal}
 \title{Calculates land-based nitrogen removal}
 \usage{
-nsink_calc_land_removal(input_data, method = c("raster", "hybrid"))
+nsink_calc_land_removal(input_data)
 }
 \arguments{
 \item{input_data}{A named list with "ssurgo", "impervious", "lakes", and
 "raster_template".}
-
-\item{method}{Character indicating which type of data to return.  See
-\code{\link{nsink_calc_removal}} for detals}
 }
 \value{
-raster of land based nitrogen removal
+list with raster and vector versions of land based nitrogen removal
 }
 \description{
 Calculates land-based nitrogen removal

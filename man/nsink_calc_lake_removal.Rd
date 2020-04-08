@@ -4,14 +4,11 @@
 \alias{nsink_calc_lake_removal}
 \title{Calculates lake-based nitrogen removal}
 \usage{
-nsink_calc_lake_removal(input_data, method = c("raster", "hybrid"))
+nsink_calc_lake_removal(input_data)
 }
 \arguments{
 \item{input_data}{A named list with "streams", "lakes", "tot", "lakemorpho",
 and "raster_template".}
-
-\item{method}{Character indicating which type of data to return.  See
-\code{\link{nsink_calc_removal}} for detals}
 }
 \value{
 raster of lake based nitrogen removal

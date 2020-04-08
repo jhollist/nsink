@@ -25,8 +25,8 @@
 #' +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
 #' niantic_nsink_data <- nsink_prep_data(niantic_huc, projection = aea,
 #'                                       data_dir = "nsink_data")
-#' niantic_removal <- nsink_calc_removal(niantic_nsink_data)
-#' nsink_generate_static_maps(niantic_nsink_data, niantic_removal,fact = 900)
+#' removal <- nsink_calc_removal(niantic_nsink_data)
+#' nsink_generate_static_maps(niantic_nsink_data, removal,fact = 900)
 #' }
 nsink_generate_static_maps <- function(input_data, removal, fact,
                                        custom_load = NULL) {
@@ -108,8 +108,8 @@ nsink_generate_n_removal_heatmap <- function(input_data, removal, fact, ncpu) {
   fp_removal <- function(pt, input_data, removal) {
     pb$tick()$print()
     pt <- st_sf(st_sfc(pt, crs = st_crs(input_data$huc)))
-    fp <- nsink_generate_flowpath(pt, input_data, method = "hybrid")
-    fp_summary <- nsink_summarize_flowpath(fp, removal, method = "hybrid")
+    fp <- nsink_generate_flowpath(pt, input_data)
+    fp_summary <- nsink_summarize_flowpath(fp, removal)
     data.frame(fp_removal = 100 - min(fp_summary$n_out))
   }
 

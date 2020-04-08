@@ -34,60 +34,23 @@
 #' removal <- nsink_calc_removal(niantic_nsink_data)
 #' }
 nsink_calc_removal <- function(input_data) {
-  if (all(names(input_data) %in% c(
-    "streams", "lakes", "fdr", "impervious",
-    "nlcd", "ssurgo", "q", "tot", "huc",
-    "raster_template", "lakemorpho"
-  ))) {
+  if (all(names(input_data) %in% c("streams", "lakes", "fdr", "impervious",
+                                   "nlcd", "ssurgo", "q", "tot", "huc",
+                                   "raster_template", "lakemorpho"))) {
+    land_removal <- nsink_calc_land_removal(input_data[c("ssurgo", "impervious",
+                                                         "raster_template")])
+    stream_removal <- nsink_calc_stream_removal(input_data[c("streams","q", "tot",
+                                                              "raster_template")])
+    lake_removal <- nsink_calc_lake_removal(input_data[c("streams", "lakes",
+                                                         "tot","lakemorpho",
+                                                         "raster_template")])
     removal <- list(
-      land_removal = nsink_calc_land_removal(input_data[c(
-        "ssurgo",
-        "impervious",
-        "raster_template"
-      )],
-      method = "raster"
-      ),
-      land_removal_v = nsink_calc_land_removal(input_data[c(
-        "ssurgo",
-        "impervious",
-        "raster_template"
-      )],
-      method = "hybrid"
-      ),
-      stream_removal_r = nsink_calc_stream_removal(input_data[c(
-        "streams",
-        "q",
-        "tot",
-        "raster_template"
-      )],
-      method = "raster"
-      ),
-      lake_removal_r = nsink_calc_lake_removal(input_data[c(
-        "streams",
-        "lakes",
-        "tot",
-        "lakemorpho",
-        "raster_template"
-      )],
-      method = "raster"
-      ),
-      stream_removal_v = nsink_calc_stream_removal(input_data[c(
-        "streams",
-        "q",
-        "tot",
-        "raster_template"
-      )],
-      method = "hybrid"
-      ),
-      lake_removal_v = nsink_calc_lake_removal(input_data[c(
-        "streams",
-        "lakes",
-        "tot",
-        "lakemorpho",
-        "raster_template"
-      )],
-      method = "hybrid"
-      ),
+      land_removal = land_removal$land_removal_r,
+      land_removal_v = land_removal$land_removal_v,
+      stream_removal_r = stream_removal$stream_removal_r,
+      stream_removal_v = stream_removal$stream_removal_v,
+      lake_removal_r = lake_removal$lake_removal_r,
+      lake_removal_v = lake_removal$lake_removal_v,
       raster_template = input_data$raster_template, huc = input_data$huc
     )
 
@@ -124,13 +87,11 @@ nsink_calc_removal <- function(input_data) {
 #'
 #' @param input_data A named list with "ssurgo", "impervious", "lakes", and
 #'                   "raster_template".
-#' @param method Character indicating which type of data to return.  See
-#'             \code{\link{nsink_calc_removal}} for detals
-#' @return raster of land based nitrogen removal
+#' @return list with raster and vector versions of land based nitrogen removal
 #' @import dplyr sf
 #' @keywords internal
-nsink_calc_land_removal <- function(input_data, method = c("raster", "hybrid")) {
-  method <- match.arg(method)
+nsink_calc_land_removal <- function(input_data) {
+
   land_removal <- mutate(input_data$ssurgo,
     n_removal = 0.8 * (hydric_pct / 100)
   )
@@ -152,24 +113,21 @@ nsink_calc_land_removal <- function(input_data, method = c("raster", "hybrid")) 
   impervious[impervious >= 0] <- 0
   impervious[is.na(impervious)] <- 1
   imp_land_removal <- land_removal_rast * impervious
-  if (method == "raster") {
-    return(imp_land_removal)
-  } else if (method == "hybrid") {
-    st_as_sf(raster::rasterToPolygons(imp_land_removal, dissolve = TRUE))
-  }
+
+  list(land_removal_r = imp_land_removal,
+       land_removal_v = st_as_sf(raster::rasterToPolygons(imp_land_removal,
+                                                          dissolve = TRUE)))
 }
 
 #' Calculates stream-based nitrogen removal
 #'
 #' @param input_data  A named list with "streams", "q", "tot", and
 #'                   "raster_template".
-#' @param method Character indicating which type of data to return.  See
-#'             \code{\link{nsink_calc_removal}} for detals
 #' @return raster of stream based nitrogen removal
 #' @import dplyr sf
 #' @keywords internal
-nsink_calc_stream_removal <- function(input_data, method = c("raster", "hybrid")) {
-  method <- match.arg(method)
+nsink_calc_stream_removal <- function(input_data) {
+
   stream_removal <- mutate_if(input_data$streams, is.factor, as.character())
   stream_removal <- suppressMessages(left_join(stream_removal,
     input_data$q,
@@ -191,30 +149,21 @@ nsink_calc_stream_removal <- function(input_data, method = c("raster", "hybrid")
       (1 - exp(-0.0513 * (mean_reach_depth^-1.319)
         * totma)) / 100
   )
-  if (method == "raster") {
-    return(raster::rasterize(stream_removal, input_data$raster_template,
-      field = "n_removal", fun = "max"
-    ))
-  } else if (method == "hybrid") {
-    stream_removal <- select(
-      stream_removal, stream_comid, lake_comid, gnis_name,
-      ftype, n_removal
-    )
-    return(stream_removal)
-  }
+
+  list(stream_removal_r = raster::rasterize(stream_removal, input_data$raster_template,
+                                            field = "n_removal", fun = "max"),
+       stream_removal_v = select(stream_removal, stream_comid, lake_comid,
+                                 gnis_name, ftype, n_removal))
 }
 
 #' Calculates lake-based nitrogen removal
 #'
 #' @param input_data A named list with "streams", "lakes", "tot", "lakemorpho",
 #'                   and "raster_template".
-#' @param method Character indicating which type of data to return.  See
-#'             \code{\link{nsink_calc_removal}} for detals
 #' @return raster of lake based nitrogen removal
 #' @import dplyr sf
 #' @keywords internal
-nsink_calc_lake_removal <- function(input_data, method = c("raster", "hybrid")) {
-  method <- match.arg(method)
+nsink_calc_lake_removal <- function(input_data) {
 
   residence_time <- suppressMessages(left_join(input_data$streams, input_data$tot))
   residence_time <- filter(residence_time, lake_comid > 0)
@@ -254,19 +203,16 @@ nsink_calc_lake_removal <- function(input_data, method = c("raster", "hybrid")) 
 
   st_geometry(lake_removal) <- NULL
   lake_removal_flowpath <- suppressMessages(left_join(residence_time_sf, lake_removal))
-  if (method == "raster") {
-    return(fasterize::fasterize(lake_removal_sf, input_data$raster_template,
-      field = "n_removal", fun = "max"
-    ))
-  } else if (method == "hybrid") {
-    comids <- select(input_data$streams, stream_comid, lake_comid)
-    st_geometry(comids) <- NULL
-    lake_removal_flowpath <- suppressMessages(left_join(lake_removal_flowpath,
-                                                        comids))
-    lake_removal_flowpath <- select(lake_removal_flowpath, stream_comid,
-                                    lake_comid, gnis_name, ftype, n_removal)
-    return(lake_removal_flowpath)
-  }
+  lake_removal_r <- fasterize::fasterize(lake_removal_sf,
+                                         input_data$raster_template,
+                                         field = "n_removal", fun = "max")
+  comids <- select(input_data$streams, stream_comid, lake_comid)
+  st_geometry(comids) <- NULL
+  lake_removal_flowpath <- suppressMessages(left_join(lake_removal_flowpath,
+                                                      comids))
+  lake_removal_flowpath <- select(lake_removal_flowpath, stream_comid,
+                                  lake_comid, gnis_name, ftype, n_removal)
+  list(lake_removal_r = lake_removal_r, lake_removal_v = lake_removal_flowpath)
 }
 
 #' Merges removal rasters into single raster
