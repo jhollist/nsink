@@ -1,8 +1,9 @@
 #' Generate and clean a flowpath for N-Sink
 #'
-#' This function takes an XY location as a starting point and generates a hybrid
-#' (flow direction derived flowpath on land plus NHDPlus vector downstream
-#' flowpath) flowpath for use in the N-Sink nitrogen removal analysis.
+#' This function takes an XY location as a starting point and generates a
+#' flowpath for use in the N-Sink nitrogen removal analysis. The flopath is a
+#' combination of a flow direction derived flowpath on land plus NHDPlus derived
+#' stream-reach flowpath.
 #'
 #' @param starting_location An \code{\link{sf}} point location as a starting
 #'                          point for the flowpath.  Projection must match
@@ -24,13 +25,10 @@
 #'                                       data_dir = "nsink_data")
 #' pt <- c(1948121, 2295822)
 #' start_loc <- st_sf(st_sfc(st_point(c(pt)), crs = aea))
-#' fp <- nsink_generate_flowpath(start_loc, niantic_nsink_data,
-#'                               method = "hybrid")
+#' fp <- nsink_generate_flowpath(start_loc, niantic_nsink_data)
 #' }
-nsink_generate_flowpath <- function(starting_location, input_data,
-                                    method = c("hybrid", "raster")){
+nsink_generate_flowpath <- function(starting_location, input_data){
 
-  method <- match.arg(method)
   if(st_crs(starting_location) != st_crs(input_data$streams)){
     stop(paste0("The coordinate reference systems for your starting location and the input data do not match.  Re-project to a common reference system."))
   }
@@ -41,21 +39,14 @@ nsink_generate_flowpath <- function(starting_location, input_data,
   # This is for cases where flowpath doesn't intersect existing flowlines
   if(fp_ends[1] != fp_ends[2]){
     fp_flowlines <- nsink_get_flowline(fp_ends, input_data$streams, input_data$tot)
-    combo_fp <- rbind(fp_ends[1], select(fp_flowlines, geometry))
   } else {
     fp_flowlines <- NULL
-    combo_fp <- fp_ends[1]
   }
-  combo_fp <- unique(st_coordinates(combo_fp)[,-3])
-  combo_fp <- st_linestring(combo_fp)
-  combo_fp <- st_sfc(combo_fp)
-  combo_fp <- st_sf(combo_fp, crs =  st_crs(input_data$streams))
-  if(method == "raster"){return(combo_fp)}
-  if(method == "hybrid"){
-    fp_ends <- st_sfc(fp_ends)
-    fp_ends <- st_sf(fp_ends, crs = st_crs(input_data$streams))
-    return(list(flowpath_ends = fp_ends, flowpath_network = fp_flowlines))
-  }
+
+  fp_ends <- st_sfc(fp_ends)
+  fp_ends <- st_sf(fp_ends, crs = st_crs(input_data$streams))
+
+  list(flowpath_ends = fp_ends, flowpath_network = fp_flowlines)
 }
 
 #' Get flowpath beginning and ends

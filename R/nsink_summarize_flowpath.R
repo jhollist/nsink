@@ -91,7 +91,7 @@ nsink_summarize_flowpath <- function(flowpath, removal) {
     flowpath_removal_df <- NULL
   }
 
-  removal_summary <- nsink_create_summary_hybrid(land_removal_df, flowpath_removal_df) %>%
+  removal_summary <- nsink_create_summary(land_removal_df, flowpath_removal_df) %>%
     mutate(length = round(length,0),
            percent_removal = signif(percent_removal, 3),
            n_in = signif(n_in, 3), n_out = signif(n_out, 3))

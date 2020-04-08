@@ -25,8 +25,8 @@
 #' +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
 #' niantic_nsink_data <- nsink_prep_data(niantic_huc, projection = aea,
 #'                                       data_dir = "nsink_data")
-#' niantic_removal <- nsink_calc_removal(niantic_nsink_data)
-#' nsink_generate_static_maps(niantic_nsink_data, niantic_removal,fact = 900)
+#' removal <- nsink_calc_removal(niantic_nsink_data)
+#' nsink_generate_static_maps(niantic_nsink_data, removal,fact = 900)
 #' }
 nsink_generate_static_maps <- function(input_data, removal, fact,
                                        custom_load = NULL) {
