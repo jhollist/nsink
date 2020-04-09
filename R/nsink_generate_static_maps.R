@@ -26,7 +26,7 @@
 #' niantic_nsink_data <- nsink_prep_data(niantic_huc, projection = aea,
 #'                                       data_dir = "nsink_data")
 #' removal <- nsink_calc_removal(niantic_nsink_data)
-#' nsink_generate_static_maps(niantic_nsink_data, removal,fact = 900)
+#' static_maps <- nsink_generate_static_maps(niantic_nsink_data, removal,fact = 900)
 #' }
 nsink_generate_static_maps <- function(input_data, removal, fact,
                                        custom_load = NULL) {
@@ -53,15 +53,9 @@ nsink_generate_static_maps <- function(input_data, removal, fact,
 
   summary(raster::getValues(n_delivery_index))
 
-  lapply(
-    list(
-      removal_effic = removal_map,
-      loading_idx = n_load_idx,
-      transport_effic = n_delivery_heat,
-      delivery_idx = n_delivery_index
-    ),
-    function(x) round(x, 4)
-  )
+  lapply(list(removal_effic = removal_map, loading_idx = n_load_idx,
+              transport_effic = n_delivery_heat,delivery_idx = n_delivery_index),
+         function(x) signif(x, 3))
 }
 
 #' Generates the Nitrogen Loading Index
