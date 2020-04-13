@@ -28,7 +28,8 @@
 #' library(nsink)
 #' niantic_huc <- nsink_get_huc_id("Niantic River")$huc_12
 #' niantic_data <- nsink_get_data(niantic_huc, data_dir = "nsink_data")
-#' aea <- "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=23 +lon_0=-96 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
+#' aea <- "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=23 +lon_0=-96 +x_0=0 +y_0=0
+#' +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
 #' niantic_nsink_data <- nsink_prep_data(niantic_huc, projection = aea ,
 #'                                       data_dir = "nsink_data")
 #' removal <- nsink_calc_removal(niantic_nsink_data)
@@ -89,19 +90,20 @@ nsink_calc_removal <- function(input_data) {
 #'                   "raster_template".
 #' @return list with raster and vector versions of land based nitrogen removal
 #' @import dplyr sf
+#' @importFrom rlang .data
 #' @keywords internal
 nsink_calc_land_removal <- function(input_data) {
 
   land_removal <- mutate(input_data$ssurgo,
-    n_removal = 0.8 * (hydric_pct / 100)
+    n_removal = 0.8 * (.data$hydric_pct / 100)
   )
   land_removal <- mutate(land_removal, n_removal = case_when(
-    n_removal == 0 ~
+    .data$n_removal == 0 ~
     NA_real_,
-    TRUE ~ n_removal
+    TRUE ~ .data$n_removal
   ))
-  land_removal <- group_by(land_removal, hydric_pct)
-  land_removal <- summarize(land_removal, n_removal = unique(n_removal))
+  land_removal <- group_by(land_removal, .data$hydric_pct)
+  land_removal <- summarize(land_removal, n_removal = unique(.data$n_removal))
   land_removal <- ungroup(land_removal)
   land_removal_rast <- fasterize::fasterize(land_removal,
     input_data$raster_template,
@@ -125,6 +127,7 @@ nsink_calc_land_removal <- function(input_data) {
 #'                   "raster_template".
 #' @return raster of stream based nitrogen removal
 #' @import dplyr sf
+#' @importFrom rlang .data
 #' @keywords internal
 nsink_calc_stream_removal <- function(input_data) {
 
@@ -137,23 +140,23 @@ nsink_calc_stream_removal <- function(input_data) {
     input_data$tot,
     by = c("stream_comid" = "stream_comid")
   ))
-  stream_removal <- filter(stream_removal, ftype != "ArtificialPath")
+  stream_removal <- filter(stream_removal, .data$ftype != "ArtificialPath")
   # TODO When time of travel not available in NHDPlus, need to use other methods
   #      to estimate time of travel (in Kellogg et al.)
   stream_removal <- mutate(stream_removal, totma = case_when(
-    totma == -9999 ~ NA_real_,
-    TRUE ~ totma
+    .data$totma == -9999 ~ NA_real_,
+    TRUE ~ .data$totma
   ))
   stream_removal <- mutate(stream_removal,
     n_removal =
-      (1 - exp(-0.0513 * (mean_reach_depth^-1.319)
-        * totma)) / 100
+      (1 - exp(-0.0513 * (.data$mean_reach_depth^-1.319)
+        * .data$totma)) / 100
   )
 
   list(stream_removal_r = raster::rasterize(stream_removal, input_data$raster_template,
                                             field = "n_removal", fun = "max"),
-       stream_removal_v = select(stream_removal, stream_comid, lake_comid,
-                                 gnis_name, ftype, n_removal))
+       stream_removal_v = select(stream_removal, .data$stream_comid, .data$lake_comid,
+                                 .data$gnis_name, .data$ftype, .data$n_removal))
 }
 
 #' Calculates lake-based nitrogen removal
@@ -162,22 +165,23 @@ nsink_calc_stream_removal <- function(input_data) {
 #'                   and "raster_template".
 #' @return raster of lake based nitrogen removal
 #' @import dplyr sf
+#' @importFrom rlang .data
 #' @keywords internal
 nsink_calc_lake_removal <- function(input_data) {
 
   residence_time <- suppressMessages(left_join(input_data$streams, input_data$tot))
-  residence_time <- filter(residence_time, lake_comid > 0)
+  residence_time <- filter(residence_time, .data$lake_comid > 0)
   # TODO When time of travel not available in NHDPlus, need to use other methods
   #      to calculate residence time (in Kellogg et al)
   residence_time <- mutate(residence_time, totma = case_when(
-    totma == -9999 ~
+    .data$totma == -9999 ~
     NA_real_,
-    TRUE ~ totma
+    TRUE ~ .data$totma
   ))
-  residence_time <- group_by(residence_time, lake_comid)
+  residence_time <- group_by(residence_time, .data$lake_comid)
   residence_time <- summarize(residence_time,
     lake_residence_time_yrs =
-      sum(totma * 0.002737851)
+      sum(.data$totma * 0.002737851)
   )
   residence_time <- ungroup(residence_time)
   residence_time_sf <- residence_time
@@ -186,16 +190,16 @@ nsink_calc_lake_removal <- function(input_data) {
   lake_removal <- suppressMessages(left_join(input_data$lakes, input_data$lakemorpho))
   lake_removal <- suppressMessages(left_join(lake_removal, residence_time))
   lake_removal <- mutate(lake_removal, meandused = case_when(
-    meandused < 0 ~ NA_real_,
-    TRUE ~ meandused
+    .data$meandused < 0 ~ NA_real_,
+    TRUE ~ .data$meandused
   ))
   lake_removal <- mutate(lake_removal,
     n_removal =
-      (79.24 - (33.26 * log10(meandused / lake_residence_time_yrs))) / 100
+      (79.24 - (33.26 * log10(.data$meandused / .data$lake_residence_time_yrs))) / 100
   )
   lake_removal <- mutate(lake_removal, n_removal = case_when(
-    n_removal < 0 ~ 0,
-    TRUE ~ n_removal
+    .data$n_removal < 0 ~ 0,
+    TRUE ~ .data$n_removal
   ))
 
   lake_removal_sf <- lake_removal
@@ -206,12 +210,12 @@ nsink_calc_lake_removal <- function(input_data) {
   lake_removal_r <- fasterize::fasterize(lake_removal_sf,
                                          input_data$raster_template,
                                          field = "n_removal", fun = "max")
-  comids <- select(input_data$streams, stream_comid, lake_comid)
+  comids <- select(input_data$streams, .data$stream_comid, .data$lake_comid)
   st_geometry(comids) <- NULL
   lake_removal_flowpath <- suppressMessages(left_join(lake_removal_flowpath,
                                                       comids))
-  lake_removal_flowpath <- select(lake_removal_flowpath, stream_comid,
-                                  lake_comid, gnis_name, ftype, n_removal)
+  lake_removal_flowpath <- select(lake_removal_flowpath, .data$stream_comid,
+                                  .data$lake_comid, .data$gnis_name, .data$ftype, .data$n_removal)
   list(lake_removal_r = lake_removal_r, lake_removal_v = lake_removal_flowpath)
 }
 
@@ -220,6 +224,7 @@ nsink_calc_lake_removal <- function(input_data) {
 #' @param removal_rasters A named list of "land_removal", "stream_removal,
 #'                        "lake_removal", and "raster_template" rasters plus a
 #'                        sf object "huc".
+#' @importFrom methods as
 #' @return raster of landscape nitrogen removal
 #' @keywords internal
 nsink_merge_removal <- function(removal_rasters) {

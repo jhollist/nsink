@@ -10,6 +10,7 @@
 #' @param force Logical to determine if files should be downloaded
 #'                       again if they already exist locally.
 #' @export
+#' @importFrom methods as
 #' @return Returns a list with the huc used and the directory where the data is
 #'         stored.
 #' @examples

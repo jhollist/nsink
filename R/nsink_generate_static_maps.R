@@ -15,6 +15,7 @@
 #' @return This function returns a list or rasters: nitrogen removal efficiency,
 #'         nitrogen loading index, nitrogen transport efficiency, and the
 #'         nitrogen delivery index.
+#'
 #' @export
 #' @examples
 #' \dontrun{
@@ -92,6 +93,7 @@ nsink_generate_n_loading_index <- function(input_data, custom_load = NULL) {
 #'             90 meters.
 #' @param ncpu number of CPUs to use for calculating flowpath removal
 #' @importFrom sf st_area st_sample st_sf st_sfc st_crs
+#' @importFrom methods as
 #'
 #' @keywords internal
 nsink_generate_n_removal_heatmap <- function(input_data, removal, fact, ncpu) {
