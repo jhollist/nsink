@@ -46,6 +46,9 @@ jobs:
         run: |
           brew install pkg-config gdal openssl udunits protobuf
 
+      - name: Install sf package before lwgeom
+        run: Rscript -e "install.packages('sf')"
+
       - name: Install remotes package
         run: Rscript -e "install.packages('remotes')"
 
