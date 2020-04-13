@@ -1,3 +1,9 @@
-test_that("multiplication works", {
-  expect_equal(2 * 2, 4)
+context("nsink_get_huc_id")
+library(nsink)
+
+
+test_that("nsink_get_huc_id gets expected values back", {
+  expect_is(nsink_get_huc_id("Niantic")$huc_12, "character")
+  expect_is(nsink_get_huc_id("Niantic"), "tbl_df")
+  expect_equal(nsink_get_huc_id("Niantic")$huc_12, "011000030304")
 })
