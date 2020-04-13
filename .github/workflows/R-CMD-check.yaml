@@ -1,13 +1,7 @@
-# Action script of tests conducted for all platforms. The complete suite
-# of tests is described in .github/workflows/R-CMD-check-with-db.yaml
+# Modified this from https://github.com/ateucher/rmapshaper/blob/master/.github/workflows/R-CMD-check.yaml
+# Thanks, Andy!
 
-# Borrowed from the sf github actions: https://github.com/r-spatial/sf/blob/master/.github/workflows/R-CMD-check.yaml
-
-on:
-  push:
-  pull_request:
-    branches:
-      - master
+on: [push, pull_request]
 
 name: R-CMD-check
 
@@ -15,23 +9,22 @@ jobs:
   R-CMD-check:
     runs-on: ${{ matrix.config.os }}
 
-
-    name: ${{ matrix.config.os }} (${{ matrix.config.r }})
+    name: ${{ matrix.config.os }} (${{ matrix.config.r }} ${{ matrix.config.v8 }})
 
     strategy:
       fail-fast: false
       matrix:
         config:
-          # - {os: windows-latest, r: '3.6'}
-          - {os: macOS-latest, r: '3.6', args: '--install-args=\"--configure-args=--with-proj-lib=/usr/local/lib/\"", "--ignore-vignettes', build_args: "--no-build-vignettes"}
-          - {os: macOS-latest, r: 'devel', args: '--install-args=\"--configure-args=--with-proj-lib=/usr/local/lib/\"", "--ignore-vignettes', build_args: "--no-build-vignettes"}
-          - {os: ubuntu-16.04, r: '3.5', cran: "https://demo.rstudiopm.com/all/__linux__/xenial/latest"}
-          - {os: ubuntu-16.04, r: '3.6', cran: "https://demo.rstudiopm.com/all/__linux__/xenial/latest"}
-          - {os: ubuntu-latest, r: 'release'}
+        - { os: windows-latest, r: '3.6', args: "--no-manual"}
+        - { os: macOS-latest, r: '3.6', args: "--no-manual", sf_args: "--with-proj-lib=/usr/local/lib/"}
+        - { os: macOS-latest, r: '3.6', args: "--no-manual", no_node: true, sf_args: "--with-proj-lib=/usr/local/lib/"}
+        - { os: macOS-latest, r: 'devel', sf_args: "--with-proj-lib=/usr/local/lib/"}
+        - { os: ubuntu-16.04, r: '3.5', v8: "libnode-dev", args: "--no-manual"}
+        - { os: ubuntu-16.04, r: '3.6', v8: "libv8-dev", args: "--no-manual"}
+        - { os: ubuntu-16.04, r: '3.6', v8: "libnode-dev"}
 
     env:
       R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
-      CRAN: ${{ matrix.config.cran }}
 
     steps:
       - uses: actions/checkout@v1
@@ -42,40 +35,23 @@ jobs:
 
       - uses: r-lib/actions/setup-pandoc@master
 
-      - name: Brew and macOS config
-        if: runner.os == 'macOS'
-        run: |
-          brew install pkg-config
-          brew install udunits
-          brew install gdal
-          cat <<EOT >> .Renviron
-          PKG_CONFIG_PATH=/usr/local/lib/pkgconfig/
-          PROJ_LIB=/usr/local/opt/proj/share/proj/
-          # for installing XML package from source
-          XML_CONFIG=/usr/local/opt/libxml2/bin/xml2-config
-          EOT
-          cat <<EOT >> .Rprofile
-          r <- getOption("repos")
-          r["CRAN"] <- "https://cran.rstudio.com"
-          r["rccp_drat"] <- "https://RcppCore.github.io/drat"
-          config_args <- c("sf" = "--with-proj-lib=/usr/local/lib/", "rgdal" = "--with-proj-lib=/usr/local/lib/ --with-proj-include=/usr/local/include/")
-          options(configure.args = config_args,
-                  install.packages.compile.from.source = "yes",
-                  repos = r)
-          EOT
-      - name: Query dependencies
-        run: |
-          install.packages('remotes')
-          saveRDS(remotes::dev_package_deps(dependencies = TRUE), "depends.Rds", version = 2)
-        shell: Rscript {0}
+      - uses: r-lib/actions/setup-tinytex@master
+        if: contains(matrix.config.args, 'no-manual') == false
 
       - name: Cache R packages
-        if: runner.os != 'Windows'
         uses: actions/cache@v1
         with:
           path: ${{ env.R_LIBS_USER }}
-          key: ${{ runner.os }}-r-${{ matrix.config.r }}-${{ hashFiles('depends.Rds') }}
-          restore-keys: ${{ runner.os }}-r-${{ matrix.config.r }}-
+          key: ${{ runner.os }}-r-${{ matrix.config.r }}-v8-${{ matrix.config.v8 }}-${{ matrix.config.dev_sf }}-${{ hashFiles('DESCRIPTION') }}
+
+      - name: install macOS system dependencies
+        if: runner.os == 'macOS'
+        continue-on-error: true
+        run: |
+          brew install pkg-config gdal openssl udunits v8 protobuf
+
+      - name: Install remotes package
+        run: Rscript -e "install.packages('remotes')"
 
       - name: Install system dependencies
         if: runner.os == 'Linux'
@@ -84,32 +60,32 @@ jobs:
         run: |
           Rscript -e "remotes::install_github('r-hub/sysreqs')"
           sysreqs=$(Rscript -e "cat(sysreqs::sysreq_commands('DESCRIPTION'))")
+          sudo add-apt-repository -y ppa:cran/jq
           sudo -s eval "$sysreqs"
           # install spatial dependencies
-          sudo add-apt-repository ppa:ubuntugis/ubuntugis-unstable
+          sudo add-apt-repository -y ppa:ubuntugis/ubuntugis-unstable
           sudo apt update
           sudo apt install \
             libudunits2-dev \
             libgdal-dev \
             libgeos-dev \
-            libproj-dev
-      - name: Install dependencies
-        run: |
-          library(remotes)
-          deps <- readRDS("depends.Rds")
-          deps[["installed"]] <- vapply(deps[["package"]], remotes:::local_sha, character(1))
-          update(deps)
-          remotes::install_cran("rcmdcheck")
+            libproj-dev \
+            ${{ matrix.config.v8 }}
+
+      - name: Install dev Rcpp mac
+        if: runner.os == 'macOS'
+        run: install.packages('Rcpp', type = 'source', repos = 'https://RcppCore.github.io/drat/')
         shell: Rscript {0}
 
-      - name: Install rgdal with configure
-        if: runner.os == 'macOS'
+      - name: Install dependencies
         run: |
-          install.packages("rgdal", type = "source", configure.args = "--with-proj-lib=/usr/local/lib/ --with-proj-include=/usr/local/include/")
+          remotes::install_deps(dependencies = TRUE, configure.args = c('sf' = '${{ matrix.config.sf_args }}'))
+          remotes::install_cran('rcmdcheck')
         shell: Rscript {0}
 
       - name: Check
-        run: rcmdcheck::rcmdcheck(args = c("--no-manual", "${{ matrix.config.args }}"), error_on = "warning", check_dir = "check", build_args = "${{ matrix.config.build_args }}")
+        run: |
+          rcmdcheck::rcmdcheck(args = '${{ matrix.config.args }}', error_on = 'warning', check_dir = 'check')
         shell: Rscript {0}
 
       - name: Upload check results
@@ -118,3 +94,11 @@ jobs:
         with:
           name: ${{ runner.os }}-r${{ matrix.config.r }}-results
           path: check
+
+      - name: Test coverage
+        if: matrix.config.os == 'macOS-latest' && matrix.config.r == '3.6'
+        continue-on-error: true
+        run: |
+          Rscript -e 'remotes::install_github("r-lib/covr@gh-actions")'
+          Rscript -e 'covr::codecov(")'
+# token = "${{secrets.CODECOV_TOKEN}}
