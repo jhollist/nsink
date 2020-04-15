@@ -92,7 +92,7 @@ jobs:
           path: check
 
       - name: Test coverage
-        if: matrix.r == '3.6' && runner.os == 'Linux'
+        if: runner.os == 'Linux'
         run: |
           Rscript -e 'remotes::install_github("r-lib/covr@gh-actions")'
           Rscript -e 'covr::codecov(token = "${{secrets.CODECOV_TOKEN}}")'
