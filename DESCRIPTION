@@ -38,7 +38,9 @@ Imports:
   sp,
   methods,
   rlang
-Remotes: ropensci/FedData
+Remotes: 
+  ropensci/FedData,
+  r-spatial/lwgeom
 License: GPL-3
 Encoding: UTF-8
 Language: es
