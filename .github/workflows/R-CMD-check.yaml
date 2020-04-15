@@ -44,7 +44,7 @@ jobs:
         if: runner.os == 'macOS'
         continue-on-error: true
         run: |
-          brew install pkg-config gdal openssl udunits protobuf
+          brew install pkg-config gdal openssl udunits protobuf p7zip
 
       - name: Install remotes package
         run: Rscript -e "install.packages('remotes')"
