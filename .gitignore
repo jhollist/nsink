@@ -15,3 +15,4 @@ palmer_output.zip
 nsink_runs
 wbd_vpu_rpu_lookup
 aaargh
+tests/testthat/nsink_test_data
