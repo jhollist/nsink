@@ -13,12 +13,15 @@
 #'                 be downloaded with the \code{\link{nsink_get_data}} function.
 #' @return returns a list of sf, raster, or tabular objects for each of the
 #'         required datasets plus the huc.
+#' @importFrom methods as
+#' @importFrom rlang .data
 #' @export
 #' @import sf
 #' @examples
 #' \dontrun{
 #' library(nsink)
-#' aea <- "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=23 +lon_0=-96 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
+#' aea <- "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=23 +lon_0=-96 +x_0=0 +y_0=0
+#' +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
 #' niantic_huc <- nsink_get_huc_id("Niantic River")$huc_12
 #' niantic_nsink_data <- nsink_prep_data(huc = niantic_huc, projection = aea, data_dir = "nsink_data")
 #' # Example using EPSG code for projection
@@ -34,8 +37,8 @@ nsink_prep_data <- function(huc, projection,
   if (all(c("attr", "erom", "fdr", "imperv", "nhd", "ssurgo", "wbd", "nlcd") %in% dirs)) {
     huc_sf <- st_read(paste0(data_dir, "wbd/WBD_Subwatershed.shp"))
     huc_sf <- huc_sf[huc_sf$HUC_12 == huc, ]
-    huc_sf <- group_by(huc_sf, HUC_12)
-    huc_sf <- summarize(huc_sf, huc_12 = unique(as.character(HUC_12)))
+    huc_sf <- group_by(huc_sf, .data$HUC_12)
+    huc_sf <- summarize(huc_sf, huc_12 = unique(as.character(.data$HUC_12)))
     huc_sf <- ungroup(huc_sf)
     huc_sf <- st_transform(huc_sf, crs = projection)
     huc_raster <- fasterize::raster(as(huc_sf, "Spatial"), resolution = 30)
@@ -69,6 +72,7 @@ nsink_prep_data <- function(huc, projection,
 #'                 be downloaded with the \code{\link{nsink_get_data}} function.
 #' @return returns an sf object of the NHDPlus streams for the huc_sf
 #' @import dplyr sf
+#' @importFrom rlang .data
 #' @keywords  internal
 nsink_prep_streams <- function(huc_sf, data_dir) {
   if (file.exists(paste0(data_dir, "nhd/NHDFlowline.shp"))) {
@@ -77,8 +81,8 @@ nsink_prep_streams <- function(huc_sf, data_dir) {
     streams <- st_zm(streams)
     streams <- rename_all(streams, tolower)
     streams <- rename(streams,
-      stream_comid = comid,
-      lake_comid = wbareacomi
+      stream_comid = .data$comid,
+      lake_comid = .data$wbareacomi
     )
     streams <- slice(streams, st_contains(huc_sf, streams)[[1]])
     streams <- st_crop(streams, st_bbox(huc_sf))
@@ -99,14 +103,15 @@ nsink_prep_streams <- function(huc_sf, data_dir) {
 #'                 downloaded with the \code{\link{nsink_get_data}} function.
 #' @return returns an sf object of the NHDPlus lakes for the huc_sf
 #' @import dplyr sf
+#' @importFrom rlang .data
 #' @keywords  internal
 nsink_prep_lakes <- function(huc_sf, data_dir) {
   if (file.exists(paste0(data_dir, "nhd/NHDWaterbody.shp"))) {
     lakes <- st_read(paste0(data_dir, "nhd/NHDWaterbody.shp"))
     lakes <- st_transform(lakes, st_crs(huc_sf))
     lakes <- rename_all(lakes, tolower)
-    lakes <- rename(lakes, lake_comid = comid)
-    lakes <- filter(lakes, ftype == "LakePond")
+    lakes <- rename(lakes, lake_comid = .data$comid)
+    lakes <- filter(lakes, .data$ftype == "LakePond")
     lakes <- slice(lakes, st_contains(huc_sf, lakes)[[1]])
   } else {
     stop("The required data file does not exist.  Run nsink_get_data().")
@@ -123,6 +128,7 @@ nsink_prep_lakes <- function(huc_sf, data_dir) {
 #' @param data_dir Base directory that contains N-Sink data folders.  Data may be
 #'                 downloaded with the \code{\link{nsink_get_data}} function.
 #' @return returns a raster object of the flow direction for the huc_sf
+#' @importFrom methods as
 #' @keywords  internal
 nsink_prep_fdr <- function(huc_sf, huc_raster, data_dir) {
   if (dir.exists(paste0(data_dir, "fdr"))) {
@@ -199,6 +205,9 @@ nsink_prep_nlcd <- function(huc_sf, huc_raster, data_dir) {
 #' @return returns a sf object of the SSURGO data with hydric data added.
 #'         for the huc_sf
 #' @import dplyr sf
+#' @importFrom methods as
+#' @importFrom utils read.csv
+#' @importFrom rlang .data
 #' @keywords  internal
 nsink_prep_ssurgo <- function(huc_sf, data_dir) {
   huc12 <- unique(as.character(huc_sf$HUC_12))
@@ -213,19 +222,19 @@ nsink_prep_ssurgo <- function(huc_sf, data_dir) {
     ))
     ssurgo <- st_transform(ssurgo, st_crs(huc_sf))
     ssurgo <- rename_all(ssurgo, tolower)
-    ssurgo <- mutate(ssurgo, mukey = as(mukey, "character"))
+    ssurgo <- mutate(ssurgo, mukey = as(.data$mukey, "character"))
     ssurgo_tbl <- read.csv(paste0(
       data_dir, "ssurgo/", huc12,
       "_SSURGO_component.csv"
     ))
-    ssurgo_tbl <- mutate(ssurgo_tbl, mukey = as(mukey, "character"))
+    ssurgo_tbl <- mutate(ssurgo_tbl, mukey = as(.data$mukey, "character"))
     ssurgo_tbl <- select(
-      ssurgo_tbl, mukey, cokey, hydricrating,
-      comppct.r
+      ssurgo_tbl, .data$mukey, .data$cokey, .data$hydricrating,
+      .data$comppct.r
     )
-    ssurgo_tbl <- filter(ssurgo_tbl, hydricrating == "Yes")
-    ssurgo_tbl <- group_by(ssurgo_tbl, mukey, hydricrating)
-    ssurgo_tbl <- summarize(ssurgo_tbl, hydric_pct = sum(comppct.r))
+    ssurgo_tbl <- filter(ssurgo_tbl, .data$hydricrating == "Yes")
+    ssurgo_tbl <- group_by(ssurgo_tbl, .data$mukey, .data$hydricrating)
+    ssurgo_tbl <- summarize(ssurgo_tbl, hydric_pct = sum(.data$comppct.r))
     ssurgo_tbl <- ungroup(ssurgo_tbl)
     ssurgo <- full_join(ssurgo, ssurgo_tbl, by = "mukey")
   } else {
@@ -242,14 +251,15 @@ nsink_prep_ssurgo <- function(huc_sf, data_dir) {
 #'                 be downloaded with the \code{\link{nsink_get_data}} function.
 #' @return returns a tibble of the flow data
 #' @import dplyr
+#' @importFrom rlang .data
 #' @keywords  internal
 nsink_prep_q <- function(data_dir) {
   if (file.exists(paste0(data_dir, "erom/EROM_MA0001.DBF"))) {
     q <- foreign::read.dbf(paste0(data_dir, "erom/EROM_MA0001.DBF"))
-    q <- select(q, stream_comid = ComID, q_cfs = Q0001E)
+    q <- select(q, stream_comid = .data$ComID, q_cfs = .data$Q0001E)
     q <- mutate(q,
-      q_cms = q_cfs * 0.028316846592,
-      mean_reach_depth = 0.2612 * (q_cms^0.3966)
+      q_cms = .data$q_cfs * 0.028316846592,
+      mean_reach_depth = 0.2612 * (.data$q_cms^0.3966)
     )
     q <- mutate_if(q, is.factor, as.character())
   } else {
@@ -266,12 +276,13 @@ nsink_prep_q <- function(data_dir) {
 #'                 be downloaded with the \code{\link{nsink_get_data}} function.
 #' @return returns a tibble of the time of travel data
 #' @import dplyr
+#' @importFrom rlang .data
 #' @keywords  internal
 nsink_prep_tot <- function(data_dir) {
   if (file.exists(paste0(data_dir, "attr/PlusFlowlineVAA.dbf"))) {
     tot <- foreign::read.dbf(paste0(data_dir, "attr/PlusFlowlineVAA.dbf"))
     tot <- rename_all(tot, tolower)
-    tot <- select(tot, stream_comid = comid, totma = totma, fromnode, tonode)
+    tot <- select(tot, stream_comid = .data$comid, totma = .data$totma, .data$fromnode, .data$tonode)
     tot <- mutate_if(tot, is.factor, as.character())
   } else {
     stop("The required data file does not exist.  Run nsink_get_data().")
@@ -287,6 +298,7 @@ nsink_prep_tot <- function(data_dir) {
 #'                 be downloaded with the \code{\link{nsink_get_data}} function.
 #' @return returns a tibble of the lake morphology data
 #' @import dplyr
+#' @importFrom rlang .data
 #' @keywords  internal
 nsink_prep_lakemorpho <- function(data_dir) {
   if (file.exists(paste0(data_dir, "attr/PlusWaterbodyLakeMorphology.dbf"))) {
@@ -295,7 +307,7 @@ nsink_prep_lakemorpho <- function(data_dir) {
       "attr/PlusWaterbodyLakeMorphology.dbf"
     ))
     lakemorpho <- rename_all(lakemorpho, tolower)
-    lakemorpho <- rename(lakemorpho, lake_comid = comid)
+    lakemorpho <- rename(lakemorpho, lake_comid = .data$comid)
     lakemorpho <- mutate_if(lakemorpho, is.factor, as.character())
   } else {
     stop("The required data file does not exist.  Run nsink_get_data().")

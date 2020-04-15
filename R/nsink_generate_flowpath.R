@@ -20,7 +20,8 @@
 #' library(nsink)
 #' niantic_huc <- nsink_get_huc_id("Niantic River")$huc_12
 #' niantic_data <- nsink_get_data(niantic_huc, data_dir = "nsink_data")
-#' aea <- "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=23 +lon_0=-96 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
+#' aea <- "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=23 +lon_0=-96 +x_0=0 +y_0=0
+#' +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
 #' niantic_nsink_data <- nsink_prep_data(niantic_huc, projection = aea,
 #'                                       data_dir = "nsink_data")
 #' pt <- c(1948121, 2295822)
@@ -85,11 +86,13 @@ nsink_get_flowpath_ends <- function(flowpath, streams){
 #' @return an \code{sf} object of the NHDPlus flowlines that occur after a
 #'         raster flowpath intersects the stream network.
 #' @import sf dplyr
+#' @importFrom utils tail
 #' @importFrom igraph graph_from_data_frame shortest_paths edge_attr
+#' @importFrom rlang .data
 #' @keywords internal
 nsink_get_flowline <- function(flowpath_ends, streams, tot){
   streams_tot <- suppressMessages(left_join(streams, tot))
-  streams_df <- select(streams_tot, fromnode, tonode, stream_comid)
+  streams_df <- select(streams_tot, .data$fromnode, .data$tonode, .data$stream_comid)
   st_geometry(streams_df) <- NULL
   streams_df <- mutate_all(streams_df, as.character)
   streams_g <- graph_from_data_frame(streams_df, directed = TRUE)

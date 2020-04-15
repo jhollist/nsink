@@ -24,8 +24,8 @@ get_nhd_plus <- function(download_url,
 #'
 #' @param rpu raster processing unit for NHDPlus. available in nsink:::wbd_lookup
 #' @param component which component to download
+#' @importFrom rlang .data
 #' @keywords internal
-
 nsink_get_plus_remotepath <- function(rpu, component = c(
                                         "NHDSnapshot",
                                         "FdrFac",
@@ -52,7 +52,7 @@ nsink_get_plus_remotepath <- function(rpu, component = c(
 
 
   url_components <- wbd_lookup[wbd_lookup$RPU == rpu, ]
-  url_components <- select(url_components, DrainageID, VPUID, RPU)
+  url_components <- select(url_components, .data$DrainageID, .data$VPUID, .data$RPU)
   url_components <- unique(url_components)
   baseurl <- paste0(
     "https://s3.amazonaws.com/edap-nhdplus/NHDPlusV21/Data/NHDPlus",

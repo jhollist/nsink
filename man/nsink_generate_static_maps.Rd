@@ -41,6 +41,6 @@ aea <- "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=23 +lon_0=-96 +x_0=0 +y_0=0
 niantic_nsink_data <- nsink_prep_data(niantic_huc, projection = aea,
                                       data_dir = "nsink_data")
 removal <- nsink_calc_removal(niantic_nsink_data)
-nsink_generate_static_maps(niantic_nsink_data, removal,fact = 900)
+static_maps <- nsink_generate_static_maps(niantic_nsink_data, removal,fact = 900)
 }
 }

@@ -19,3 +19,8 @@
 ^paper.md$
 ^nsink_docs$
 ^nsink_output$
+^niantic_nsink$
+^nsink_runs$
+^paper.bib$
+^paper.md$
+^\.github$

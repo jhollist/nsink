@@ -77,7 +77,7 @@ nsink_build <- function(huc, projection,
 #' data.
 #' @param prepped_data A list of prepped data, as output by
 #'                     \code{\link{nsink_prep_data}}
-#' @param output_folder
+#' @param output_folder Folder to store downloaded data and process nsink files
 #' @keywords internal
 nsink_write_prepped_data <- function(prepped_data, output_folder) {
   sf::st_write(prepped_data$streams, paste0(output_folder, "streams.shp"),

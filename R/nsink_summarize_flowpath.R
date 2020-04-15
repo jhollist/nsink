@@ -14,6 +14,7 @@
 #'
 #' @importFrom zoo rollmax
 #' @importFrom raster rasterize extract
+#' @importFrom rlang .data
 #' @export
 #' @examples
 #' \dontrun{
@@ -41,19 +42,19 @@ nsink_summarize_flowpath <- function(flowpath, removal) {
   )
   land_removal_df <- mutate(land_removal_df,
     segment_type = case_when(
-      n_removal > 0 ~
+      .data$n_removal > 0 ~
       1,
       TRUE ~ 0
     ),
     n_removal = case_when(
-      is.na(n_removal) ~ 0,
-      segment_type == 0 ~
+      is.na(.data$n_removal) ~ 0,
+      .data$segment_type == 0 ~
       0,
-      TRUE ~ n_removal
+      TRUE ~ .data$n_removal
     ),
     segment_id = nsink_create_segment_ids(paste(
-      segment_type,
-      n_removal
+      .data$segment_type,
+      .data$n_removal
     )),
     length = as.numeric(st_length(land_removal))
   )
@@ -61,7 +62,7 @@ nsink_summarize_flowpath <- function(flowpath, removal) {
   if (!is.null(flowpath$flowpath_network)) {
     n_removal_df <- select(
       st_drop_geometry(removal$network_removal),
-      stream_comid, n_removal
+      .data$stream_comid, .data$n_removal
     )
     flowpath_removal <- suppressMessages(left_join(flowpath$flowpath_network, n_removal_df))
     flowpath_removal_df <- st_drop_geometry(flowpath_removal)
@@ -75,27 +76,27 @@ nsink_summarize_flowpath <- function(flowpath, removal) {
           "Stream",
           TRUE ~ "Unknown"
         ),
-      length = lengthkm * 1000
+      length = .data$lengthkm * 1000
     )
     flowpath_removal_df <- select(
-      flowpath_removal_df, stream_comid,
-      lake_comid, n_removal, segment_type, length
+      flowpath_removal_df, .data$stream_comid,
+      .data$lake_comid, .data$n_removal, .data$segment_type, length
     )
     flowpath_removal_df <- mutate(flowpath_removal_df,
       segment_id =
         nsink_create_segment_ids(paste(
-          segment_type,
-          n_removal
+          .data$segment_type,
+          .data$n_removal
         ))
     )
   } else {
     flowpath_removal_df <- NULL
   }
 
-  removal_summary <- nsink_create_summary(land_removal_df, flowpath_removal_df) %>%
-    mutate(length = round(length,0),
-           percent_removal = signif(percent_removal, 3),
-           n_in = signif(n_in, 3), n_out = signif(n_out, 3))
+  removal_summary <- nsink_create_summary(land_removal_df, flowpath_removal_df)
+  removal_summary <- mutate(removal_summary, length = round(length,0),
+                            percent_removal = signif(.data$percent_removal, 3),
+                            n_in = signif(.data$n_in, 3), n_out = signif(.data$n_out, 3))
   return(removal_summary)
 }
 
@@ -166,6 +167,7 @@ nsink_create_segment_ids <- function(x) {
 #'                        calculated stream and lake removal
 #' @return a data frame summarizing nitrogen removal along a flowpath
 #' @import dplyr
+#' @importFrom rlang .data
 #' @keywords internal
 nsink_create_summary <- function(land_removal, network_removal) {
   land_removal_df <- mutate(land_removal,
@@ -176,10 +178,10 @@ nsink_create_summary <- function(land_removal, network_removal) {
       segment_type == 3 ~ "Lake/Pond"
     )
   )
-  land_removal_df <- group_by(land_removal_df, segment_id, segment_type)
+  land_removal_df <- group_by(land_removal_df, .data$segment_id, .data$segment_type)
   land_removal_df <- summarize(land_removal_df,
     length = sum(length),
-    n_removal = max(n_removal)
+    n_removal = max(.data$n_removal)
   )
   land_removal_df <- ungroup(land_removal_df)
 
@@ -191,27 +193,27 @@ nsink_create_summary <- function(land_removal, network_removal) {
     sum(length * removal, na.rm = TRUE) / sum(length, na.rm = TRUE)
   }
 
-  land_removal_df <- group_by(land_removal_df, segment_type)
+  land_removal_df <- group_by(land_removal_df, .data$segment_type)
   land_removal_df <- summarize(land_removal_df,
-    segment_id = max(segment_id),
-    n_removal = wgt_avg_removal(length, n_removal),
+    segment_id = max(.data$segment_id),
+    n_removal = wgt_avg_removal(length, .data$n_removal),
     length = sum(length)
   )
   land_removal_df <- ungroup(land_removal_df)
   land_removal_df <- select(
-    land_removal_df, segment_id, segment_type, length,
-    n_removal
+    land_removal_df, .data$segment_id, .data$segment_type, length,
+    .data$n_removal
   )
   if (!is.null(network_removal)) {
     # Multiple stream segments in a single lake also increases removal for a
     # lake by a factor of the number of segments.  This code results in only a
     # single n removal per lake based on that lakes estimated percent removal
-    network_removal_df <- select(network_removal, segment_id, segment_type,
-                                 length, n_removal) %>%
-      group_by(segment_id) %>%
-      mutate(length = sum(length)) %>%
-      filter(!duplicated(segment_id)) %>%
-      ungroup()
+    network_removal_df <- select(network_removal, .data$segment_id, .data$segment_type,
+                                 length, .data$n_removal)
+    network_removal_df <- group_by(network_removal_df, .data$segment_id)
+    network_removal_df <- mutate(network_removal_df, length = sum(length))
+    network_removal_df <- filter(network_removal_df, !duplicated(.data$segment_id))
+    network_removal_df <- ungroup(network_removal_df)
     flowpath_removal_df <- rbind(land_removal_df, network_removal_df)
   } else {
     flowpath_removal_df <- land_removal_df
@@ -221,20 +223,20 @@ nsink_create_summary <- function(land_removal, network_removal) {
   flowpath_removal_df <- mutate(flowpath_removal_df,
     n_removal =
       case_when(
-        is.na(n_removal) ~ 0,
-        TRUE ~ n_removal
+        is.na(.data$n_removal) ~ 0,
+        TRUE ~ .data$n_removal
       )
   )
 
   n <- nrow(flowpath_removal_df)
   flowpath_removal_summary <- mutate(flowpath_removal_df,
-    n_in = round(cumprod(c(100, 1 - n_removal))[-n], 2),
-    n_out = round(cumprod(c(100, 1 - n_removal))[-1], 2),
-    percent_removal = round(n_removal * 100, 3)
+    n_in = round(cumprod(c(100, 1 - .data$n_removal))[-n], 2),
+    n_out = round(cumprod(c(100, 1 - .data$n_removal))[-1], 2),
+    percent_removal = round(.data$n_removal * 100, 3)
   )
   flowpath_removal_summary <- select(
-    flowpath_removal_summary, segment_type,
-    length, percent_removal, n_in, n_out
+    flowpath_removal_summary, .data$segment_type,
+    length, .data$percent_removal, .data$n_in, .data$n_out
   )
 
   flowpath_removal_summary
