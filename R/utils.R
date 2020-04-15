@@ -9,7 +9,8 @@ get_nhd_plus <- function(download_url,
   if (!file.exists(paste0(data_dir, basename(download_url))) | download_again) {
     message(paste0("Downloading ", basename(download_url), " to ", data_dir))
     down <- httr::GET(download_url,
-      httr::write_disk(paste0(data_dir, basename(download_url))),
+      httr::write_disk(paste0(data_dir, basename(download_url)),
+                       overwrite = download_again),
       overwrite = TRUE, httr::progress()
     )
   } else {

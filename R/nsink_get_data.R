@@ -17,7 +17,7 @@
 #' \dontrun{
 #' library(nsink)
 #' niantic_huc <- nsink_get_huc_id("Niantic River")$huc_12
-#' nsink_get_data(huc = niantic_huc, data_dir = "nsink_data")
+#' nsink_get_data(huc = niantic_huc, data_dir = "nsink_data", force = TRUE)
 #' }
 nsink_get_data <- function(huc, data_dir = normalizePath("nsink_data"),
                            force = FALSE) {
@@ -80,18 +80,18 @@ nsink_get_data <- function(huc, data_dir = normalizePath("nsink_data"),
   # FedData::get_ssurgo will throw parsing warnings if data already downloaded.
   repeat_it <- TRUE
 
-  while (is.logical(repeat_it)) {
-    repeat_it <- tryCatch(
+#  while (is.logical(repeat_it)) {
+#    repeat_it <- tryCatch(
       suppressWarnings(
       ssurgo <- FedData::get_ssurgo(as(huc_12, "Spatial"),
         label = huc,
         extraction.dir = paste0(data_dir, "ssurgo"),
         raw.dir = paste0(data_dir, "ssurgo"),
         force.redo = force
-      )),
-      error = function(e) TRUE
-    )
-  }
+      ))#,
+#      error = function(e) TRUE
+#    )
+#  }
 
   # Return a list with the huc and the data_dir
   list(huc = huc, data_dir = data_dir)
