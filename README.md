@@ -10,11 +10,12 @@ output: github_document
 <!-- badges: start -->
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://www.tidyverse.org/lifecycle/#experimental)
 [![R build status](https://github.com/jhollist/nsink/workflows/R-CMD-check/badge.svg)](https://github.com/jhollist/nsink/actions)
+[![Codecov test coverage](https://codecov.io/gh/jhollist/nsink/branch/master/graph/badge.svg)](https://codecov.io/gh/jhollist/nsink?branch=master)
 <!-- badges: end -->
 
 The `nsink` package is an R implementation of the methods described in [Kellogg et. al (2010)](https://doi.org/10.1016/j.ecoleng.2010.02.006).  Previous implementation of this approach relied on a vector based approach that was time consuming to prepare.  This approach uses a hybrid raster-vector approach that takes very little time to set up for each new watershed and relies on readily available data.  Thus, its application is national for the United States.
 
-Proposed (as of 2020-04-13) functions for the `nsink` package are:
+Proposed (as of 2020-04-15) functions for the `nsink` package are:
 
 - `nsink_get_data()` - Pass HUC, get data, use cache to avoid repeat downloads
 - `nsink_prep_data()` - Prepares data by clipping to specified HUC, standardizing projections, standardizing raster extents.  Outputs will be HUC level for HUC, flow direction, streams, waterbodies, impervious, and soils. 

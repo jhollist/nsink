@@ -24,3 +24,4 @@
 ^paper.bib$
 ^paper.md$
 ^\.github$
+^codecov\.yml$

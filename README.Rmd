@@ -17,6 +17,7 @@ knitr::opts_chunk$set(
 <!-- badges: start -->
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://www.tidyverse.org/lifecycle/#experimental)
 [![R build status](https://github.com/jhollist/nsink/workflows/R-CMD-check/badge.svg)](https://github.com/jhollist/nsink/actions)
+[![Codecov test coverage](https://codecov.io/gh/jhollist/nsink/branch/master/graph/badge.svg)](https://codecov.io/gh/jhollist/nsink?branch=master)
 <!-- badges: end -->
 
 The `nsink` package is an R implementation of the methods described in [Kellogg et. al (2010)](https://doi.org/10.1016/j.ecoleng.2010.02.006).  Previous implementation of this approach relied on a vector based approach that was time consuming to prepare.  This approach uses a hybrid raster-vector approach that takes very little time to set up for each new watershed and relies on readily available data.  Thus, its application is national for the United States.
