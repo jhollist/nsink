@@ -9,4 +9,13 @@ test_that("data prep works", {
   niantic_nsink_data <- nsink_prep_data(huc = niantic_huc, projection = aea,
                                         data_dir = "nsink_test_data")
   expect_type(niantic_nsink_data, "list")
+  expect_setequal(names(niantic_nsink_data), c("streams", "lakes", "fdr",
+                                               "impervious", "nlcd", "ssurgo",
+                                               "q", "tot", "lakemorpho", "huc",
+                                               "raster_template"))
+})
+
+test_that("data prep fails as expected",{
+  expect_error(nsink_prep_data(huc = niantic_huc, projection = aea,
+                               data_dir = "."))
 })
