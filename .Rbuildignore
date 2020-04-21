@@ -25,3 +25,4 @@
 ^paper.md$
 ^\.github$
 ^codecov\.yml$
+^nsink_test_data$
