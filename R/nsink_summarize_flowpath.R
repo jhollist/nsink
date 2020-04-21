@@ -34,7 +34,7 @@
 #' }
 nsink_summarize_flowpath <- function(flowpath, removal) {
 
-  land_removal <- st_intersection(removal$land_removal, flowpath$flowpath_ends[[1]])
+  land_removal <- suppressWarnings(st_intersection(removal$land_removal, flowpath$flowpath_ends[[1]]))
 
   land_removal_df <- data.frame(
     stream_comid = 0, lake_comid = 0,
