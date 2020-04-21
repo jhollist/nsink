@@ -44,7 +44,7 @@ jobs:
         if: runner.os == 'macOS'
         continue-on-error: true
         run: |
-          brew install pkg-config gdal openssl udunits protobuf p7zip
+          brew install pkg-config gdal openssl udunits protobuf p7zip geos
 
       - name: Install remotes package
         run: Rscript -e "install.packages('remotes')"
@@ -93,11 +93,3 @@ jobs:
         with:
           name: ${{ runner.os }}-r${{ matrix.config.r }}-results
           path: check
-
-      - name: Test coverage
-        if: runner.os == 'Linux'
-        run: |
-          Rscript -e 'remotes::install_github("r-lib/covr@gh-actions")'
-          Rscript -e 'covr::codecov(token = "${{secrets.CODECOV_TOKEN}}")'
-
-
