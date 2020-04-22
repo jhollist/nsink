@@ -20,6 +20,7 @@
 #'             creating the nitrogen removal heat map.  The area of the
 #'             watershed is sampled with points that are separated by the
 #'             \code{fact} value.  The larger the value, the fewer the points.
+#' @param signal_finish Logical that triggers a sound when build is finished.
 #' @export
 #' @return a list providing details on the huc used and the output location of
 #'         the dataset
@@ -33,7 +34,7 @@
 nsink_build <- function(huc, projection,
                         output_folder = normalizePath("nsink_output"),
                         force = FALSE,
-                        fact = 300) {
+                        fact = 300, signal_finish = FALSE) {
 
   # Check for/create/clean data directory
   if (!dir.exists(output_folder)) {
@@ -68,7 +69,9 @@ nsink_build <- function(huc, projection,
   nsink_write_prepped_data(nsink_prepped_data, output_folder)
   nsink_write_static_maps(nsink_static_maps, output_folder)
 
-  beepr::beep(8)
+  if(signal_finish){
+    beepr::beep(8)
+  }
 }
 
 #' Write prepped data to files

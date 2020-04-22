@@ -9,7 +9,8 @@ nsink_build(
   projection,
   output_folder = normalizePath("nsink_output"),
   force = FALSE,
-  fact = 300
+  fact = 300,
+  signal_finish = FALSE
 )
 }
 \arguments{
@@ -28,6 +29,8 @@ exists on file system}
 creating the nitrogen removal heat map.  The area of the
 watershed is sampled with points that are separated by the
 \code{fact} value.  The larger the value, the fewer the points.}
+
+\item{signal_finish}{Logical that triggers a sound when build is finished.}
 }
 \value{
 a list providing details on the huc used and the output location of
