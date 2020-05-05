@@ -30,7 +30,7 @@
 #'                 data_dir = "nsink_data")
 #' }
 nsink_prep_data <- function(huc, projection,
-                            data_dir = normalizePath("nsink_data/")) {
+                            data_dir = normalizePath("nsink_data/", winslash = "/")) {
   # Check for/create/clean data directory
   data_dir <- nsink_fix_data_directory(data_dir)
   dirs <- list.dirs(data_dir, full.names = FALSE, recursive = FALSE)

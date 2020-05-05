@@ -4,7 +4,7 @@
 #' @param force Force new download
 #' @keywords internal
 get_nhd_plus <- function(download_url,
-                         data_dir = normalizePath("nsink_data/"),
+                         data_dir = normalizePath("nsink_data/", winslash = "/"),
                          download_again = FALSE) {
   if (!file.exists(paste0(data_dir, basename(download_url))) | download_again) {
     message(paste0("Downloading ", basename(download_url), " to ", data_dir))
@@ -122,7 +122,7 @@ nsink_run_7z <- function(zipfile, destdir, extract_again = FALSE) {
 
 #' Fix the data directory
 #'
-#' This funciton takes the data directory and checks for existence, creates it
+#' This function takes the data directory and checks for existence, creates it
 #' if it doesn't exist, then adds a trailing slash and normalizes the path for
 #' the operating system
 #'
@@ -130,12 +130,13 @@ nsink_run_7z <- function(zipfile, destdir, extract_again = FALSE) {
 #' @return a string with the normalized path
 #' @keywords internal
 nsink_fix_data_directory <- function(data_dir) {
+  #browser()
+  data_dir <- normalizePath(data_dir, winslash = "/")
   if (!dir.exists(data_dir)) {
     dir.create(data_dir)
   }
-  if (!grepl("\\\\$|/$", data_dir)) {
+  if (!grepl("/$", data_dir)) {
     data_dir <- paste0(data_dir, "/")
   }
-  data_dir <- normalizePath(data_dir)
   data_dir
 }

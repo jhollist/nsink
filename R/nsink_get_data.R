@@ -19,7 +19,7 @@
 #' niantic_huc <- nsink_get_huc_id("Niantic River")$huc_12
 #' nsink_get_data(huc = niantic_huc, data_dir = "nsink_data", force = TRUE)
 #' }
-nsink_get_data <- function(huc, data_dir = normalizePath("nsink_data"),
+nsink_get_data <- function(huc, data_dir = normalizePath("nsink_data", winslash = "/"),
                            force = FALSE) {
   huc <- as.character(huc)
   if (nchar(gsub("[[:alpha:]]+", "", huc)) != 12) {
@@ -76,21 +76,31 @@ nsink_get_data <- function(huc, data_dir = normalizePath("nsink_data"),
 
   # Get SSURGO
   # This would occasional have connection reset and FedData would throw
-  # an error.  Connection would eventually work.  This code repeats it until it works
+  # an error.  Connection would eventually work.  This code repeats it until it
+  # works or it tries it 10 times.  THis is an ugly hack but works and doesn't
+  # end in an infinite loop.
   # FedData::get_ssurgo will throw parsing warnings if data already downloaded.
   repeat_it <- TRUE
-
-  while (is.logical(repeat_it)) {
+  count <- 1
+  while(is.logical(repeat_it) & count <= 10) {
     repeat_it <- tryCatch(
-      suppressWarnings(
+      suppressWarnings({
       ssurgo <- FedData::get_ssurgo(as(huc_12, "Spatial"),
         label = huc,
         extraction.dir = paste0(data_dir, "ssurgo"),
         raw.dir = paste0(data_dir, "ssurgo"),
         force.redo = force
-      )),
+      )
+      count <- count + 1
+      }),
       error = function(e) TRUE
     )
+  }
+
+  if(is.logical(repeat_it) & count > 10){
+    stop("SSURGO did not download correcly.  Try again or check package FedData
+         for possible clues as to why FedData::get_ssurgo is not able to
+         download the soils data.")
   }
 
   # Return a list with the huc and the data_dir
