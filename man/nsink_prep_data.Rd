@@ -4,7 +4,11 @@
 \alias{nsink_prep_data}
 \title{Prepares N-Sink data for a given HUC}
 \usage{
-nsink_prep_data(huc, projection, data_dir = normalizePath("nsink_data/"))
+nsink_prep_data(
+  huc,
+  projection,
+  data_dir = normalizePath("nsink_data/", winslash = "/")
+)
 }
 \arguments{
 \item{huc}{A character string of the HUC12 ID.  Use

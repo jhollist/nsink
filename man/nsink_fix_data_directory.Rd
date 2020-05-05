@@ -13,7 +13,7 @@ nsink_fix_data_directory(data_dir)
 a string with the normalized path
 }
 \description{
-This funciton takes the data directory and checks for existence, creates it
+This function takes the data directory and checks for existence, creates it
 if it doesn't exist, then adds a trailing slash and normalizes the path for
 the operating system
 }

@@ -32,7 +32,7 @@
 #' nsink_build(nsink_get_huc_id("Niantic River")$huc_12, aea,
 #'             output_folder = "nsink_output", fact = 300)}
 nsink_build <- function(huc, projection,
-                        output_folder = normalizePath("nsink_output"),
+                        output_folder = normalizePath("nsink_output", winslash = "/"),
                         force = FALSE,
                         fact = 300, signal_finish = FALSE) {
 

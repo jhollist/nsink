@@ -26,3 +26,4 @@
 ^\.github$
 ^codecov\.yml$
 ^nsink_test_data$
+^bug\.R$

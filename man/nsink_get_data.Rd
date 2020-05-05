@@ -4,7 +4,11 @@
 \alias{nsink_get_data}
 \title{Get's N-Sink data for a given HUC}
 \usage{
-nsink_get_data(huc, data_dir = normalizePath("nsink_data"), force = FALSE)
+nsink_get_data(
+  huc,
+  data_dir = normalizePath("nsink_data", winslash = "/"),
+  force = FALSE
+)
 }
 \arguments{
 \item{huc}{A character string of a HUC12 identifier.  Currently can run only a single HUC at a time.}

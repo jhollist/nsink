@@ -4,12 +4,15 @@
 \alias{nsink_get_flowpath_ends}
 \title{Get flowpath beginning and ends}
 \usage{
-nsink_get_flowpath_ends(flowpath, streams)
+nsink_get_flowpath_ends(flowpath, streams, tot)
 }
 \arguments{
 \item{flowpath}{An \code{sf} LINESTRING of the flowpath, generated with \code{\link{nsink_generate_flowpath}}}
 
-\item{streams}{NHDPlus streams from}
+\item{streams}{NHDPlus streams from \code{\link{nsink_prep_data}}}
+
+\item{tot}{NHDPlus time of travel from \code{\link{nsink_prep_data}} which
+provides the from and to nodes.}
 }
 \value{
 An \code{sf} object of the portions of the flowpath that are not

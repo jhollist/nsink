@@ -6,7 +6,7 @@
 \usage{
 get_nhd_plus(
   download_url,
-  data_dir = normalizePath("nsink_data/"),
+  data_dir = normalizePath("nsink_data/", winslash = "/"),
   download_again = FALSE
 )
 }

@@ -7,7 +7,7 @@
 nsink_build(
   huc,
   projection,
-  output_folder = normalizePath("nsink_output"),
+  output_folder = normalizePath("nsink_output", winslash = "/"),
   force = FALSE,
   fact = 300,
   signal_finish = FALSE

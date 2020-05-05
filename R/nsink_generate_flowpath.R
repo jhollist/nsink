@@ -29,14 +29,14 @@
 #' fp <- nsink_generate_flowpath(start_loc, niantic_nsink_data)
 #' }
 nsink_generate_flowpath <- function(starting_location, input_data){
-
+  #browser()
   if(st_crs(starting_location) != st_crs(input_data$streams)){
     stop(paste0("The coordinate reference systems for your starting location and the input data do not match.  Re-project to a common reference system."))
   }
   fp <- suppressWarnings(raster::flowPath(input_data$fdr, st_coordinates(starting_location)))
   fp <- raster::xyFromCell(input_data$raster_template, fp)
   fp <- st_sfc(st_linestring(fp), crs =st_crs(input_data$streams))
-  fp_ends <- nsink_get_flowpath_ends(fp, input_data$streams)
+  fp_ends <- nsink_get_flowpath_ends(fp, input_data$streams, input_data$tot)
   # This is for cases where flowpath doesn't intersect existing flowlines
   if(fp_ends[1] != fp_ends[2]){
     fp_flowlines <- nsink_get_flowline(fp_ends, input_data$streams, input_data$tot)
@@ -58,12 +58,20 @@ nsink_generate_flowpath <- function(starting_location, input_data){
 #' find all sections without connected flowpaths...
 #'
 #' @param flowpath An \code{sf} LINESTRING of the flowpath, generated with \code{\link{nsink_generate_flowpath}}
-#' @param streams NHDPlus streams from
+#' @param streams NHDPlus streams from \code{\link{nsink_prep_data}}
+#' @param tot NHDPlus time of travel from \code{\link{nsink_prep_data}} which
+#'            provides the from and to nodes.
 #' @return An \code{sf} object of the portions of the flowpath that are not
 #'         represented by the NHDPlus flowlines
 #' @import sf
+#' @importFrom dplyr filter
 #' @keywords internal
-nsink_get_flowpath_ends <- function(flowpath, streams){
+nsink_get_flowpath_ends <- function(flowpath, streams, tot){
+  #drops streams without traced network from and to nodes
+  #browser()
+  streams <- suppressMessages(left_join(streams, tot))
+  streams <- filter(streams, !is.na(.data$fromnode))
+  streams <- filter(streams, !is.na(.data$tonode))
   streams <- st_difference(st_combine(streams), st_combine(flowpath))
   splits <- lwgeom::st_split(flowpath, st_combine(streams))
   splits <- st_collection_extract(splits, "LINESTRING")
@@ -91,14 +99,17 @@ nsink_get_flowpath_ends <- function(flowpath, streams){
 #' @importFrom rlang .data
 #' @keywords internal
 nsink_get_flowline <- function(flowpath_ends, streams, tot){
+  #filtering our streams without network from and to nodes
   streams_tot <- suppressMessages(left_join(streams, tot))
+  streams_tot <- filter(streams_tot, !is.na(.data$fromnode))
+  streams_tot <- filter(streams_tot, !is.na(.data$tonode))
   streams_df <- select(streams_tot, .data$fromnode, .data$tonode, .data$stream_comid)
   st_geometry(streams_df) <- NULL
   streams_df <- mutate_all(streams_df, as.character)
   streams_g <- graph_from_data_frame(streams_df, directed = TRUE)
 
-  from_nd_idx <- st_is_within_distance(flowpath_ends[1], streams, 0.01)[[1]]
-  to_nd_idx <- st_is_within_distance(flowpath_ends[2], streams, 0.01)[[1]]
+  from_nd_idx <- st_is_within_distance(flowpath_ends[1], streams_tot, 0.01)[[1]]
+  to_nd_idx <- st_is_within_distance(flowpath_ends[2], streams_tot, 0.01)[[1]]
   from_nd <- streams_df[from_nd_idx,]$fromnode
   to_nd <- streams_df[to_nd_idx,]$tonode
   idx <- shortest_paths(streams_g, from_nd, to_nd, output = "epath",
@@ -106,7 +117,7 @@ nsink_get_flowline <- function(flowpath_ends, streams, tot){
   fl_comids <- edge_attr(streams_g, "stream_comid", idx)
   fp_end_pt <- tail(st_cast(flowpath_ends[1], "POINT"), 1)
 
-  fp_flowlines <- slice(streams, match(fl_comids, streams$stream_comid))
+  fp_flowlines <- slice(streams_tot, match(fl_comids, streams_tot$stream_comid))
   fp_flowlines <- st_snap(fp_flowlines, fp_end_pt, tolerance = 1)
   fp_flowlines <- lwgeom::st_split(fp_flowlines, st_combine(fp_end_pt))
   fp_flowlines <- st_collection_extract(fp_flowlines, "LINESTRING")
