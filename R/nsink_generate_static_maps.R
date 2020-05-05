@@ -98,7 +98,7 @@ nsink_generate_n_loading_index <- function(input_data, custom_load = NULL) {
 #' @keywords internal
 nsink_generate_n_removal_heatmap <- function(input_data, removal, fact, ncpu) {
   num_pts <- round(st_area(input_data$huc) / (fact * fact))
-  set.seed(1)
+
   sample_pts <- st_sample(input_data$huc, as.numeric(num_pts), type = "regular")
   pb <- dplyr::progress_estimated(length(sample_pts))
 
