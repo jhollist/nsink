@@ -27,7 +27,8 @@
 #' @examples
 #' \dontrun{
 #' library(nsink)
-#' aea <- "ESRI:102003"
+#' aea <- "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=23 +lon_0=-96 +x_0=0 +y_0=0
+#' +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
 #' nsink_build(nsink_get_huc_id("Niantic River")$huc_12, aea,
 #'             output_folder = "nsink_output", fact = 300)}
 nsink_build <- function(huc, projection,
