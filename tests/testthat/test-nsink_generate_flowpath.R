@@ -2,8 +2,7 @@ context("nsink_prep_data")
 library(nsink)
 library(sf)
 load(system.file("testdata.rda", package="nsink"))
-aea <- "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=23 +lon_0=-96 +x_0=0 +y_0=0
- +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
+aea <- "ESRI:102003"
 pt <- c(1948121, 2295822)
 start_loc <- st_sf(st_sfc(st_point(c(pt)), crs = aea))
 start_loc_ll <- st_transform(start_loc, crs = 4326)
