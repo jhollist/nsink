@@ -4,10 +4,9 @@
 #' \href{https://doi.org/10.1016/j.ecoleng.2010.02.006}{Kellogg et al (2010)}.
 #' This approach builds on peer-reviewed literature in the form of reviews and
 #' meta-analyses (i.e., \href{https://doi.org/doi:10.2134/jeq2006.0462}{Mayer
-#' et al (2007)}, \href{https://doi.org/10.1111/j.1752-1688.2007.00005.x}
-#' {Alexander et al (2007)}, and
-#' \href{https://doi.org/10.1890/1051-0761(2006)016[2064:DALAWA]2.0.CO;2}
-#' {Seitzinger et al (2006)}) to estimate nitrogen (N) removal within three
+#' et al (2007)}, \href{https://doi.org/10.1111/j.1752-1688.2007.00005.x}{Alexander et al (2007)},
+#' and \href{https://doi.org/10.1890/1051-0761(2006)016[2064:DALAWA]2.0.CO;2}{Seitzinger et al (2006)})
+#' to estimate nitrogen (N) removal within three
 #' types of landscape sinks -- wetlands, streams and lakes -- along any given
 #' flow path within a HUC12 basin. The \code{nsink} package implements this
 #' approach, using publicly available spatial data to identify flow paths and
