@@ -38,5 +38,10 @@
 #'             J. Am. Water Resou.Assoc. 43, 41-59.
 #'             \href{https://doi.org/10.1111/j.1752-1688.2007.00005.x}{Link}
 #'
+#'             Seitzinger, S. P., Harrison, J.A., Hohlke, J.K., Bouwman, A.F., Lowrance, R., 
+#'             Peterson, B., Tobias, C., & Van Drecht, G. (2006). Denitrification across 
+#'             landscapes and waterscapes: a synthesis. Ecol. Appl. 16, 1064-2090.
+#'             \href{https://doi.org/10.1890/1051-0761(2006)016[2064:DALAWA]2.0.CO;2}{Link}
+#'            
 #' @name nsink
 NULL
