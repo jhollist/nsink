@@ -1,5 +1,5 @@
 ---
-title: "Introduction to nsink"
+title: "Introduction to `nsink`"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{intro}
@@ -13,14 +13,40 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r setup}
+```{r setup, echo=FALSE}
 library(nsink)
 ```
 
-# Introduction to `nsink`
+The package `nsink` implements an approach to estimate relative nitrogen removal
+along a flow path.  This approach is detailed in 
+[Kellogg et al (2010)](https://doi.org/10.1016/j.ecoleng.2010.02.006) and 
+builds on peer-reviewed literature in the form of reviews and meta-analyses 
+(i.e., [Mayer et al (2007)](https://doi.org/doi:10.2134/jeq2006.0462), 
+[Alexander et al (2007)](https://doi.org/10.1111/j.1752-1688.2007.00005.x), 
+and [Seitzinger et al (2006)](https://doi.org/10.1890/1051-0761(2006)016[2064:DALAWA]2.0.CO;2)
+) to estimate nitrogen (N) removal within three types 
+of landscape sinks -- wetlands, streams and lakes -- along any given flow path 
+within a HUC12 basin. The `nsink` package implements this approach, using 
+publicly available spatial data to identify flow paths and estimate N removal in
+landscape sinks. Removal rates depend on retention time, which is influenced by 
+physical characteristics identified using publicly available spatial data -- 
+National Hydrography Dataset (NHD), Watershed Boundary Dataset (WBD), National 
+Land Cover Dataset (NLCD), and Soil Survey Geographic Dataset (SSURGO). Static 
+maps of a specified HUC-12 basin are generated -- N Removal Efficiency, N 
+Transport Efficiency, and N Delivery Index. These maps may be used to inform 
+local decision-making by highlighting areas that are more prone to N "leakiness"
+and areas that contribute to N removal.
 
+The `nsink` packages provides several functions to set up and run an N-Sink 
+analysis for a specified 12-digit HUC code.  All required data are downloaded, 
+prepared for the analysis, HUC-wide nitrogen removal calculated, and flow paths 
+summarized.  Additionally, a convenience function that will run all of the 
+required functions for a specified HUC in included.  Details on each step are 
+outlined in the rest of this vignette.
 
 # Get data
+ 
+
 
 ```{r get_data}
 # Get HUC ID
