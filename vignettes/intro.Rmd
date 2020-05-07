@@ -9,8 +9,7 @@ vignette: >
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>"
+  eval = FALSE
 )
 ```
 
@@ -18,14 +17,43 @@ knitr::opts_chunk$set(
 library(nsink)
 ```
 
-```{r prep_data, eval = FALSE}
+# Introduction to `nsink`
+
+
+# Get data
+
+```{r get_data}
 # Get HUC ID
 nsink_get_huc_id()
 # Get data for selected HUC
 nsink_get_data()
+
+```
+
+# Prepare the data
+
+```{r prep_data}
 # Prep data for selected HUC
 nsink_prep_data()
-# Calculate raster
-nsink_calc_removal()
 
+```
+
+# Calculate removal
+
+```{r calc_removal}
+```
+
+# Generate and summarize flowpaths
+
+```{r flowpaths}
+```
+
+# Static maps
+
+```{r static_maps}
+```
+
+# Convenience function: Build it all!
+
+```{r build}
 ```
