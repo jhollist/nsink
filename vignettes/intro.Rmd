@@ -9,7 +9,8 @@ vignette: >
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
-  eval = FALSE
+  eval = FALSE,
+  cache = TRUE
 )
 ```
 
@@ -45,8 +46,15 @@ required functions for a specified HUC in included.  Details on each step are
 outlined in the rest of this vignette.
 
 # Get data
- 
+The first step in the N-Sink process is to acquire data needed for the analysis.
+The `nsink` package utilizes openly available data from several U.S. Federal 
+Government sources.  Each datasets use a 12-digit HUC ID number to select the 
+data for download.  The first step is to identify the HUC ID and then download 
+the data.
 
+To identify the HUC ID you can use the `nsink_get_huc_id()` function which will 
+use a 12-digit HUC name to search all HUCs.  Matches are returned as a data 
+frame.
 
 ```{r get_data}
 # Get HUC ID
