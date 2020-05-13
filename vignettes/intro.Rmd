@@ -73,12 +73,6 @@ sources.  The HUC ID is required and users may specify a path for storing the
 data as well as indicate whether or not to download the data again if they 
 already exist in the data directory.
 
-```{r get_data, include=FALSE}
-# Get data for selected HUC
-niantic_download <- nsink_get_data(niantic_huc_id, 
-                                   data_dir = "nsink_niantic_data")
-```
-
 
 ```{r get_data_norun, eval=FALSE}
 # Get data for selected HUC
@@ -113,7 +107,7 @@ returns a list with all required data for subsequent N-Sink analyses.
 
 A quick note on the CRS.  In the near futre, the preferred way to specify the CRS values will either be with Well-Known Text (WKT) or [EPSG Codes](http://spatialreference.org/ref/epsg/). Proj.4 strings will eventually be deprecated.  Currently the packages that `nsink` relies on are at different stages in implementing the changes to PROJ.  Currently Proj.4 strings are preferred, but that will change soon.
 
-```{r prep_data, results="hide"}
+```{r prep_data, eval=FALSE}
 # PROJ.4 string for Albers Equal Area
 aea <- "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=23 +lon_0=-96 +x_0=0 +y_0=0 
 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
@@ -138,7 +132,7 @@ soils with areas of impervious surface removed.
 Removal is calculated separately for streams and waterbodies (e.g. lakes and 
 reservoirs).
 
-```{r calc_removal}
+```{r calc_removal, eval=FALSE}
 # Calculate removal from prepped data
 niantic_removal <- nsink_calc_removal(niantic_data)
 ```
@@ -188,8 +182,16 @@ start_loc_inter <- st_sf(st_sfc(st_point(pt), crs = aea))
 With a point identified, we can use that as the starting location for our 
 flowpath.
 
-```{r generate_flowpath}
+```{r generate_flowpath, eval=FALSE}
 niantic_fp <- nsink_generate_flowpath(start_loc, niantic_data)
+```
+
+The reutrned value has both the `flowpath_ends`, the portion of the flowpath on
+the land which is created using the flow direction grid, and the 
+`flowpath_network` which is the portion of the flowpath from the NHD Plus 
+network that occur after the upstream `flowpath_ends` intersect the network.
+
+```{r thefp}
 niantic_fp
 ```
 
@@ -228,7 +230,7 @@ flowpaths generated.
 the transport index  It represents which areas of the landscape are 
 delivering the most nitrogen to the outflow of the watershed.
 
-```{r static_maps}
+```{r static_maps, eval=FALSE}
 niantic_static_maps <- nsink_generate_static_maps(niantic_data, niantic_removal, 
                                                   900)
 ```
