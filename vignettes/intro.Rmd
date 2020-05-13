@@ -3,15 +3,19 @@ title: "Introduction to `nsink`"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{intro}
-  %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+bibliography: nsink.bib
+csl: ecology.csl
 ---
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
-  eval = FALSE,
-  cache = TRUE
+  eval = TRUE,
+  cache = TRUE,
+  tidy = FALSE
 )
+load("intro_vignette.rda")
 ```
 
 ```{r setup, echo=FALSE}
@@ -19,31 +23,28 @@ library(nsink)
 ```
 
 The package `nsink` implements an approach to estimate relative nitrogen removal
-along a flow path.  This approach is detailed in 
-[Kellogg et al (2010)](https://doi.org/10.1016/j.ecoleng.2010.02.006) and 
-builds on peer-reviewed literature in the form of reviews and meta-analyses 
-(i.e., [Mayer et al (2007)](https://doi.org/doi:10.2134/jeq2006.0462), 
-[Alexander et al (2007)](https://doi.org/10.1111/j.1752-1688.2007.00005.x), 
-and [Seitzinger et al (2006)](https://doi.org/10.1890/1051-0761(2006)016[2064:DALAWA]2.0.CO;2)
-) to estimate nitrogen (N) removal within three types 
-of landscape sinks -- wetlands, streams and lakes -- along any given flow path 
-within a HUC12 basin. The `nsink` package implements this approach, using 
+along a flow path.  This approach is detailed in Kellogg et al. 
+[-@kellogg2010geospatial] and builds on peer-reviewed literature in the form of 
+reviews and meta-analyses [i.e., @mayer2007meta; @alexander2007role; 
+@seitzinger2006denitrification] to estimate nitrogen (N) removal within three 
+types of landscape sinks -- wetlands, streams and lakes -- along any given flow 
+path within a HUC12 basin. The `nsink` package implements this approach, using 
 publicly available spatial data to identify flow paths and estimate N removal in
 landscape sinks. Removal rates depend on retention time, which is influenced by 
 physical characteristics identified using publicly available spatial data -- 
 National Hydrography Dataset (NHD), Watershed Boundary Dataset (WBD), National 
 Land Cover Dataset (NLCD), and Soil Survey Geographic Dataset (SSURGO). Static 
 maps of a specified HUC-12 basin are generated -- N Removal Efficiency, N 
-Transport Efficiency, and N Delivery Index. These maps may be used to inform 
-local decision-making by highlighting areas that are more prone to N "leakiness"
-and areas that contribute to N removal.
+Loading Index, N Transport Index, and N Delivery Index. These maps may be used 
+to inform local decision-making by highlighting areas that are more prone to N 
+"leakiness" and areas that contribute to N removal.
 
 The `nsink` packages provides several functions to set up and run an N-Sink 
 analysis for a specified 12-digit HUC code.  All required data are downloaded, 
 prepared for the analysis, HUC-wide nitrogen removal calculated, and flow paths 
 summarized.  Additionally, a convenience function that will run all of the 
-required functions for a specified HUC in included.  Details on each step are 
-outlined in the rest of this vignette.
+required functions for a specified HUC is included.  Details on each step are 
+outlined in this vignette.
 
 # Get data
 The first step in the N-Sink process is to acquire data needed for the analysis.
@@ -54,40 +55,208 @@ the data.
 
 To identify the HUC ID you can use the `nsink_get_huc_id()` function which will 
 use a 12-digit HUC name to search all HUCs.  Matches are returned as a data 
-frame.
+frame and an option to return partial or exact matches.
 
-```{r get_data}
-# Get HUC ID
-nsink_get_huc_id()
+```{r get_huc}
+# Get HUC ID - Palmer showing multiple matches
+nsink_get_huc_id("Palmer")
+
+# The Niantic
+niantic_huc_id <- nsink_get_huc_id("Niantic River")$huc_12
+niantic_huc_id
+```
+
+With the HUC ID in hand we can now use the `nsink_get_data()` function to 
+download the required data.  All data are from publicly available sources and
+as of `r lubridate::today()` no authentication is required to access these 
+sources.  The HUC ID is required and users may specify a path for storing the 
+data as well as indicate whether or not to download the data again if they 
+already exist in the data directory.
+
+```{r get_data, include=FALSE}
 # Get data for selected HUC
-nsink_get_data()
+niantic_download <- nsink_get_data(niantic_huc_id, 
+                                   data_dir = "nsink_niantic_data")
+```
 
+
+```{r get_data_norun, eval=FALSE}
+# Get data for selected HUC
+niantic_download <- nsink_get_data(niantic_huc_id, 
+                                   ata_dir = "nsink_niantic_data")
+```
+
+In addition to download the data, the function returns the basic information about your download: HUC ID and download location.
+
+
+```{r get_data_return}
+niantic_download
 ```
 
 # Prepare the data
+Once the data is downloaded there are several additional data processing steps 
+that are required to subset the data just to the HUC and set all data to a 
+common coordinate reference system (CRS).  
 
-```{r prep_data}
+These include:
+
+- filter out the HUC boundary
+- mask all other data sets to the HUC boundary
+- convert all columns names to lower case
+- create new columns
+- harmonize raster extents
+- set all data to common CRS
+
+The `nsink_prep_data()` function will complete all of these processing steps.  
+It requires a HUC ID, a specified CRS, and a path to a data directory.  It 
+returns a list with all required data for subsequent N-Sink analyses.
+
+A quick note on the CRS.  In the near futre, the preferred way to specify the CRS values will either be with Well-Known Text (WKT) or [EPSG Codes](http://spatialreference.org/ref/epsg/). Proj.4 strings will eventually be deprecated.  Currently the packages that `nsink` relies on are at different stages in implementing the changes to PROJ.  Currently Proj.4 strings are preferred, but that will change soon.
+
+```{r prep_data, results="hide"}
+# PROJ.4 string for Albers Equal Area
+aea <- "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=23 +lon_0=-96 +x_0=0 +y_0=0 
++ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
+
 # Prep data for selected HUC
-nsink_prep_data()
-
+niantic_data <- nsink_prep_data(niantic_huc_id, projection = aea, 
+                data_dir = "nsink_niantic_data")
 ```
 
 # Calculate removal
 
+The next step in the N-Sink process is to calculate relative nitrogen removal.  
+Details on how the nitrogen removal estimates are calculated are available in 
+Kellogg et al. [-@kellogg2010geospatial]. The `nsink_calc_removal()` function 
+takes the prepared data as an input and returns a list with three items:
+
+- raster_method: This item contains a raster based approach to calculating 
+removal.  Used for the static maps of removal.
+- land_removal: This represents land based nitrogen removal which is hydric 
+soils with areas of impervious surface removed.
+- network_removal: This contains removal along the NHD Plus flow network.  
+Removal is calculated separately for streams and waterbodies (e.g. lakes and 
+reservoirs).
+
 ```{r calc_removal}
+# Calculate removal from prepped data
+niantic_removal <- nsink_calc_removal(niantic_data)
 ```
 
 # Generate and summarize flowpaths
 
-```{r flowpaths}
+A useful part of the N-Sink approach is not just the calculation of relative 
+removal for individual components of the landscape, it is the ability to 
+summarize that removal along the legnth of a specified flowpath.  Th `nsink` 
+package provides two functions that facilitate this process.  The 
+`nsink_generate_flowpath()` function takes a point location as an `sf` object 
+and the prepped data (generated by `nsink_prep_data()`) as input and returns an 
+`sf` LINESTRING of the flowpath starting from the input point location and 
+terminating at the furthest downstream location in the input NHD Plus.  The 
+flowpath on land is generated from a flow direction grid.  Once that flowpath 
+intersects the stream network, flow is determined by flow along the NHD Plus 
+stream network.  First, create the `sf` POINT object.         
+
+```{r flowpath_start}
+# Load up the sf package
+library(sf)
+# Starting point
+pt <- c(1948121, 2295822)
+start_loc <- st_sf(st_sfc(st_point(c(pt)), crs = aea))
+```
+
+You may also determine your point location interactively by plotting your data 
+and using the `locator()` function .  First create a simple plot.
+
+```{r flowpath_plot, eval=FALSE}
+# Create a simple plot
+plot(st_geometry(niantic_data$huc))
+plot(st_geometry(niantic_data$lakes), add = T, col = "darkblue")
+plot(st_geometry(niantic_data$streams), add = T, col = "blue")
+```
+
+With the map made, you can use that to interactively select a location and use 
+the x and y to create the `sf` POINT object.
+
+```{r interactive_loc, eval=FALSE}
+# Select location on map for starting point
+pt <- unlist(locator(n = 1))
+# convert to sf POINT
+start_loc_inter <- st_sf(st_sfc(st_point(pt), crs = aea))
+```
+
+With a point identified, we can use that as the starting location for our 
+flowpath.
+
+```{r generate_flowpath}
+niantic_fp <- nsink_generate_flowpath(start_loc, niantic_data)
+niantic_fp
+```
+
+With a flowpath generated we can summarize the relative nitrogen removal along 
+that flowpath with the `nsink_summarize_flowpath()` function. It takes the 
+flowpath and removal as input.  A data frame is returned with each segment 
+identified by type, the percent removal associated with that segment, and 
+relative removal.  Total relative removal is 100 - minimum of the `n_out` 
+column.
+
+```{r summarize_it}
+niantic_fp_removal <- nsink_summarize_flowpath(niantic_fp, niantic_removal)
+niantic_fp_removal
+100-min(niantic_fp_removal$n_out)
 ```
 
 # Static maps
 
+Individual flow paths are useful for specific applications, but often it is more
+useful to look at removal patterns across the landscape.  The 
+`nsink_generate_static_maps()` function provides these HUC wide rasters.  
+Required inputs are the prepped data, removal raster, and sampling density.   
+The function returns four separate rasters.
+
+- `removal_effic`: Landscape wide estimate of relative nitrogen removal 
+percentage.
+- `loading_idx`: An index of relative nitrogen loads by land cover class derived 
+from published sources
+- `transport_idx`: This is relative nitrogen transport for a sample of all 
+possible flowpaths in a given HUC.  This is an expensive computational task, so 
+`nsink` generates a removal hotspot map based on a sample of flowpaths and the 
+final hotspot map is interpolated from these samples and referred to as the 
+nitrogen transport index.  The `samp_density` argument controls the number of sample
+flowpaths generated.  
+- `delivery_idx`: The delivery index is the combination of the loading index and 
+the transport index  It represents which areas of the landscape are 
+delivering the most nitrogen to the outflow of the watershed.
+
 ```{r static_maps}
+niantic_static_maps <- nsink_generate_static_maps(niantic_data, niantic_removal, 
+                                                  900)
+```
+
+```{r plots}
+# Need to create plot functions for the static maps.
+# Coming Soon!!!
 ```
 
 # Convenience function: Build it all!
 
-```{r build}
+The workflow described above includes all the basic functionality.  Some users 
+may wish to use `nsink` to calculate the base layers for an N-Sink analysis and 
+then build an application outside of R.  A convenience function that downloads 
+all data, prepares, calculates removal, and generates static maps has been 
+included to facilitate this type of analysis.  The `nsink_build()` function 
+requires a HUC ID, coordinate reference system, and sampling density.  An output
+folder is also needed but has a default location.  Optional arguments for 
+forcing a new download and playing a sound to signal when the build has 
+finished. Nothing returns to R, but all prepped data files and `.tif` files are 
+written to into the output folder for use in other applications.
+
+
+```{r build, eval=FALSE}
+niantic_huc <- nsink_get_huc_id("Niantic River")$huc_12
+aea <- "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=23 +lon_0=-96 +x_0=0 +y_0=0 
++ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
+nsink_build(niantic_huc, aea, samp_dens = 900)
 ```
+
+# References

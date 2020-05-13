@@ -4,15 +4,10 @@
 \alias{nsink_generate_n_loading_index}
 \title{Generates the Nitrogen Loading Index}
 \usage{
-nsink_generate_n_loading_index(input_data, custom_load = NULL)
+nsink_generate_n_loading_index(input_data)
 }
 \arguments{
 \item{input_data}{list of input data}
-
-\item{custom_load}{Place holder for a custom loading index.  Currently uses
-values culled from the literature and stored as a dataset,
-\code{n_load_idx_lookup}, which is loaded with
-\code{nsink}.  Custom loads are not yet implemented.}
 }
 \description{
 This function reclassifies the NLCD data to an index of Nitrogen loading.

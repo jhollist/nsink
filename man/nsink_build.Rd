@@ -9,7 +9,7 @@ nsink_build(
   projection,
   output_folder = normalizePath("nsink_output", winslash = "/"),
   force = FALSE,
-  fact = 300,
+  samp_dens = 300,
   signal_finish = FALSE
 )
 }
@@ -25,10 +25,10 @@ string}
 \item{force}{Logical value used to force a new download if data already
 exists on file system}
 
-\item{fact}{The \code{fact} controls the density of points to use when
+\item{samp_dens}{The \code{samp_dens} controls the density of points to use when
 creating the nitrogen removal heat map.  The area of the
 watershed is sampled with points that are separated by the
-\code{fact} value.  The larger the value, the fewer the points.}
+\code{samp_dens} value.  The larger the value, the fewer the points.}
 
 \item{signal_finish}{Logical that triggers a sound when build is finished.}
 }
@@ -40,10 +40,10 @@ a list providing details on the huc used and the output location of
 This function is a wrapper around the other functions and runs all of those
 required to build out the full dataset need for a huc plus develop the four
 static N-Sink maps: the nitrogen loading index, nitrogen removal effeciency,
-nitrogen transport effeciencey, and the nitrogen delivery index.  The primary
+nitrogen transport index, and the nitrogen delivery index.  The primary
 purpose of this is to use the nsink package to develop the required datasets
 for an nsink application to be built in other software.  This will take some
-time to complete as it is downloaing 500-600 Mb of data, processing that data
+time to complete as it is downloading 500-600 Mb of data, processing that data
 and then creating output files.
 }
 \examples{
@@ -52,5 +52,5 @@ library(nsink)
 aea <- "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=23 +lon_0=-96 +x_0=0 +y_0=0
 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
 nsink_build(nsink_get_huc_id("Niantic River")$huc_12, aea,
-            output_folder = "nsink_output", fact = 300)}
+            output_folder = "nsink_output", samp_dens = 300)}
 }

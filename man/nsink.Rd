@@ -20,9 +20,9 @@ influenced by physical characteristics identified using publicly available
 spatial data -- National Hydrography Dataset (NHD), Watershed Boundary
 Dataset (WBD), National Land Cover Dataset (NLCD), and Soil Survey Geographic
 Dataset (SSURGO). Static maps of a specified HUC-12 basin are generated -- N
-Removal Efficiency, N Transport Efficiency, and N Delivery Index. These maps
-may be used to inform local decision-making by highlighting areas that are
-more prone to N "leakiness" and areas that contribute to N removal.
+Removal Efficiency, N Loading Index, N Transport Index, and N Delivery Index.
+These maps may be used to inform local decision-making by highlighting areas
+that are more prone to N "leakiness" and areas that contribute to N removal.
 }
 \references{
 Kellogg, D. Q., Gold, A. J., Cox, S., Addy, K., & August, P. V.

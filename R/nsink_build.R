@@ -3,10 +3,10 @@
 #' This function is a wrapper around the other functions and runs all of those
 #' required to build out the full dataset need for a huc plus develop the four
 #' static N-Sink maps: the nitrogen loading index, nitrogen removal effeciency,
-#' nitrogen transport effeciencey, and the nitrogen delivery index.  The primary
+#' nitrogen transport index, and the nitrogen delivery index.  The primary
 #' purpose of this is to use the nsink package to develop the required datasets
 #' for an nsink application to be built in other software.  This will take some
-#' time to complete as it is downloaing 500-600 Mb of data, processing that data
+#' time to complete as it is downloading 500-600 Mb of data, processing that data
 #' and then creating output files.
 #'
 #' @param huc A character with the 12 digit HUC ID.  Maybe searched with
@@ -16,10 +16,10 @@
 #' @param output_folder Folder to store downloaded data and process nsink files
 #' @param force Logical value used to force a new download if data already
 #'              exists on file system
-#' @param fact The \code{fact} controls the density of points to use when
+#' @param samp_dens The \code{samp_dens} controls the density of points to use when
 #'             creating the nitrogen removal heat map.  The area of the
 #'             watershed is sampled with points that are separated by the
-#'             \code{fact} value.  The larger the value, the fewer the points.
+#'             \code{samp_dens} value.  The larger the value, the fewer the points.
 #' @param signal_finish Logical that triggers a sound when build is finished.
 #' @export
 #' @return a list providing details on the huc used and the output location of
@@ -30,11 +30,11 @@
 #' aea <- "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=23 +lon_0=-96 +x_0=0 +y_0=0
 #' +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
 #' nsink_build(nsink_get_huc_id("Niantic River")$huc_12, aea,
-#'             output_folder = "nsink_output", fact = 300)}
+#'             output_folder = "nsink_output", samp_dens = 300)}
 nsink_build <- function(huc, projection,
                         output_folder = normalizePath("nsink_output", winslash = "/"),
                         force = FALSE,
-                        fact = 300, signal_finish = FALSE) {
+                        samp_dens = 300, signal_finish = FALSE) {
 
   # Check for/create/clean data directory
   if (!dir.exists(output_folder)) {
@@ -61,7 +61,7 @@ nsink_build <- function(huc, projection,
   # Generate the static maps
   message("Creating static maps...")
   nsink_static_maps <- nsink_generate_static_maps(
-    input_data = nsink_prepped_data, removal = nsink_removal, fact = fact
+    input_data = nsink_prepped_data, removal = nsink_removal, samp_dens = samp_dens
   )
 
   # Write everything out to a folder
@@ -130,8 +130,8 @@ nsink_write_static_maps <- function(static_maps, output_folder) {
     paste0(output_folder, "loading_idx.tif"),
     overwrite = TRUE
   )
-  raster::writeRaster(static_maps$transport_effic,
-    paste0(output_folder, "transport_effic.tif"),
+  raster::writeRaster(static_maps$transport_idx,
+    paste0(output_folder, "transport_idx.tif"),
     overwrite = TRUE
   )
   raster::writeRaster(static_maps$delivery_idx,

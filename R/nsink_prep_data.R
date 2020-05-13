@@ -42,7 +42,7 @@ nsink_prep_data <- function(huc, projection,
     huc_sf <- summarize(huc_sf, huc_12 = unique(as.character(.data$HUC_12)))
     huc_sf <- ungroup(huc_sf)
     huc_sf <- st_transform(huc_sf, crs = projection)
-    huc_raster <- fasterize::raster(as(huc_sf, "Spatial"), resolution = 30)
+    huc_raster <- fasterize::raster(as(huc_sf, "Spatial"), resolution = 30, crs = st_crs(huc_sf))
     list(
       streams = nsink_prep_streams(huc_sf, data_dir),
       lakes = nsink_prep_lakes(huc_sf, data_dir),
