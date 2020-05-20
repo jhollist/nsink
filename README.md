@@ -21,7 +21,7 @@ raster-vector approach that takes very little time to set up for each
 new watershed and relies on readily available data. Thus, its
 application is national for the United States.
 
-Proposed (as of 2020-05-20) functions for the `nsink` package are:
+As of 2020-05-20 user functions for the `nsink` package are:
 
   - `nsink_get_data()` - Pass HUC, get data, use cache to avoid repeat
     downloads
