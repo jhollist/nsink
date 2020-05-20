@@ -48,7 +48,7 @@ nsink_plot_removal <- function(removal_effic, breaks = c(0.2, 0.4, 0.6, 0.8),
 #' meant as a quick means to visualize removal efficiency.
 #'
 #' @param transport_idx A transport index \code{raster} most likely created
-#'                      via \code{\link{nsink_generate_static_maps()}}.
+#'                      via \code{\link{nsink_generate_static_maps}}.
 #' @param breaks A vector of values specifying breakpoints to break the
 #'               transport \code{raster}.  Must be one more than number of
 #'               colors.
