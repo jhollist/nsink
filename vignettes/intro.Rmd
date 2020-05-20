@@ -224,8 +224,8 @@ from published sources
 possible flowpaths in a given HUC.  This is an expensive computational task, so 
 `nsink` generates a removal hotspot map based on a sample of flowpaths and the 
 final hotspot map is interpolated from these samples and referred to as the 
-nitrogen transport index.  The `samp_density` argument controls the number of sample
-flowpaths generated.  
+nitrogen transport index.  The `samp_density` argument controls the number of 
+sample flowpaths generated.  
 - `delivery_idx`: The delivery index is the combination of the loading index and 
 the transport index  It represents which areas of the landscape are 
 delivering the most nitrogen to the outflow of the watershed.
@@ -235,9 +235,12 @@ niantic_static_maps <- nsink_generate_static_maps(niantic_data, niantic_removal,
                                                   900)
 ```
 
+And with these static maps made, you can plot them quickly with 
+`nsink_plot_removal()`, `nsink_plot_delivery()`, or `nsink_plot_transport()`.  
+An example of `nsink_plot_transport()` is below.
+
 ```{r plots}
-# Need to create plot functions for the static maps.
-# Coming Soon!!!
+nsink_plot_transport(niantic_static_maps$transport_idx)
 ```
 
 # Convenience function: Build it all!

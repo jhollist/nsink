@@ -19,7 +19,7 @@ Previous implementation of this approach relied on a vector based
 approach that was time consuming to prepare. This approach uses a hybrid
 raster-vector approach that takes very little time to set up for each
 new watershed and relies on readily available data. Thus, its
-application is national for the United States.
+application has the potential to be national for the United States.
 
 As of 2020-05-20 user functions for the `nsink` package are:
 
