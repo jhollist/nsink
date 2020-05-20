@@ -11,14 +11,14 @@ nsink_plot_removal(
 )
 }
 \arguments{
+\item{removal_effic}{A removal efficiency \code{raster} most likely created
+via \code{\link{nsink_generate_static_maps}}.}
+
 \item{breaks}{A vector of values specifying breakpoints to break the
 removal \code{raster}.  Must be one more than number of
 colors.}
 
 \item{colors}{A vector of hexcodes for the colors}
-
-\item{remvoal_effic}{A removal efficiency \code{raster} most likely created
-via \code{\link{nsink_generate_static_maps}}.}
 }
 \description{
 This function creates a simple plot with a pre-selected color palette,
