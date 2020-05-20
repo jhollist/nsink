@@ -13,7 +13,7 @@ nsink_plot_transport(
 }
 \arguments{
 \item{transport_idx}{A transport index \code{raster} most likely created
-via \code{\link{nsink_generate_static_maps()}}.}
+via \code{\link{nsink_generate_static_maps}}.}
 
 \item{breaks}{A vector of values specifying breakpoints to break the
 transport \code{raster}.  Must be one more than number of

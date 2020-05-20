@@ -18,7 +18,7 @@ colors.}
 \item{colors}{A vector of hexcodes for the colors}
 
 \item{remvoal_effic}{A removal efficiency \code{raster} most likely created
-via \code{\link{nsink_generate_static_maps()}}.}
+via \code{\link{nsink_generate_static_maps}}.}
 }
 \description{
 This function creates a simple plot with a pre-selected color palette,

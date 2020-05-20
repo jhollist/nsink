@@ -5,7 +5,7 @@
 #' meant as a quick means to visualize delivery index.
 #'
 #' @param delivery_idx A delivery index \code{raster} most likely created
-#'                      via \code{\link{nsink_generate_static_maps()}}.
+#'                      via \code{\link{nsink_generate_static_maps}}.
 #' @param breaks A vector of values specifying breakpoints to break the
 #'               delivery \code{raster}.  Must be one more than number of
 #'               colors.
@@ -27,7 +27,7 @@ nsink_plot_delivery <- function(delivery_idx, breaks = c(20, 40, 60, 80, 100),
 #' meant as a quick means to visualize removal efficiency.
 #'
 #' @param remvoal_effic A removal efficiency \code{raster} most likely created
-#'                      via \code{\link{nsink_generate_static_maps()}}.
+#'                      via \code{\link{nsink_generate_static_maps}}.
 #' @param breaks A vector of values specifying breakpoints to break the
 #'               removal \code{raster}.  Must be one more than number of
 #'               colors.
