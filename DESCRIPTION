@@ -1,6 +1,6 @@
 Package: nsink
 Title: Set-up and run N-Sink
-Version: 0.0.0.9000
+Version: 0.1.0.9000
 Authors@R: c(person(given = "Jeffrey",
            family = "Hollister",
            role = c("aut", "cre"),
@@ -10,7 +10,36 @@ Authors@R: c(person(given = "Jeffrey",
            family = "Kellogg",
            role = c("aut"),
            email = "qkellogg@uri.edu",
-           comment = c(ORCID = "")))
+           comment = c(ORCID = "")),
+           person(given = "Rachel",
+           family = "Lei",
+           role = c("ctb"),
+           email = "qian.lei@uconn.edu",
+           comment = c(ORCID = "")),
+           person(given = "Chester",
+           family = "Arnold",
+           role = c("ctb"),
+           email = "chester.arnold_jr@uconn.edu"),
+           person(given = "Arthur",
+           family = "Gold",
+           role = c("ctb"),
+           email = "agold@uri.edu",
+           comment = c(ORCID = "")),
+           person(given = "Emily",
+           family = "Wilson",
+           role = c("ctb"),
+           email = "emily.wilson@uconn.edu",
+           comment = c(ORCID = "")),
+           person(given = "Cary",
+           family = "Chadwick",
+           role = c("ctb"),
+           email = "cary.chadwick@uconn.edu",
+           comment = c(ORCID = "")),
+           person(given = "David",
+           family = "Dickson",
+           role = c("ctb"),
+           email = "david.dickson@uconn.edu>, ",
+           comment = c(ORCID = "0000-0002-2660-6460")))
 Description: N-Sink is an analysis that utilizes geospatial data to estimate a 
              flow path and the nitrogen removal along that flow path.  
              Additionally, several static maps summarizing nitrogen removal may 
