@@ -35,21 +35,21 @@ Proposed (as of `r lubridate::today()`) functions for the `nsink` package are:
 - `nsink_plot_delivery()` - Plot function to quickly visualize the Nitrogen Delivery Index rasters.
 - `nsink_build()` - Convenience function to run an N-Sink analysis on a 12-digit HUC.  All base datasets, prepared data, and derived static maps are saved to an output folder.  The expected use of this function is to provide the basis for building an N-Sink application outside of R (e.g. with ArcGIS)
 
-The API for this package is still very much a work in progress and may change at anytime with possible breakage of past functionality.  Use at own risk!
-
 
 ## Installation
 
-When released to CRAN, you can install the released version of nsink from [CRAN](https://CRAN.R-project.org) with:
+At this time we plan on maintaining the `nsink` package as a GitHub only package and thus it won't be available directly from CRAN.  You may use the `install_github()` function from the `remotes` package to install it.  The code below will take care of installing `remotes` and installing `nsink` from the GitHub repository.
 
-``` r
-install.packages("nsink")
+```{r, eval=FALSE}
+install.packages("remotes")
+remotes::install_github("jhollist/nsink", build_vignettes = TRUE)
+```
+And then to load up the package and view the "Introduction to nsink" vignette:
+
+```{r eval=FALSE}
+library(nsink)
+vignette("intro", package = "nsink")
 ```
 
-And the development version from [GitHub](https://github.com/) with:
 
-``` r
-# install.packages("devtools")
-devtools::install_github("jhollist/nsink")
-```
 

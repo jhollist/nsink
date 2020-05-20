@@ -59,22 +59,23 @@ Proposed (as of 2020-05-20) functions for the `nsink` package are:
     function is to provide the basis for building an N-Sink application
     outside of R (e.g. with ArcGIS)
 
-The API for this package is still very much a work in progress and may
-change at anytime with possible breakage of past functionality. Use at
-own risk\!
-
 ## Installation
 
-When released to CRAN, you can install the released version of nsink
-from [CRAN](https://CRAN.R-project.org) with:
+At this time we plan on maintaining the `nsink` package as a GitHub only
+package and thus it won’t be available directly from CRAN. You may use
+the `install_github()` function from the `remotes` package to install
+it. The code below will take care of installing `remotes` and installing
+`nsink` from the GitHub repository.
 
 ``` r
-install.packages("nsink")
+install.packages("remotes")
+remotes::install_github("jhollist/nsink", build_vignettes = TRUE)
 ```
 
-And the development version from [GitHub](https://github.com/) with:
+And then to load up the package and view the “Introduction to nsink”
+vignette:
 
 ``` r
-# install.packages("devtools")
-devtools::install_github("jhollist/nsink")
+library(nsink)
+vignette("intro", package = "nsink")
 ```
