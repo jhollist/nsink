@@ -45,6 +45,13 @@ nsink_calc_removal <- function(input_data) {
     lake_removal <- nsink_calc_lake_removal(input_data[c("streams", "lakes",
                                                          "tot","lakemorpho",
                                                          "raster_template")])
+
+    off_network_removal <- nsink_calc_off_network_removal(
+      list(streams = input_data$streams, lakes = input_data$lakes,
+           network_removal = rbind(removal$stream_removal_v,
+                                   removal$lake_removal_v),
+           raster_template = input_data$raster_template))
+
     removal <- list(
       land_removal = land_removal$land_removal_r,
       land_removal_v = land_removal$land_removal_v,
@@ -52,8 +59,10 @@ nsink_calc_removal <- function(input_data) {
       stream_removal_v = stream_removal$stream_removal_v,
       lake_removal_r = lake_removal$lake_removal_r,
       lake_removal_v = lake_removal$lake_removal_v,
+      off_network_removal = off_network_removal,
       raster_template = input_data$raster_template, huc = input_data$huc
     )
+
 
     merged_removal <- nsink_merge_removal(list(
       land_removal = removal$land_removal,
@@ -82,6 +91,29 @@ nsink_calc_removal <- function(input_data) {
     stop("The input data do not contain the expected data.  Check the object and
          re-run with nsink_prep_data().")
   }
+}
+
+#' Calculates off network waterbody and stream nitrogen removal
+#'
+#' @param input_data  A named list with "streams", "lakes",
+#'                   "network_removal", and "raster_template".
+#' @return raster and vectors of off network nitrogen removal
+#' @import dplyr sf
+#' @importFrom rlang .data
+#' @keywords internal
+nsink_calc_off_network_removal <- function(input_data) {
+  browser()
+  if(any(input_data$streams$flowdir == "Uninitialized") |
+    any(!input_data$lakes$lake_comid %in% input_data$streams$lake_comid)){
+
+  } else {
+    return(NA)
+  }
+
+  list(off_network_removal_r = raster::rasterize(off_network_removal, input_data$raster_template,
+                                            field = "n_removal", fun = "max"),
+       off_network_removal_v = select(off_network_removal, .data$stream_comid, .data$lake_comid,
+                                 .data$gnis_name, .data$ftype, .data$n_removal))
 }
 
 #' Calculates land-based nitrogen removal
@@ -125,7 +157,7 @@ nsink_calc_land_removal <- function(input_data) {
 #'
 #' @param input_data  A named list with "streams", "q", "tot", and
 #'                   "raster_template".
-#' @return raster of stream based nitrogen removal
+#' @return raster and vector versions of stream based nitrogen removal
 #' @import dplyr sf
 #' @importFrom rlang .data
 #' @keywords internal
@@ -164,7 +196,7 @@ nsink_calc_stream_removal <- function(input_data) {
 #'
 #' @param input_data A named list with "streams", "lakes", "tot", "lakemorpho",
 #'                   and "raster_template".
-#' @return raster of lake based nitrogen removal
+#' @return raster and vector versions of lake based nitrogen removal
 #' @import dplyr sf
 #' @importFrom rlang .data
 #' @keywords internal
