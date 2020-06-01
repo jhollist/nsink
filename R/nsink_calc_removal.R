@@ -130,8 +130,8 @@ nsink_calc_land_removal <- function(input_data) {
 #' @importFrom rlang .data
 #' @keywords internal
 nsink_calc_stream_removal <- function(input_data) {
-
   stream_removal <- mutate_if(input_data$streams, is.factor, as.character())
+  #stream_removal <- filter(stream_removal, flowdir != "Uninitialized")
   stream_removal <- suppressMessages(left_join(stream_removal,
     input_data$q,
     by = c("stream_comid" = "stream_comid")
@@ -143,6 +143,7 @@ nsink_calc_stream_removal <- function(input_data) {
   stream_removal <- filter(stream_removal, .data$ftype != "ArtificialPath")
   # TODO When time of travel not available in NHDPlus, need to use other methods
   #      to estimate time of travel (in Kellogg et al.)
+  #      Don't think this is possible as drainage area unavailble...
   stream_removal <- mutate(stream_removal, totma = case_when(
     .data$totma == -9999 ~ NA_real_,
     TRUE ~ .data$totma
@@ -168,11 +169,11 @@ nsink_calc_stream_removal <- function(input_data) {
 #' @importFrom rlang .data
 #' @keywords internal
 nsink_calc_lake_removal <- function(input_data) {
-
   residence_time <- suppressMessages(left_join(input_data$streams, input_data$tot))
   residence_time <- filter(residence_time, .data$lake_comid > 0)
   # TODO When time of travel not available in NHDPlus, need to use other methods
   #      to calculate residence time (in Kellogg et al)
+  #      Don't think this is possible as drainage area unavailble...
   residence_time <- mutate(residence_time, totma = case_when(
     .data$totma == -9999 ~
     NA_real_,
