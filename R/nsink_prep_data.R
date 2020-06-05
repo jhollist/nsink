@@ -283,7 +283,8 @@ nsink_prep_tot <- function(data_dir) {
   if (file.exists(paste0(data_dir, "attr/PlusFlowlineVAA.dbf"))) {
     tot <- foreign::read.dbf(paste0(data_dir, "attr/PlusFlowlineVAA.dbf"))
     tot <- rename_all(tot, tolower)
-    tot <- select(tot, stream_comid = .data$comid, totma = .data$totma, .data$fromnode, .data$tonode)
+    tot <- select(tot, stream_comid = .data$comid, totma = .data$totma,
+                  .data$fromnode, .data$tonode, stream_order = .data$streamorde)
     tot <- mutate_if(tot, is.factor, as.character())
   } else {
     stop("The required data file does not exist.  Run nsink_get_data().")

@@ -45,16 +45,19 @@ nsink_calc_removal <- function(input_data) {
     lake_removal <- nsink_calc_lake_removal(input_data[c("streams", "lakes",
                                                          "tot","lakemorpho",
                                                          "raster_template")])
-
+    browser()
     off_network_removal <- nsink_calc_off_network_removal(
       list(streams = input_data$streams, lakes = input_data$lakes,
-           network_removal = rbind(removal$stream_removal_v,
-                                   removal$lake_removal_v),
+           network_removal = rbind(stream_removal$stream_removal_v,
+                                   lake_removal$lake_removal_v),
+           tot = input_data$tot,
            raster_template = input_data$raster_template))
 
     removal <- list(
       land_removal = land_removal$land_removal_r,
       land_removal_v = land_removal$land_removal_v,
+      off_network_removal_r =off_network_removal$off_network_removal_r,
+      off_network_removal_v =off_network_removal$off_network_removal_v,
       stream_removal_r = stream_removal$stream_removal_r,
       stream_removal_v = stream_removal$stream_removal_v,
       lake_removal_r = lake_removal$lake_removal_r,
@@ -63,9 +66,11 @@ nsink_calc_removal <- function(input_data) {
       raster_template = input_data$raster_template, huc = input_data$huc
     )
 
-
+    # get off network added to these functions
+    # get off network added to flowpath summary.
     merged_removal <- nsink_merge_removal(list(
       land_removal = removal$land_removal,
+      off_network_removal = removal$off_network_removal_r,
       stream_removal = removal$stream_removal_r,
       lake_removal = removal$lake_removal_r,
       raster_template = removal$raster_template,
@@ -73,6 +78,7 @@ nsink_calc_removal <- function(input_data) {
     ))
     merged_type <- nsink_calc_removal_type(list(
       land_removal = removal$land_removal,
+      off_network_removal = removal$off_network_removal_r,
       stream_removal = removal$stream_removal_r,
       lake_removal = removal$lake_removal_r,
       raster_template = removal$raster_template,
@@ -82,6 +88,7 @@ nsink_calc_removal <- function(input_data) {
     return(list(
       raster_method = raster::stack(merged_removal, merged_type),
       land_removal = removal$land_removal_v,
+      off_network_removal = removal$off_network_removal_v,
       network_removal = rbind(
         removal$stream_removal_v,
         removal$lake_removal_v
@@ -96,24 +103,132 @@ nsink_calc_removal <- function(input_data) {
 #' Calculates off network waterbody and stream nitrogen removal
 #'
 #' @param input_data  A named list with "streams", "lakes",
-#'                   "network_removal", and "raster_template".
+#'                   "network_removal", "tot", and "raster_template".
 #' @return raster and vectors of off network nitrogen removal
 #' @import dplyr sf
 #' @importFrom rlang .data
+#' @importFrom raster rasterize merge
+#' @importFrom fasterize fasterize
 #' @keywords internal
 nsink_calc_off_network_removal <- function(input_data) {
   browser()
   if(any(input_data$streams$flowdir == "Uninitialized") |
-    any(!input_data$lakes$lake_comid %in% input_data$streams$lake_comid)){
+    any(!input_data$lakes$lake_comid %in% input_data$network_removal$lake_comid)){
 
+    removal_stats_lakes <- filter(input_data$network_removal, n_removal > 0,
+                                  ftype == "LakePond")
+    removal_stats_lakes <- group_by(removal_stats_lakes, ftype)
+    removal_stats_lakes <- summarize(removal_stats_lakes,
+                             avg_n_remove = mean(.data$n_removal, na.rm = TRUE),
+                             med_n_remove = median(.data$n_removal, na.rm = TRUE),
+                             min_n_remove = min(.data$n_removal, na.rm = TRUE),
+                             max_n_remove = max(.data$n_removal, na.rm = TRUE),
+                             third_quart_n_remove = quantile(.data$n_removal,
+                                                             probs = 0.75,
+                                                             na.rm = TRUE))
+
+    removal_stats_streams <- filter(input_data$network_removal, n_removal > 0)
+    # If a canal/ditch is on network its removal is calculated per normal and
+    # can be used in these stats.  Although that is likely very rare.
+    removal_stats_streams <- filter(removal_stats_streams, ftype == "StreamRiver" |
+                                      ftype == "CanalDitch")
+    removal_stats_streams <- left_join(removal_stats_streams,
+                                       input_data$tot, by = "stream_comid")
+    removal_stats_streams <- group_by(removal_stats_streams, ftype, stream_order)
+    removal_stats_streams <- summarize(removal_stats_streams,
+                                       avg_n_remove = mean(.data$n_removal,
+                                                           na.rm = TRUE),
+                                       med_n_remove = median(.data$n_removal,
+                                                             na.rm = TRUE),
+                                       min_n_remove = min(.data$n_removal,
+                                                          na.rm = TRUE),
+                                       max_n_remove = max(.data$n_removal,
+                                                          na.rm = TRUE),
+                                       third_quart_n_remove =
+                                         quantile(.data$n_removal, probs = 0.75,
+                                                  na.rm = TRUE),
+                                       n = n())
+    # Off network streams
+    if(any(input_data$streams$flowdir == "Uninitialized")){
+      off_network_streams <- filter(input_data$streams,
+                                    input_data$streams$flowdir ==
+                                      "Uninitialized")
+      off_network_streams <- filter(off_network_streams, ftype == "StreamRiver")
+
+      #on_network_streams <- filter(input_data$network_removal, ftype ==
+      #                               "CanalDitch" | ftype == "StreamRiver")
+      #on_network_streams <- filter(on_network_streams, n_removal > 0 |
+      #                               !is.na(n_removal))
+      #off_network_closest_idx <- nsink_get_closest_lt(st_length(off_network_streams),
+      #                                                st_length(on_network_streams))
+      #off_network_closest_n_removal <- on_network_streams$n_removal[off_network_closest_idx]
+      #avg_stream_removal <- filter(removal_stats, ftype == "StreamRiver")
+      #avg_stream_removal <- pull(avg_stream_removal, avg_n_remove)
+      #off_network_streams <- mutate(off_network_streams, n_removal = avg_stream_removal)
+      # Argument here is that off network streams are by definition, first order
+      # So assign average of existing first order streams to off network streams
+      removal_stats_1st_order <- filter(removal_stats_streams, stream_order == 1)
+      avg_removal_1st_order <- pull(removal_stats_1st_order, avg_n_remove)
+      off_network_streams <- mutate(off_network_streams, n_removal =
+                                      avg_removal_1st_order)
+      off_network_streams_r <- rasterize(off_network_streams,
+                                         input_data$raster_template,
+                                         field = "n_removal",
+                                         background = 0, fun = "max")
+    }
+
+    # Off network canals/ditches
+    if(any(input_data$streams$flowdir == "Uninitialized")){
+      off_network_canal_ditch <- filter(input_data$streams,
+                                    input_data$streams$flowdir ==
+                                      "Uninitialized")
+      off_network_canal_ditch <- filter(off_network_canal_ditch, ftype ==
+                                          "CanalDitch")
+      #Something good goes here.
+      off_network_canal_ditch <- mutate(off_network_canal_ditch, n_removal = NA)
+      off_network_canal_ditch_r <- rasterize(off_network_canal_ditch,
+                                           input_data$raster_template,
+                                           field = "n_removal",
+                                           background = 0, fun = "max")
+
+    }
+
+    # Off network lakes
+    if(any(!input_data$lakes$lake_comid %in% input_data$network_removal$lake_comid)){
+      off_network_lakes <- filter(input_data$lakes,!input_data$lakes$lake_comid
+                                %in% input_data$network_removal$lake_comid)
+      on_network_lakes_df <- filter(input_data$network_removal,
+                                    ftype == "LakePond")
+      on_network_lakes_df <- st_set_geometry(on_network_lakes_df, NULL)
+      on_network_lakes <- full_join(input_data$lakes, on_network_lakes_df,
+                                    by = "lake_comid")
+      on_network_lakes <- filter(on_network_lakes, n_removal > 0,
+                                 !is.na(n_removal))
+      #off_network_closest_idx <- nsink_get_closest_lt(st_area(off_network_lakes),
+      #                                             st_area(on_network_lakes))
+      #off_network_closest_n_removal <- on_network_lakes$n_removal[off_network_closest_idx]
+      third_quart_lake_removal <- filter(removal_stats, ftype == "LakePond")
+      third_quart_lake_removal <- pull(third_quart_lake_removal,
+                                       third_quart_n_remove)
+      off_network_lakes <- mutate(off_network_lakes, n_removal =
+                                    third_quart_lake_removal)
+      off_network_lakes_r <- fasterize::fasterize(off_network_lakes,
+                                               input_data$raster_template,
+                                               field = "n_removal",
+                                               background = 0, fun = "max")
+    }
   } else {
     return(NA)
   }
 
-  list(off_network_removal_r = raster::rasterize(off_network_removal, input_data$raster_template,
-                                            field = "n_removal", fun = "max"),
-       off_network_removal_v = select(off_network_removal, .data$stream_comid, .data$lake_comid,
-                                 .data$gnis_name, .data$ftype, .data$n_removal))
+  #figure out how to merge these into a single off_network_removal
+  off_network_removal_r <- off_network_lakes_r + off_network_streams_r +
+    off_network_canal_ditch_r
+
+
+  list(off_network_removal_r,
+       off_network_removal_v = st_as_sf(raster::rasterToPolygons(
+         off_network_removal_r, dissolve = TRUE)))
 }
 
 #' Calculates land-based nitrogen removal

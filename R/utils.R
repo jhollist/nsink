@@ -140,3 +140,76 @@ nsink_fix_data_directory <- function(data_dir) {
   }
   data_dir
 }
+
+#' Get closest
+#'
+#' This function will return the index of one vector that is closest, by
+#' absolute values, to the values in another vector.  Usually used to
+#' identify the closest lake or stream, in area or length respectively, to
+#' another lake or stream.
+#'
+#' @param v1 The first vector of values, likely length or area of a feature
+#' @param v2 The second vector of values, also likely length or area of a
+#'           feature.
+#' @return Returns a vector, of length v1, of the index from v2 that is closest
+#'         in absolute value to each value in v1.
+#' @keywords internal
+nsink_get_closest <- function(v1, v2){
+  v2_idx <- vector("integer", length = length(v1))
+  for(i in seq_along(v1)){
+
+    v2_idx[i] <- which.min(abs(v1[i] - v2))
+  }
+  v2_idx
+}
+
+#' Get closest, but less than
+#'
+#' This function will return the index of one vector that is closest and less
+#' than, by absolute values, to the values in another vector.  If the value in
+#' v1 is less than all values in v2, then just the next closest is returned.
+#' Usually used to identify the closest lake or stream, in area or length
+#' respectively, to another lake or stream.
+#'
+#' @param v1 The first vector of values, likely length or area of a feature
+#' @param v2 The second vector of values, also likely length or area of a
+#'           feature.
+#' @return Returns a vector, of length v1, of the index from v2 that is less
+#'         than and  closest in absolute value to each value in v1.
+#' @keywords internal
+nsink_get_closest_lt <- function(v1, v2){
+  v2_idx <- vector("integer", length = length(v1))
+
+  for(i in seq_along(v1)){
+    lt_idx <- v2 < v1[i]
+    if(sum(lt_idx > 0)){
+      closest_min <- min(abs(v1[i]-v2[lt_idx]))
+      v2_idx[i] <- min(which(closest_min == abs(v1[i]-v2)))
+    } else {
+      v2_idx[i] <- which.min(abs(v1[i] - v2))
+    }
+  }
+  v2_idx
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
