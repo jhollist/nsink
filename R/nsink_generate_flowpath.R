@@ -68,7 +68,7 @@ nsink_generate_flowpath <- function(starting_location, input_data){
 #' @keywords internal
 nsink_get_flowpath_ends <- function(flowpath, streams, tot){
   #drops streams without traced network from and to nodes
-  #browser()
+  #Removal from these is dealt with via off_network removal
   streams <- suppressMessages(left_join(streams, tot))
   streams <- filter(streams, !is.na(.data$fromnode))
   streams <- filter(streams, !is.na(.data$tonode))
@@ -100,6 +100,7 @@ nsink_get_flowpath_ends <- function(flowpath, streams, tot){
 #' @keywords internal
 nsink_get_flowline <- function(flowpath_ends, streams, tot){
   #filtering our streams without network from and to nodes
+  #These are dealt with via off_network removal
   streams_tot <- suppressMessages(left_join(streams, tot))
   streams_tot <- filter(streams_tot, !is.na(.data$fromnode))
   streams_tot <- filter(streams_tot, !is.na(.data$tonode))

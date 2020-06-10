@@ -1,7 +1,7 @@
+nsink
+================
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
-
-# nsink
 
 <!-- badges: start -->
 
@@ -15,13 +15,15 @@ coverage](https://codecov.io/gh/jhollist/nsink/branch/master/graph/badge.svg)](h
 
 The `nsink` package is an R implementation of the methods described in
 [Kellogg et. al (2010)](https://doi.org/10.1016/j.ecoleng.2010.02.006).
-Previous implementation of this approach relied on a vector based
-approach that was time consuming to prepare. This approach uses a hybrid
-raster-vector approach that takes very little time to set up for each
-new watershed and relies on readily available data. Thus, its
-application has the potential to be national for the United States.
+Previous implementation of this approach relied on a manual, vector
+based approach that was time consuming to prepare. This approach uses a
+hybrid raster-vector approach that takes very relatively little time to
+set up for each new watershed and relies on readily available data.
+Total run times vary, but range from minutes up to 5 hours depending on
+options selected. Previous versions took weeks of manual data
+manipulation.
 
-As of 2020-05-20 user functions for the `nsink` package are:
+As of 2020-06-10 user functions for the `nsink` package are:
 
   - `nsink_get_data()` - Pass HUC, get data, use cache to avoid repeat
     downloads
@@ -58,6 +60,10 @@ As of 2020-05-20 user functions for the `nsink` package are:
     maps are saved to an output folder. The expected use of this
     function is to provide the basis for building an N-Sink application
     outside of R (e.g. with ArcGIS)
+  - `nsink_load()` - Another convenience function that will load the
+    results of `nsink_build()` into R. This makes it easier to continue
+    to work in R on an `nsink` analysis if build for a given watershed
+    has already occurred.
 
 ## Installation
 

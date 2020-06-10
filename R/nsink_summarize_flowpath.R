@@ -34,7 +34,9 @@
 #' }
 nsink_summarize_flowpath <- function(flowpath, removal) {
 
-  land_removal <- suppressWarnings(st_intersection(removal$land_removal, flowpath$flowpath_ends[[1]]))
+  # Land based removal in flowpath ends
+  land_removal <- suppressWarnings(st_intersection(removal$land_removal,
+                                                   flowpath$flowpath_ends[[1]]))
 
   land_removal_df <- data.frame(
     stream_comid = 0, lake_comid = 0,
@@ -57,6 +59,34 @@ nsink_summarize_flowpath <- function(flowpath, removal) {
       .data$n_removal
     )),
     length = as.numeric(st_length(land_removal))
+  )
+
+  browser()
+  # Off Network based removal in flowpath ends
+  off_network_removal <- suppressWarnings(st_intersection(removal$off_network_removal,
+                                                          flowpath$flowpath_ends[[1]]))
+
+  off_network_removal_df <- data.frame(
+    stream_comid = 0, lake_comid = 0,
+    n_removal = off_network_removal$layer, segment_type = NA
+  )
+  off_network_removal_df <- mutate(off_network_removal_df,
+                            segment_type = case_when(
+                              .data$n_removal > 0 ~
+                                1,
+                              TRUE ~ 0
+                            ),
+                            n_removal = case_when(
+                              is.na(.data$n_removal) ~ 0,
+                              .data$segment_type == 0 ~
+                                0,
+                              TRUE ~ .data$n_removal
+                            ),
+                            segment_id = nsink_create_segment_ids(paste(
+                              .data$segment_type,
+                              .data$n_removal
+                            )),
+                            length = as.numeric(st_length(off_network_removal))
   )
 
   if (!is.null(flowpath$flowpath_network)) {
@@ -99,6 +129,7 @@ nsink_summarize_flowpath <- function(flowpath, removal) {
                             n_in = signif(.data$n_in, 3), n_out = signif(.data$n_out, 3))
   return(removal_summary)
 }
+
 
 #' Create ID's for unique values in a vector
 #'
