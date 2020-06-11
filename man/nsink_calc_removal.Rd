@@ -4,11 +4,32 @@
 \alias{nsink_calc_removal}
 \title{Calculates N-Sink nitrogen removal percent}
 \usage{
-nsink_calc_removal(input_data)
+nsink_calc_removal(
+  input_data,
+  off_network_lakes = NULL,
+  off_network_streams = NULL,
+  off_network_canalsditches = NULL
+)
 }
 \arguments{
 \item{input_data}{A list of input datasets created with
 \code{\link{nsink_prep_data}}.}
+
+\item{off_network_lakes}{Optional argument to set removal for waterbodies
+that are not part of the hydrologic network in NHDPlus. Default value is to
+use the 75th percentile of removal from other lakes in the HUC.  If another
+value is desired provide a single numeric ranging from 0 to 1.}
+
+\item{off_network_streams}{Optional argument to set removal for streams that
+are not part of the hydrologic network in NHDPlus. Default value is to use
+the median removal from first order streams in the HUC.  If another value
+is desired provide a single numeric ranging from 0 to 1.}
+
+\item{off_network_canalsditches}{Optional argument to set removal for canals
+and ditches that are not part of the hydrologic network in NHDPlus. Default
+value is to use the 25th percentile of removal from third order streams in
+the HUC. If another value is desired provide a single numeric ranging from
+0 to 1.}
 }
 \value{
 A list with three items, 1) a raster stack with one layer with

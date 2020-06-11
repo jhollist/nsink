@@ -10,11 +10,19 @@
 #'
 #' @param input_data A list of input datasets created with
 #'                   \code{\link{nsink_prep_data}}.
-#' @param isolated_lakes Optional argument to set removal for waterbodies that
-#'                       are not part of the hydrologic network in NHDPlus.
-#'                       Default value is to use the 75th percentile of removal
-#'                       from other lakes in the HUC.  If another value is
-#'                       desired provide a single numeric ranging from 0 to 1.
+#' @param off_network_lakes Optional argument to set removal for waterbodies
+#'   that are not part of the hydrologic network in NHDPlus. Default value is to
+#'   use the 75th percentile of removal from other lakes in the HUC.  If another
+#'   value is desired provide a single numeric ranging from 0 to 1.
+#' @param off_network_streams Optional argument to set removal for streams that
+#'   are not part of the hydrologic network in NHDPlus. Default value is to use
+#'   the median removal from first order streams in the HUC.  If another value
+#'   is desired provide a single numeric ranging from 0 to 1.
+#' @param off_network_canalsditches Optional argument to set removal for canals
+#'   and ditches that are not part of the hydrologic network in NHDPlus. Default
+#'   value is to use the 25th percentile of removal from third order streams in
+#'   the HUC. If another value is desired provide a single numeric ranging from
+#'   0 to 1.
 #' @return A list with three items, 1) a raster stack with one layer with
 #'         nitrogen removal, a second layer with the type of removal (e.g.
 #'         hydric soils, lakes, streams), 2) a polygon representing removal from
@@ -39,7 +47,9 @@
 #'                                       data_dir = "nsink_data")
 #' removal <- nsink_calc_removal(niantic_nsink_data)
 #' }
-nsink_calc_removal <- function(input_data,isolated_lakes = NULL) {
+nsink_calc_removal <- function(input_data,off_network_lakes = NULL,
+                               off_network_streams = NULL,
+                               off_network_canalsditches = NULL){
   if (all(names(input_data) %in% c("streams", "lakes", "fdr", "impervious",
                                    "nlcd", "ssurgo", "q", "tot", "huc",
                                    "raster_template", "lakemorpho"))) {
@@ -56,7 +66,8 @@ nsink_calc_removal <- function(input_data,isolated_lakes = NULL) {
            network_removal = rbind(stream_removal$stream_removal_v,
                                    lake_removal$lake_removal_v),
            tot = input_data$tot,
-           raster_template = input_data$raster_template), isolated_lakes)
+           raster_template = input_data$raster_template), off_network_lakes,
+      off_network_streams, off_network_canalsditches)
 
     removal <- list(
       land_removal = land_removal$land_removal_r,
@@ -112,18 +123,28 @@ nsink_calc_removal <- function(input_data,isolated_lakes = NULL) {
 #'
 #' @param input_data  A named list with "streams", "lakes",
 #'                   "network_removal", "tot", and "raster_template".
-#' @param isolated_lakes Optional argument to set removal for waterbodies that
-#'                       are not part of the hydrologic network in NHDPlus.
-#'                       Default value is to use the 75th percentile of removal
-#'                       from other lakes in the HUC.  If another value is
-#'                       desired provide a single numeric ranging from 0 to 1.
+#' @param off_network_lakes Optional argument to set removal for waterbodies
+#'   that are not part of the hydrologic network in NHDPlus. Default value is to
+#'   use the 75th percentile of removal from other lakes in the HUC.  If another
+#'   value is desired provide a single numeric ranging from 0 to 1.
+#' @param off_network_streams Optional argument to set removal for streams that
+#'   are not part of the hydrologic network in NHDPlus. Default value is to use
+#'   the median removal from first order streams in the HUC.  If another value
+#'   is desired provide a single numeric ranging from 0 to 1.
+#' @param off_network_canalsditches Optional argument to set removal for canals
+#'   and ditches that are not part of the hydrologic network in NHDPlus. Default
+#'   value is to use the 25th percentile of removal from third order streams in
+#'   the HUC. If another value is desired provide a single numeric ranging from
+#'   0 to 1.
 #' @return raster and vectors of off network nitrogen removal
 #' @import dplyr sf
 #' @importFrom rlang .data
 #' @importFrom raster rasterize merge
 #' @importFrom fasterize fasterize
 #' @keywords internal
-nsink_calc_off_network_removal <- function(input_data, isolated_lakes) {
+nsink_calc_off_network_removal <- function(input_data, off_network_lakes,
+                                           off_network_streams,
+                                           off_network_canalsditches) {
 
   if(any(input_data$streams$flowdir == "Uninitialized") |
     any(!input_data$lakes$lake_comid %in% input_data$network_removal$lake_comid)){
@@ -162,24 +183,55 @@ nsink_calc_off_network_removal <- function(input_data, isolated_lakes) {
                                        low_quart_n_remove =
                                          quantile(.data$n_removal, probs = 0.25,
                                                   na.rm = TRUE),
-                                       n = n())
+                                       num_streams = n())
+
     # Off network streams
+    removal_stats_1st <- filter(removal_stats_streams, stream_order == 1)
+    if(removal_stats_1st$num_streams == 0 & is.null(off_network_streams)){
+      stop("There are no on network streams available to estimate removal for
+           off network streams  Please specify a removal value with the
+           off_network_streams argument.")
+    } else if(removal_stats_1st$num_streams > 0 &
+              removal_stats_1st$num_streams <= 3){
+      warning("There are three or fewer on network streams available to estimate
+              removal for the off network streams.  It may be advisable to
+              manually set an N removal values via the off_network_streams argument.")
+    }
     if(any(input_data$streams$flowdir == "Uninitialized")){
-      off_network_streams <- filter(input_data$streams,
+      off_network_streams_sf <- filter(input_data$streams,
                                     input_data$streams$flowdir ==
                                       "Uninitialized")
-      off_network_streams <- filter(off_network_streams, ftype == "StreamRiver")
-      removal_stats_1st_order <- filter(removal_stats_streams, stream_order == 1)
-      avg_removal_1st_order <- pull(removal_stats_1st_order, avg_n_remove)
-      off_network_streams <- mutate(off_network_streams, n_removal =
-                                      avg_removal_1st_order)
-      off_network_streams_r <- rasterize(off_network_streams,
+      off_network_streams_sf <- filter(off_network_streams_sf, ftype == "StreamRiver")
+      if(is.null(off_network_streams)){
+        med_removal_1st_order <- pull(removal_stats_1st, med_n_remove)
+      } else if(is.numeric(off_network_streams)){
+        med_removal_1st_order <- off_network_streams
+      } else {
+        med_removal_1st_order <- NA
+      }
+      off_network_streams_sf <- mutate(off_network_streams_sf, n_removal =
+                                      med_removal_1st_order)
+      off_network_streams_r <- rasterize(off_network_streams_sf,
                                          input_data$raster_template,
                                          field = "n_removal",
                                          background = NA, fun = "max")
     }
 
     # Off network canals/ditches
+    # Off network streams
+    removal_stats_high_order <- filter(removal_stats_streams,
+                                       stream_order == max(stream_order))
+    if(removal_stats_high_order$num_streams == 0 & is.null(off_network_canalsditches)){
+      stop("There are no on network streams available to estimate removal for
+           off network canals and ditches  Please specify a removal value with the
+           off_network_canalsditches argument.")
+    } else if(removal_stats_high_order$num_streams > 0 &
+              removal_stats_high_order$num_streams <= 3){
+      warning("There are three or fewer on network streams available to estimate
+              removal for the off network canals and ditches.  It may be advisable to
+              manually set an N removal values via the off_network_canalsditches argument.")
+    }
+
     if(any(input_data$streams$flowdir == "Uninitialized")){
       off_network_canal_ditch <- filter(input_data$streams,
                                     input_data$streams$flowdir ==
@@ -188,10 +240,15 @@ nsink_calc_off_network_removal <- function(input_data, isolated_lakes) {
                                           "CanalDitch")
       #Something good goes here. For time being use lower quartile of higher
       #order streams
-      removal_stats_high_order <- filter(removal_stats_streams,
-                                          stream_order == max(stream_order))
-      low_quart_removal_high_order <- pull(removal_stats_high_order,
-                                          low_quart_n_remove)
+
+      if(is.null(off_network_streams)){
+        low_quart_removal_high_order <- pull(removal_stats_high_order,
+                                             low_quart_n_remove)
+      } else if(is.numeric(off_network_streams)){
+        low_quart_removal_high_order <- off_network_canalsditches
+      } else {
+        low_quart_removal_high_order <- NA
+      }
       off_network_canal_ditch <- mutate(off_network_canal_ditch, n_removal =
                                           low_quart_removal_high_order)
       off_network_canal_ditch_r <- rasterize(off_network_canal_ditch,
@@ -202,15 +259,15 @@ nsink_calc_off_network_removal <- function(input_data, isolated_lakes) {
     }
 
     # Off network lakes
-    if(removal_stats_lakes$num_lakes == 0 & is.null(isolated_lakes)){
-      stop("There are no on network lakes available to estimate remvoal for
-           on network lakes.  Please specify a removal value with the
-           isolated_lakes argument.")
+    if(removal_stats_lakes$num_lakes == 0 & is.null(off_network_lakes)){
+      stop("There are no on network lakes available to estimate removal for
+           off network lakes.  Please specify a removal value with the
+           off_network_lakes argument.")
     } else if(removal_stats_lakes$num_lakes > 0 &
-              removal_stats_lakes$num_lakes < 5){
-      warning("There are less than five on network lakes available to estimate
+              removal_stats_lakes$num_lakes <= 3){
+      warning("There three or fewer on network lakes available to estimate
               removal for the off network lakes.  It may be advisable to
-              manually set an N removal values via the isolated_lakes argument.")
+              manually set an N removal values via the off_network_lakes argument.")
     }
 
     if(any(!input_data$lakes$lake_comid %in% input_data$network_removal$lake_comid)){
@@ -224,11 +281,11 @@ nsink_calc_off_network_removal <- function(input_data, isolated_lakes) {
       on_network_lakes <- filter(on_network_lakes, n_removal > 0,
                                  !is.na(n_removal))
       third_quart_lake_removal <- filter(removal_stats_lakes, ftype == "LakePond")
-      if(is.null(isolated_lakes)){
+      if(is.null(off_network_lakes)){
         third_quart_lake_removal <- pull(third_quart_lake_removal,
                                          third_quart_n_remove)
-      } else if(is.numeric(isolated_lakes)){
-        third_quart_lake_removal <- isolated_lakes
+      } else if(is.numeric(off_network_lakes)){
+        third_quart_lake_removal <- off_network_lakes
       } else {
         third_quart_lake_removal <- NA
       }
@@ -402,11 +459,11 @@ nsink_calc_lake_removal <- function(input_data) {
 #' @keywords internal
 nsink_merge_removal <- function(removal_rasters) {
 
-  lake_removal <- reclassify(removal_rasters$lake_removal,
+  lake_removal <- raster::reclassify(removal_rasters$lake_removal,
                              cbind(-Inf, 0, NA), right=FALSE)
-  land_removal <- reclassify(removal_rasters$land_removal,
+  land_removal <- raster::reclassify(removal_rasters$land_removal,
                              cbind(-Inf, 0, NA), right=FALSE)
-  off_network_removal <- reclassify(removal_rasters$off_network_removal,
+  off_network_removal <- raster::reclassify(removal_rasters$off_network_removal,
                                     cbind(-Inf, 0, NA), right=FALSE)
 
   # Check this
