@@ -34,60 +34,70 @@
 #' }
 nsink_summarize_flowpath <- function(flowpath, removal) {
 
-  # Land based removal in flowpath ends
-  land_removal <- suppressWarnings(st_intersection(removal$land_removal,
-                                                   flowpath$flowpath_ends[[1]]))
-
-  land_removal_df <- data.frame(
-    stream_comid = 0, lake_comid = 0,
-    n_removal = land_removal$layer, segment_type = NA
-  )
-  land_removal_df <- mutate(land_removal_df,
-    segment_type = case_when(
-      .data$n_removal > 0 ~
-      1,
-      TRUE ~ 0
-    ),
-    n_removal = case_when(
-      is.na(.data$n_removal) ~ 0,
-      .data$segment_type == 0 ~
-      0,
-      TRUE ~ .data$n_removal
-    ),
-    segment_id = nsink_create_segment_ids(paste(
-      .data$segment_type,
-      .data$n_removal
-    )),
-    length = as.numeric(st_length(land_removal))
-  )
-
-  browser()
   # Off Network based removal in flowpath ends
-  off_network_removal <- suppressWarnings(st_intersection(removal$off_network_removal,
-                                                          flowpath$flowpath_ends[[1]]))
 
-  off_network_removal_df <- data.frame(
+  land_off_network_removal <- suppressWarnings(st_intersection(
+    flowpath$flowpath_ends[1,], removal$land_off_network_removal_type))
+
+  land_off_network_removal <- suppressWarnings(st_intersection(
+    removal$land_off_network_removal, land_off_network_removal))
+
+  land_off_network_removal <- st_collection_extract(land_off_network_removal,
+                                                    "LINESTRING")
+  land_off_network_removal <- suppressWarnings(st_cast(land_off_network_removal,
+                                                       "LINESTRING"))
+  land_off_network_removal <- mutate(land_off_network_removal,
+                                     edge_id = c(1:n()))
+  land_off_network_removal
+  browser()
+
+  # Works up to hear.  Need to get this line ordered by flow
+  # https://www.r-spatial.org/r/2019/09/26/spatial-networks.html
+
+  nodes <- land_off_network_removal %>%
+    st_coordinates() %>%
+    as_tibble() %>%
+    rename(edge_id = L1) %>%
+    group_by(edge_id) %>%
+    slice(c(1, n())) %>%
+    ungroup() %>%
+    mutate(start_end = rep(c('start', 'end'), times = n()/2)) %>%
+    mutate(xy = paste(.$X, .$Y)) %>%
+    mutate(node_id = group_indices(., factor(xy, levels = unique(xy)))) %>%
+    select(-xy)
+
+  source_nodes <- nodes %>%
+    filter(start_end == 'start') %>%
+    pull(node_id)
+
+  target_nodes <- nodes %>%
+    filter(start_end == 'end') %>%
+    pull(node_id)
+
+  land_off_network_removal <- mutate(land_off_network_removal,
+                                     fromnode = source_nodes,
+                                     tonode = target_nodes)
+
+  # Maybe can do this the df way
+  tidyr::gather(xx,key="node_type","nodes", 2:3) %>% arrange(nodes, edge_id) %>% pull(edge_id) -> xxx
+
+  # or maybe order doesn't matter
+  x <- runif(10,0.1,0.9)
+  cumprod(c(100,sample(x,10, replace=F)))
+
+  land_off_network_removal_df <- data.frame(
     stream_comid = 0, lake_comid = 0,
-    n_removal = off_network_removal$layer, segment_type = NA
+    n_removal = land_off_network_removal$layer,
+    segment_type = land_off_network_removal$layer.1
   )
-  off_network_removal_df <- mutate(off_network_removal_df,
-                            segment_type = case_when(
-                              .data$n_removal > 0 ~
-                                1,
-                              TRUE ~ 0
-                            ),
-                            n_removal = case_when(
-                              is.na(.data$n_removal) ~ 0,
-                              .data$segment_type == 0 ~
-                                0,
-                              TRUE ~ .data$n_removal
-                            ),
-                            segment_id = nsink_create_segment_ids(paste(
-                              .data$segment_type,
-                              .data$n_removal
-                            )),
-                            length = as.numeric(st_length(off_network_removal))
-  )
+  land_off_network_removal_df <- mutate(land_off_network_removal_df,
+                                        n_removal = case_when(
+                                          is.na(.data$n_removal) ~ 0,
+                                          .data$segment_type == 0 ~0,
+                                          TRUE ~ .data$n_removal),
+                                        segment_id = nsink_create_segment_ids(
+                                          paste(.data$segment_type,.data$n_removal)),
+                                        length = as.numeric(st_length(land_off_network_removal)))
 
   if (!is.null(flowpath$flowpath_network)) {
     n_removal_df <- select(
@@ -123,10 +133,12 @@ nsink_summarize_flowpath <- function(flowpath, removal) {
     flowpath_removal_df <- NULL
   }
 
-  removal_summary <- nsink_create_summary(land_removal_df, flowpath_removal_df)
+  removal_summary <- nsink_create_summary(land_off_network_removal_df,
+                                          flowpath_removal_df)
   removal_summary <- mutate(removal_summary, length = round(length,0),
                             percent_removal = signif(.data$percent_removal, 3),
-                            n_in = signif(.data$n_in, 3), n_out = signif(.data$n_out, 3))
+                            n_in = signif(.data$n_in, 3),
+                            n_out = signif(.data$n_out, 3))
   return(removal_summary)
 }
 
