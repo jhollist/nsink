@@ -404,9 +404,6 @@ nsink_calc_stream_removal <- function(input_data) {
     by = c("stream_comid" = "stream_comid")
   ))
   stream_removal <- filter(stream_removal, .data$ftype != "ArtificialPath")
-  # TODO When time of travel not available in NHDPlus, need to use other methods
-  #      to estimate time of travel (in Kellogg et al.)
-  #      Don't think this is possible as drainage area unavailble...
   stream_removal <- mutate(stream_removal, totma = case_when(
     .data$totma == -9999 ~ NA_real_,
     TRUE ~ .data$totma
@@ -416,6 +413,30 @@ nsink_calc_stream_removal <- function(input_data) {
       (1 - exp(-0.0513 * (.data$mean_reach_depth^-1.319)
         * .data$totma)) / 100
   )
+  # When time of travel not available in NHDPlus, use median removal of other
+  # streams of the same order.
+  stream_removal_stats <- group_by(st_set_geometry(stream_removal, NULL), stream_order)
+  stream_removal_stats <- summarize(stream_removal_stats,
+                                    median_removal = median(n_removal,
+                                                            na.rm = TRUE))
+  stream_removal_stats <- ungroup(stream_removal_stats)
+  stream_removal_stats <- filter(stream_removal_stats, !is.na(median_removal))
+
+  # add existing order (not sure if this is necessary, just being cautious)
+  stream_removal <- mutate(stream_removal, order = seq_along(n_removal))
+  stream_removal_missing <- filter(stream_removal, is.na(n_removal) &
+                                     stream_order > 0 & !is.na(stream_order))
+  stream_removal_not_missing <- filter(stream_removal, !(is.na(n_removal) &
+                                     stream_order > 0 & !is.na(stream_order)))
+  stream_removal_missing <- left_join(stream_removal_missing,
+                                      stream_removal_stats,
+                                      by = "stream_order")
+  stream_removal_missing <- mutate(stream_removal_missing, n_removal = median_removal)
+  stream_removal_missing <- select(stream_removal_missing, -median_removal)
+
+  stream_removal <- rbind(stream_removal_not_missing, stream_removal_missing)
+  stream_removal <- arrange(stream_removal, order)
+  stream_removal <- select(stream_removal, -order)
   stream_removal <- filter(stream_removal, !is.na(n_removal))
 
   list(stream_removal_r = raster::rasterize(stream_removal, input_data$raster_template,

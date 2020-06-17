@@ -109,8 +109,8 @@ nsink_get_flowline <- function(flowpath_ends, streams, tot){
   streams_df <- mutate_all(streams_df, as.character)
   streams_g <- graph_from_data_frame(streams_df, directed = TRUE)
 
-  from_nd_idx <- st_is_within_distance(flowpath_ends[1], streams_tot, 0.01)[[1]]
-  to_nd_idx <- st_is_within_distance(flowpath_ends[2], streams_tot, 0.01)[[1]]
+  from_nd_idx <- st_is_within_distance(flowpath_ends[1,], streams_tot, 0.000001)[[1]]
+  to_nd_idx <- st_is_within_distance(flowpath_ends[2,], streams_tot, 0.000001)[[1]]
   from_nd <- streams_df[from_nd_idx,]$fromnode
   to_nd <- streams_df[to_nd_idx,]$tonode
   idx <- shortest_paths(streams_g, from_nd, to_nd, output = "epath",
@@ -123,8 +123,8 @@ nsink_get_flowline <- function(flowpath_ends, streams, tot){
   fp_flowlines <- lwgeom::st_split(fp_flowlines, st_combine(fp_end_pt))
   fp_flowlines <- st_collection_extract(fp_flowlines, "LINESTRING")
   fp_flowlines <- filter(fp_flowlines, !st_overlaps(st_snap(fp_flowlines,
-                                                            flowpath_ends[1],
+                                                            flowpath_ends[1,],
                                                             0.1),
-                                                    flowpath_ends[1],F))
+                                                    flowpath_ends[1,],F))
   fp_flowlines
 }
