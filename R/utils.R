@@ -7,7 +7,7 @@ get_nhd_plus <- function(download_url,
                          data_dir = normalizePath("nsink_data/", winslash = "/"),
                          download_again = FALSE) {
   if (!file.exists(paste0(data_dir, basename(download_url))) | download_again) {
-    message(paste0("Downloading ", basename(download_url), " to ", data_dir))
+    message(paste0("Downloading ", basename(download_url)))
     down <- httr::GET(download_url,
       httr::write_disk(paste0(data_dir, basename(download_url)),
                        overwrite = download_again),
@@ -92,13 +92,15 @@ nsink_get_plus_remotepath <- function(rpu, component = c(
 #' and https://github.com/jsta/nhdR/blob/master/R/get.R to determine if 7 zip is
 #' available.  If available it unzips a 7z zipfile to a destination directory.
 #' This avoids needing to use archive package which is only available via
-#' GitHub.  Need to acknowledge jsta as original author.
+#' GitHub.
 #'
 #' @param zipfile The zipfile to be extracted
 #' @param destdir Where to put the extracted files
 #' @param force Whether or not to extract again if the destination files
 #'                      already exist
 #' @keywords internal
+#' @author Joseph Stachelek, \email{stachel2@msu.edu}
+
 
 nsink_run_7z <- function(zipfile, destdir, extract_again = FALSE) {
   paths_7z <- c(
@@ -114,9 +116,10 @@ nsink_run_7z <- function(zipfile, destdir, extract_again = FALSE) {
 
   path_7z <- paths_7z[nchar(Sys.which(paths_7z)) > 0][1]
   if (!dir.exists(destdir) | extract_again) {
-    system(paste0(path_7z, " e ", shQuote(zipfile), " -aos -o", shQuote(destdir)))
+    system(paste0(path_7z, " e ", shQuote(zipfile), " -bso0 -bsp0 -aos -o", shQuote(destdir)))
   } else {
-    message(paste0("It appears you have already extracted", zipfile, "\nIf you would like to force another extraction, set force = TRUE."))
+    message(paste0("It appears you have already extracted", zipfile,
+                   "\nIf you would like to force another extraction, set force = TRUE."))
   }
 }
 
@@ -130,8 +133,8 @@ nsink_run_7z <- function(zipfile, destdir, extract_again = FALSE) {
 #' @return a string with the normalized path
 #' @keywords internal
 nsink_fix_data_directory <- function(data_dir) {
-  #browser()
-  data_dir <- normalizePath(data_dir, winslash = "/")
+
+  data_dir <- normalizePath(data_dir, winslash = "/", mustWork = FALSE)
   if (!dir.exists(data_dir)) {
     dir.create(data_dir)
   }

@@ -53,14 +53,17 @@ nsink_calc_removal <- function(input_data,off_network_lakes = NULL,
   if (all(names(input_data) %in% c("streams", "lakes", "fdr", "impervious",
                                    "nlcd", "ssurgo", "q", "tot", "huc",
                                    "raster_template", "lakemorpho"))) {
+    message("Calculating land-based removal...")
     land_removal <- nsink_calc_land_removal(input_data[c("ssurgo", "impervious",
                                                          "raster_template")])
+    message("Calculating stream-based removal...")
     stream_removal <- nsink_calc_stream_removal(input_data[c("streams","q", "tot",
                                                               "raster_template")])
+    message("Calculating lake-based removal...")
     lake_removal <- nsink_calc_lake_removal(input_data[c("streams", "lakes",
                                                          "tot","lakemorpho",
                                                          "raster_template")])
-
+    message("Calculating off network removal...")
     off_network_removal <- nsink_calc_off_network_removal(
       list(streams = input_data$streams, lakes = input_data$lakes,
            network_removal = rbind(stream_removal$stream_removal_v,
@@ -69,7 +72,7 @@ nsink_calc_removal <- function(input_data,off_network_lakes = NULL,
            raster_template = input_data$raster_template), off_network_lakes,
       off_network_streams, off_network_canalsditches)
 
-
+    message("Combining all removal...")
     removal <- list(
       land_removal_r = land_removal$land_removal_r,
       land_removal_v = land_removal$land_removal_v,
@@ -103,25 +106,97 @@ nsink_calc_removal <- function(input_data,off_network_lakes = NULL,
       huc = input_data$huc
     ))
 
-    land_off_network_removal_r <- raster::merge(removal$off_network_removal_r,
-                  removal$land_removal_r)
+    # Suppressing warning from raster on proj
+    land_off_network_removal_r <- suppressWarnings(raster::merge(removal$off_network_removal_r,
+                  removal$land_removal_r))
 
-    land_off_network_removal_type_r <- raster::merge(
-      fasterize::fasterize(removal$off_network_lakes_v,
-                           input_data$raster_template, field = "segment_type",
-                           background = NA, fun = "max"),
-      rasterize(removal$off_network_streams_v,
-                           input_data$raster_template, field = "segment_type",
-                           background = NA, fun = "max"),
-      rasterize(removal$off_network_canal_ditch_v,
-                           input_data$raster_template, field = "segment_type",
-                           background = NA, fun = "max"),
-      fasterize::fasterize(removal$land_removal_v,
-                           input_data$raster_template, field = "segment_type",
-                           background = NA, fun = "max")
-      )
+    # Very ugly way to handle off network types that may or may not exist.
 
+    lakesl <- any(class(removal$off_network_lakes_v) == "sf")
+    streamsl <- any(class(removal$off_network_streams_v) == "sf")
+    canal_ditchl <- any(class(removal$off_network_canal_ditch_v) == "sf")
+    # Suppressing warning from raster on proj
+    suppressWarnings({
+    if(lakesl & streamsl & canal_ditchl){
+      land_off_network_removal_type_r <- raster::merge(
+        fasterize::fasterize(removal$off_network_lakes_v,
+                             input_data$raster_template, field = "segment_type",
+                             background = NA, fun = "max"),
+        rasterize(removal$off_network_streams_v,
+                             input_data$raster_template, field = "segment_type",
+                             background = NA, fun = "max"),
+        rasterize(removal$off_network_canal_ditch_v,
+                             input_data$raster_template, field = "segment_type",
+                             background = NA, fun = "max"),
+        fasterize::fasterize(removal$land_removal_v,
+                             input_data$raster_template, field = "segment_type",
+                             background = NA, fun = "max"))
+      } else if(lakesl & streamsl){
+        land_off_network_removal_type_r <- raster::merge(
+          fasterize::fasterize(removal$off_network_lakes_v,
+                               input_data$raster_template, field = "segment_type",
+                               background = NA, fun = "max"),
+          rasterize(removal$off_network_streams_v,
+                    input_data$raster_template, field = "segment_type",
+                    background = NA, fun = "max"),
+          fasterize::fasterize(removal$land_removal_v,
+                               input_data$raster_template, field = "segment_type",
+                               background = NA, fun = "max"))
+      } else if(lakesl & canal_ditchl){
+        land_off_network_removal_type_r <- raster::merge(
+          fasterize::fasterize(removal$off_network_lakes_v,
+                               input_data$raster_template, field = "segment_type",
+                               background = NA, fun = "max"),
+          rasterize(removal$off_network_canal_ditch_v,
+                    input_data$raster_template, field = "segment_type",
+                    background = NA, fun = "max"),
+          fasterize::fasterize(removal$land_removal_v,
+                               input_data$raster_template, field = "segment_type",
+                               background = NA, fun = "max"))
+      } else if(streamsl & canal_ditchl){
+        land_off_network_removal_type_r <- raster::merge(
+          rasterize(removal$off_network_streams_v,
+                    input_data$raster_template, field = "segment_type",
+                    background = NA, fun = "max"),
+          rasterize(removal$off_network_canal_ditch_v,
+                    input_data$raster_template, field = "segment_type",
+                    background = NA, fun = "max"),
+          fasterize::fasterize(removal$land_removal_v,
+                               input_data$raster_template, field = "segment_type",
+                               background = NA, fun = "max"))
+      } else if(lakesl){
+        land_off_network_removal_type_r <- raster::merge(
+          fasterize::fasterize(removal$off_network_lakes_v,
+                               input_data$raster_template, field = "segment_type",
+                               background = NA, fun = "max"),
+          fasterize::fasterize(removal$land_removal_v,
+                               input_data$raster_template, field = "segment_type",
+                               background = NA, fun = "max"))
+      } else if(streamsl){
+        land_off_network_removal_type_r <- raster::merge(
+          rasterize(removal$off_network_streams_v,
+                    input_data$raster_template, field = "segment_type",
+                    background = NA, fun = "max"),
+          fasterize::fasterize(removal$land_removal_v,
+                               input_data$raster_template, field = "segment_type",
+                               background = NA, fun = "max"))
+      } else if(canal_ditchl){
+        land_off_network_removal_type_r <- raster::merge(
+          rasterize(removal$off_network_canal_ditch_v,
+                    input_data$raster_template, field = "segment_type",
+                    background = NA, fun = "max"),
+          fasterize::fasterize(removal$land_removal_v,
+                               input_data$raster_template, field = "segment_type",
+                               background = NA, fun = "max"))
+      } else{
+        land_off_network_removal_type_r <- raster::merge(
+          fasterize::fasterize(removal$land_removal_v,
+                               input_data$raster_template, field = "segment_type",
+                               background = NA, fun = "max"))
+      }})
 
+    # Supressing warnings from raster on proj
+    suppressWarnings({
     land_off_network_removal_v <- st_as_sf(raster::rasterToPolygons(land_off_network_removal_r,
                                                                     dissolve = TRUE))
     land_off_network_removal_type_v <- st_as_sf(raster::rasterToPolygons(land_off_network_removal_type_r,
@@ -137,7 +212,7 @@ nsink_calc_removal <- function(input_data,off_network_lakes = NULL,
         removal$stream_removal_v,
         removal$lake_removal_v
       )
-    ))
+    ))})
   } else {
     stop("The input data do not contain the expected data.  Check the object and
          re-run with nsink_prep_data().")
@@ -171,9 +246,11 @@ nsink_calc_off_network_removal <- function(input_data, off_network_lakes,
                                            off_network_streams,
                                            off_network_canalsditches) {
 
+
   if(any(input_data$streams$flowdir == "Uninitialized") |
     any(!input_data$lakes$lake_comid %in% input_data$network_removal$lake_comid)){
 
+    # Calculate removal stats for lakes and streams that have removal
     removal_stats_lakes <- filter(input_data$network_removal, n_removal > 0,
                                   ftype == "LakePond")
     removal_stats_lakes <- group_by(removal_stats_lakes, ftype)
@@ -222,7 +299,8 @@ nsink_calc_off_network_removal <- function(input_data, off_network_lakes,
               removal for the off network streams.  It may be advisable to
               manually set an N removal values via the off_network_streams argument.")
     }
-    if(any(input_data$streams$flowdir == "Uninitialized")){
+    if(any(input_data$streams$flowdir == "Uninitialized") &
+       any(input_data$streams$ftype == "StreamRiver")){
       off_network_streams_sf <- filter(input_data$streams,
                                     input_data$streams$flowdir ==
                                       "Uninitialized")
@@ -237,10 +315,13 @@ nsink_calc_off_network_removal <- function(input_data, off_network_lakes,
       off_network_streams_sf <- transmute(off_network_streams_sf, n_removal =
                                       med_removal_1st_order,
                                       segment_type = 5)
-      off_network_streams_r <- rasterize(off_network_streams_sf,
+      # Suppressing warnings from raster on proj
+      off_network_streams_r <- suppressWarnings(rasterize(off_network_streams_sf,
                                          input_data$raster_template,
                                          field = "n_removal",
-                                         background = NA, fun = "max")
+                                         background = NA, fun = "max"))
+    } else {
+      off_network_streams_r <- input_data$raster_template
     }
 
     # Off network canals/ditches
@@ -257,7 +338,8 @@ nsink_calc_off_network_removal <- function(input_data, off_network_lakes,
               manually set an N removal values via the off_network_canalsditches argument.")
     }
 
-    if(any(input_data$streams$flowdir == "Uninitialized")){
+    if(any(input_data$streams$flowdir == "Uninitialized")&
+       any(input_data$streams$ftype == "CanalDitch")){
       off_network_canal_ditch_sf <- filter(input_data$streams,
                                     input_data$streams$flowdir ==
                                       "Uninitialized")
@@ -277,11 +359,14 @@ nsink_calc_off_network_removal <- function(input_data, off_network_lakes,
       off_network_canal_ditch_sf <- transmute(off_network_canal_ditch_sf,
                                         n_removal = low_quart_removal_high_order,
                                         segment_type = 6)
-      off_network_canal_ditch_r <- rasterize(off_network_canal_ditch_sf,
+      # Suppressing warnings from rater on proj
+      off_network_canal_ditch_r <- suppressWarnings(rasterize(off_network_canal_ditch_sf,
                                            input_data$raster_template,
                                            field = "n_removal",
-                                           background = NA, fun = "max")
+                                           background = NA, fun = "max"))
 
+    } else {
+      off_network_canal_ditch_r <- input_data$raster_template
     }
 
     # Off network lakes
@@ -318,24 +403,32 @@ nsink_calc_off_network_removal <- function(input_data, off_network_lakes,
       off_network_lakes_sf <- transmute(off_network_lakes_sf,
                                      n_removal = third_quart_lake_removal,
                                      segment_type = 4)
-      off_network_lakes_r <- fasterize::fasterize(off_network_lakes_sf,
+      # Suppressing warnings on proj from fasterize
+      off_network_lakes_r <- suppressWarnings(fasterize::fasterize(off_network_lakes_sf,
                                                input_data$raster_template,
                                                field = "n_removal",
-                                               background = NA, fun = "max")
+                                               background = NA, fun = "max"))
 
+    } else {
+      off_network_lakes_r <- input_data$raster_template
     }
   } else {
     return(NA)
   }
 
   # Create raster
-  off_network_removal_r <- raster::merge(off_network_lakes_r,
+  # Suppress warnings from raster on proj
+  off_network_removal_r <- suppressWarnings(raster::merge(off_network_lakes_r,
                                          off_network_streams_r,
-                                         off_network_canal_ditch_r)
+                                         off_network_canal_ditch_r))
 
+  if(!exists("off_network_lakes_sf")){off_network_lakes_sf <- NA}
+  if(!exists("off_network_streams_sf")){off_network_streams_sf <- NA}
+  if(!exists("off_network_canal_ditch_sf")){off_network_canal_ditch_sf <- NA}
+  # Suppress warnings from raster on proj
   list(off_network_removal_r = off_network_removal_r,
-       off_network_removal_v = st_as_sf(raster::rasterToPolygons(
-         off_network_removal_r, dissolve = TRUE)),
+       off_network_removal_v = suppressWarnings(st_as_sf(raster::rasterToPolygons(
+         off_network_removal_r, dissolve = TRUE))),
        off_network_lakes_v = off_network_lakes_sf,
        off_network_streams_v = off_network_streams_sf,
        off_network_canal_ditch_v = off_network_canal_ditch_sf)
@@ -373,8 +466,9 @@ nsink_calc_land_removal <- function(input_data) {
   impervious[is.na(impervious)] <- 1
   imp_land_removal <- land_removal_rast * impervious
 
-  land_removal_v <- st_as_sf(raster::rasterToPolygons(imp_land_removal,
-                                                     dissolve = TRUE))
+  # Raster throwing crs warning
+  land_removal_v <- suppressWarnings(st_as_sf(raster::rasterToPolygons(imp_land_removal,
+                                                     dissolve = TRUE)))
 
   land_removal_v <- mutate(land_removal_v, segment_type =
                              case_when(layer > 0 ~ 1,
@@ -438,9 +532,9 @@ nsink_calc_stream_removal <- function(input_data) {
   stream_removal <- arrange(stream_removal, order)
   stream_removal <- select(stream_removal, -order)
   stream_removal <- filter(stream_removal, !is.na(n_removal))
-
-  list(stream_removal_r = raster::rasterize(stream_removal, input_data$raster_template,
-                                            field = "n_removal", fun = "max"),
+  # Suppressing warnings from raster on proj
+  list(stream_removal_r = suppressWarnings(raster::rasterize(stream_removal, input_data$raster_template,
+                                            field = "n_removal", fun = "max")),
        stream_removal_v = select(stream_removal, .data$stream_comid, .data$lake_comid,
                                  .data$gnis_name, .data$ftype, .data$n_removal))
 }
@@ -494,9 +588,10 @@ nsink_calc_lake_removal <- function(input_data) {
 
   st_geometry(lake_removal) <- NULL
   lake_removal_flowpath <- suppressMessages(left_join(residence_time_sf, lake_removal))
-  lake_removal_r <- fasterize::fasterize(lake_removal_sf,
+  # Supressing proj warnings from fasterize
+  lake_removal_r <- suppressWarnings(fasterize::fasterize(lake_removal_sf,
                                          input_data$raster_template,
-                                         field = "n_removal", fun = "max")
+                                         field = "n_removal", fun = "max"))
   comids <- select(input_data$streams, .data$stream_comid, .data$lake_comid)
   st_geometry(comids) <- NULL
   lake_removal_flowpath <- suppressMessages(left_join(lake_removal_flowpath,
@@ -523,7 +618,8 @@ nsink_merge_removal <- function(removal_rasters) {
   off_network_removal <- raster::reclassify(removal_rasters$off_network_removal,
                                     cbind(-Inf, 0, NA), right=FALSE)
 
-  # Check this
+  # Supressing warnings from raster on proj
+  suppressWarnings({
   removal <- raster::merge(removal_rasters$lake_removal,
                            removal_rasters$off_network_removal,
                            removal_rasters$land_removal)
@@ -533,6 +629,7 @@ nsink_merge_removal <- function(removal_rasters) {
   removal <- raster::projectRaster(removal, removal_rasters$raster_template,
                                    method = "ngb")
   removal <- raster::merge(removal_rasters$stream_removal, removal)
+  })
   removal
 }
 
@@ -561,13 +658,17 @@ nsink_calc_removal_type <- function(removal_rasters) {
       val <- raster::getValues(removal_rast)
       val[!is.na(val)] <- 4
     }
+    # Suppress warnings from raster on proj
+    suppressWarnings({
     raster::setValues(removal_rast, val)
+    })
   }
 
   hydric_type <- type_it(removal_rasters$land_removal, "hydric")
   stream_type <- type_it(removal_rasters$stream_removal, "stream")
   lake_type <- type_it(removal_rasters$lake_removal, "lake")
   off_network_type <- type_it(removal_rasters$off_network_removal, "off_network")
+  suppressWarnings({
   types <- raster::merge(lake_type, off_network_type, hydric_type)
   types <- raster::mask(types, removal_rasters$huc)
   types[is.na(types)] <- 0
@@ -575,5 +676,6 @@ nsink_calc_removal_type <- function(removal_rasters) {
   types <- raster::projectRaster(types, removal_rasters$raster_template,
                                  method = "ngb")
   types <- raster::merge(stream_type, types)
+  })
   types
 }

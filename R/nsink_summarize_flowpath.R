@@ -37,11 +37,17 @@ nsink_summarize_flowpath <- function(flowpath, removal) {
 
   # Off Network based removal in flowpath ends
 
-  land_off_network_removal <- suppressWarnings(st_intersection(
-    flowpath$flowpath_ends[1,], removal$land_off_network_removal_type))
+  type_poly <- suppressWarnings(st_cast(removal$land_off_network_removal_type, "POLYGON"))
+  type_poly <- mutate(type_poly, type_id = paste0("type_", seq_along(layer)))
+  removal_poly <- suppressWarnings(st_cast(removal$land_off_network_removal, "POLYGON"))
+  removal_poly <- mutate(removal_poly, remove_id = paste0("remove_",
+                                                           seq_along(layer)))
 
   land_off_network_removal <- suppressWarnings(st_intersection(
-    removal$land_off_network_removal, land_off_network_removal))
+    flowpath$flowpath_ends[1,], type_poly))
+
+  land_off_network_removal <- suppressWarnings(st_intersection(
+    removal_poly, land_off_network_removal))
 
   land_off_network_removal <- st_collection_extract(land_off_network_removal,
                                                     "LINESTRING")
@@ -75,7 +81,8 @@ nsink_summarize_flowpath <- function(flowpath, removal) {
   land_off_network_removal_df <- data.frame(
     stream_comid = 0, lake_comid = 0,
     n_removal = land_off_network_removal$layer,
-    segment_type = land_off_network_removal$layer.1
+    segment_type = land_off_network_removal$layer.1,
+    remove_id = land_off_network_removal$remove_id
   )
   land_off_network_removal_df <- mutate(land_off_network_removal_df,
                                         n_removal = case_when(
@@ -188,7 +195,7 @@ nsink_create_summary <- function(land_removal, network_removal) {
       segment_type == 6 ~ "Off Network Canal/Ditch"
     )
   )
-  land_removal_df <- group_by(land_removal_df, .data$segment_id, .data$segment_type)
+  land_removal_df <- group_by(land_removal_df, .data$segment_id, .data$segment_type, .data$remove_id)
   land_removal_df <- summarize(land_removal_df,
     length = sum(length),
     n_removal = max(.data$n_removal)
@@ -300,16 +307,17 @@ nsink_generate_from_to_nodes <- function(land_off_network){
 #' @param land_removal_df land and off network summary df
 #' @keywords internal
 nsink_group_land_off_network <- function(land_removal_df){
+
   land_removal_df <- mutate(land_removal_df, group_id = case_when(segment_type == "No Removal" ~
-                                                 1,
+                                                 "1",
                                                segment_type == "Hydric" ~
-                                                 2,
+                                                 "2",
                                                segment_type == "Off Network Stream" ~
-                                                 3,
+                                                 remove_id,
                                                segment_type == "Off Network Canal/Ditch" ~
-                                                 4,
+                                                 remove_id,
                                                segment_type == "Off Network Lake" ~
-                                                 segment_id,
-                                               TRUE ~ segment_id))
+                                                 remove_id,
+                                               TRUE ~ as.character(segment_id)))
   land_removal_df
 }
