@@ -19,6 +19,9 @@ This code is modified from https://github.com/jsta/nhdR/blob/master/R/utils.R
 and https://github.com/jsta/nhdR/blob/master/R/get.R to determine if 7 zip is
 available.  If available it unzips a 7z zipfile to a destination directory.
 This avoids needing to use archive package which is only available via
-GitHub.  Need to acknowledge jsta as original author.
+GitHub.
+}
+\author{
+Joseph Stachelek, \email{stachel2@msu.edu}
 }
 \keyword{internal}
