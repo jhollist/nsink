@@ -193,14 +193,17 @@ nsink_calc_removal <- function(input_data,off_network_lakes = NULL,
 
     land_off_network_removal_v <- st_as_sf(
       st_as_stars(land_off_network_removal_r), as_points = FALSE, merge = TRUE)
+    land_off_network_removal_v <- st_make_valid(land_off_network_removal_v)
     #land_off_network_removal_v <- st_as_sf(raster::rasterToPolygons(land_off_network_removal_r,
     #                                                                dissolve = TRUE))
     land_off_network_removal_type_v <- st_as_sf(
       st_as_stars(land_off_network_removal_type_r),
       as_points = FALSE, merge = TRUE)
+    land_off_network_removal_type_v <- st_make_valid(land_off_network_removal_type_v)
     #land_off_network_removal_type_v <- st_as_sf(raster::rasterToPolygons(land_off_network_removal_type_r,
     #                                                                     dissolve = TRUE))
     # Supressing warnings from raster on proj
+
     suppressWarnings({
     return(list(
       raster_method = raster::stack(merged_removal, merged_type),
