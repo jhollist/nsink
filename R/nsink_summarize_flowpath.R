@@ -288,11 +288,11 @@ nsink_generate_from_to_nodes <- function(land_off_network){
   nodes <- ungroup(nodes)
   nodes <- mutate(nodes, start_end = rep(c('start', 'end'), times = n()/2))
   nodes <- mutate(nodes, xy = paste(.data$X, .data$Y))
-  nodes <- mutate(nodes,
-                  node_id = group_indices(nodes,
-                                          factor(.data$xy,
-                                                 levels = unique(.data$xy))))
-  nodes <- select(nodes, -.data$xy)
+  nodes <- mutate(nodes, grouping = factor(.data$xy,levels = unique(.data$xy)))
+  nodes <- group_by(nodes,.data$grouping)
+  nodes <- mutate(nodes, node_id = cur_group_id())
+  nodes <- ungroup(nodes)
+  nodes <- select(nodes, -.data$xy, -.data$grouping)
 
   source_nodes <- filter(nodes, .data$start_end == 'start')
   source_nodes <-pull(source_nodes, .data$node_id)
