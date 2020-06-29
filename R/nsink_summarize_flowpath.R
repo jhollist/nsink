@@ -41,10 +41,10 @@ nsink_summarize_flowpath <- function(flowpath, removal) {
   # Suppressing sf warnings
   suppressWarnings({
   type_poly <- st_cast(removal$land_off_network_removal_type, "POLYGON")
-  type_poly <- mutate(type_poly, type_id = paste0("type_", seq_along(layer)))
+  type_poly <- mutate(type_poly, type_id = paste0("type_", seq_along(.data$layer)))
   removal_poly <- st_cast(removal$land_off_network_removal, "POLYGON")
   removal_poly <- mutate(removal_poly, remove_id = paste0("remove_",
-                                                           seq_along(layer)))
+                                                           seq_along(.data$layer)))
   land_off_network_removal <- st_intersection(flowpath$flowpath_ends[1,],
                                               type_poly)
   land_off_network_removal <- st_intersection(removal_poly,
@@ -58,8 +58,8 @@ nsink_summarize_flowpath <- function(flowpath, removal) {
 
   # Section orders the data frame along the flowpath
   land_off_network_removal <- nsink_generate_from_to_nodes(land_off_network_removal)
-  lonr_g_df <- select(land_off_network_removal, fromnode,
-                                           tonode, edge_id)
+  lonr_g_df <- select(land_off_network_removal, .data$fromnode,
+                      .data$tonode, .data$edge_id)
   lonr_g_df <- st_set_geometry(lonr_g_df, NULL)
   lonr_g <- graph_from_data_frame(lonr_g_df)
   start_pt <- lwgeom::st_startpoint(flowpath$flowpath_ends[1,])
@@ -76,7 +76,7 @@ nsink_summarize_flowpath <- function(flowpath, removal) {
   land_off_network_removal <- slice(land_off_network_removal,
                                     match(lonr_ids,.data$edge_id))
   land_off_network_removal <- mutate(land_off_network_removal,
-                                     ordered = seq_along(edge_id))
+                                     ordered = seq_along(.data$edge_id))
 
   land_off_network_removal_df <- data.frame(
     stream_comid = 0, lake_comid = 0,
@@ -105,9 +105,9 @@ nsink_summarize_flowpath <- function(flowpath, removal) {
     flowpath_removal_df <- mutate(flowpath_removal_df,
       segment_type =
         case_when(
-          ftype == "ArtificialPath" ~
+          .data$ftype == "ArtificialPath" ~
           "Lake/Pond",
-          ftype == "StreamRiver" ~
+          .data$ftype == "StreamRiver" ~
           "Stream",
           TRUE ~ "Unknown"
         ),
@@ -294,14 +294,14 @@ nsink_generate_from_to_nodes <- function(land_off_network){
                                                  levels = unique(.data$xy))))
   nodes <- select(nodes, -.data$xy)
 
-  source_nodes <- filter(nodes, start_end == 'start')
+  source_nodes <- filter(nodes, .data$start_end == 'start')
   source_nodes <-pull(source_nodes, .data$node_id)
 
-  target_nodes <- filter(nodes, start_end == 'end')
+  target_nodes <- filter(nodes, .data$start_end == 'end')
   target_nodes <- pull(target_nodes, .data$node_id)
 
-  land_off_network <- mutate(land_off_network, fromnode = .data$source_nodes,
-                             tonode = .data$target_nodes)
+  land_off_network <- mutate(land_off_network, fromnode = source_nodes,
+                             tonode = target_nodes)
   land_off_network
 }
 

@@ -91,8 +91,9 @@ nsink_generate_n_loading_index <- function(input_data) {
 #'             instance a value of 90 would roughly equate to a point per every
 #'             90 meters.
 #' @param ncpu number of CPUs to use for calculating flowpath removal
-#' @import future furrr purrr
+#' @import future furrr
 #' @importFrom sf st_area st_sample st_sf st_sfc st_crs
+#' @importFrom utils txtProgressBar setTxtProgressBar
 #' @importFrom methods as
 #'
 #' @keywords internal
@@ -106,7 +107,7 @@ nsink_generate_n_removal_heatmap <- function(input_data, removal, samp_dens, ncp
   message(paste0(" Running ", length(sample_pts), " sampled flowpaths..."))
   if(num_pts < 50){
 
-    pb <- utils::txtProgressBar(max = length(sample_pts), style = 3)
+    pb <- txtProgressBar(max = length(sample_pts), style = 3)
     xdf <- data.frame(fp_removal = vector("numeric", length(sample_pts)))
     for(i in seq_along(st_geometry(sample_pts))){
       setTxtProgressBar(pb, i)

@@ -258,7 +258,7 @@ nsink_calc_off_network_removal <- function(input_data, off_network_lakes,
 
     # Calculate removal stats for lakes and streams that have removal
     removal_stats_lakes <- filter(input_data$network_removal, .data$n_removal > 0,
-                                  ftype == "LakePond")
+                                  .data$ftype == "LakePond")
     removal_stats_lakes <- group_by(removal_stats_lakes, .data$ftype)
     removal_stats_lakes <- summarize(removal_stats_lakes,
                              avg_n_remove = mean(.data$n_removal, na.rm = TRUE),
@@ -330,7 +330,7 @@ nsink_calc_off_network_removal <- function(input_data, off_network_lakes,
 
     # Off network canals/ditches
     removal_stats_high_order <- filter(removal_stats_streams,
-                                       stream_order == max(.data$stream_order))
+                                       .data$stream_order == max(.data$stream_order))
     if(removal_stats_high_order$num_streams == 0 & is.null(off_network_canalsditches)){
       stop("There are no on network streams available to estimate removal for off network canals and ditches  Please specify a removal value with the off_network_canalsditches argument.")
     } else if(removal_stats_high_order$num_streams > 0 &
@@ -610,7 +610,7 @@ nsink_calc_lake_removal <- function(input_data) {
   lake_removal_missing <- filter(lake_removal, is.na(.data$n_removal))
   lake_removal_not_missing <- filter(lake_removal, !is.na(.data$n_removal))
   lake_removal_missing <- mutate(lake_removal_missing,
-                                 n_removal = .data$lake_removal_median)
+                                 n_removal = lake_removal_median)
 
   lake_removal <- rbind(lake_removal_not_missing, lake_removal_missing)
   lake_removal <- arrange(lake_removal, .data$order)
