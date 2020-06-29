@@ -100,8 +100,7 @@ nsink_get_data <- function(huc, data_dir = normalizePath("nsink_data", winslash 
   if(sdm$status_code != 200 & wss$status_code != 200){
     warning("The required SSURGO sites do not appear to be available and the SSURGO data are not downloaded.  Try again later.")
   } else if(sdm$status_code == 200 & wss$status_code == 200){
-    message(paste0("Getting SSURGO (download takes time.  Started at: ",
-                  format(Sys.time(), "%H:%M %p"), ")..."))
+    message("Getting SSURGO...")
     repeat_it <- TRUE
     count <- 1
     while(is.logical(repeat_it) & count <= 10) {
@@ -144,16 +143,14 @@ nsink_get_data <- function(huc, data_dir = normalizePath("nsink_data", winslash 
 #' @examples
 #' nsink_get_huc_id(huc_name = "Niantic River")
 nsink_get_huc_id <- function(huc_name, exact = FALSE) {
+
   if (exact) {
     idx <- wbd_lookup$HU_12_NAME == huc_name
   } else {
-    idx <- stringr::str_detect(
-      tolower(wbd_lookup$HU_12_NAME),
-      tolower(huc_name)
-    )
+    idx <- grepl(tolower(huc_name), tolower(wbd_lookup$HU_12_NAME))
   }
 
-  idx[is.na(idx)] <- FALSE
+  idx[is.na(idx)]<-FALSE
   wbd_match <- wbd_lookup[idx, ]
   tibble(
     huc_12 = wbd_match$HUC_12, huc_12_name = wbd_match$HU_12_NAME,

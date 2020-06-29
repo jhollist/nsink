@@ -77,7 +77,7 @@ already exist in the data directory.
 ```{r get_data_norun, eval=FALSE}
 # Get data for selected HUC
 niantic_download <- nsink_get_data(niantic_huc_id, 
-                                   ata_dir = "nsink_niantic_data")
+                                   data_dir = "nsink_niantic_data")
 ```
 
 In addition to download the data, the function returns the basic information about your download: HUC ID and download location.
@@ -105,12 +105,11 @@ The `nsink_prep_data()` function will complete all of these processing steps.
 It requires a HUC ID, a specified CRS, and a path to a data directory.  It 
 returns a list with all required data for subsequent N-Sink analyses.
 
-A quick note on the CRS.  In the near futre, the preferred way to specify the CRS values will either be with Well-Known Text (WKT) or [EPSG Codes](http://spatialreference.org/ref/epsg/). Proj.4 strings will eventually be deprecated.  Currently the packages that `nsink` relies on are at different stages in implementing the changes to PROJ.  Currently Proj.4 strings are preferred, but that will change soon.
+A quick note on the CRS.  In the near future, the preferred way to specify the CRS values will either be with Well-Known Text (WKT) or [EPSG Codes](http://spatialreference.org/ref/epsg/). Proj.4 strings will eventually be deprecated.  Currently the packages that `nsink` relies on are at different stages in implementing the changes to PROJ.  Proj.4 strings are currently preferred with `nsink` now as conversions between EPSG, WKT, and PROJ are not guaranteed to result in equivalent CRSs.  This will change in future versions.
 
 ```{r prep_data, eval=FALSE}
 # PROJ.4 string for Albers Equal Area
-aea <- "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=23 +lon_0=-96 +x_0=0 +y_0=0 
-+ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
+aea <- "+proj=aea +lat_0=23 +lon_0=-96 +lat_1=29.5 +lat_2=45.5 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
 
 # Prep data for selected HUC
 niantic_data <- nsink_prep_data(niantic_huc_id, projection = aea, 
@@ -239,8 +238,12 @@ And with these static maps made, you can plot them quickly with
 `nsink_plot_removal()`, `nsink_plot_delivery()`, or `nsink_plot_transport()`.  
 An example of `nsink_plot_transport()` is below.
 
-```{r plots}
+```{r plots_fake, eval=FALSE}
 nsink_plot_transport(niantic_static_maps$transport_idx)
+```
+
+```{r plots, echo=FALSE}
+suppressWarnings(nsink_plot_transport(niantic_static_maps$transport_idx))
 ```
 
 # Convenience function: Build it all!

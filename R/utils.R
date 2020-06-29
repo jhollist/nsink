@@ -111,14 +111,17 @@ nsink_run_7z <- function(zipfile, destdir, extract_again = FALSE) {
   )
 
   if (!any(nchar(Sys.which(paths_7z)) > 0)) {
-    stop("The 7-zip program is needed to unpack NHDPlus downloads (https://www.7-zip.org/).")
+    stop("The 7-zip program is needed to unpack NHDPlus downloads (https://www.7-zip.org/).\n
+         Windows: Install from https://www.7-zip.org/ \n
+         MacOS: Instll p7zip via homebrew \n
+         Linux: Install p7zip for your distribution.")
   }
 
   path_7z <- paths_7z[nchar(Sys.which(paths_7z)) > 0][1]
   if (!dir.exists(destdir) | extract_again) {
     system(paste0(path_7z, " e ", shQuote(zipfile), " -bso0 -bsp0 -aos -o", shQuote(destdir)))
   } else {
-    message(paste0("It appears you have already extracted", zipfile,
+    message(paste0("It appears you have already extracted ", zipfile,
                    "\nIf you would like to force another extraction, set force = TRUE."))
   }
 }

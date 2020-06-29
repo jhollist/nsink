@@ -36,13 +36,16 @@
 #'             \href{https://doi.org/10.1016/j.ecoleng.2010.02.006}{Link}
 #'
 #' @export
-#' @importFrom stars as st_rasterize st_as_stars
+#' @importFrom stars st_rasterize st_as_stars
+#' @importFrom stars st_rasterize st_as_stars
+#' @importFrom methods as
+#' @importFrom stats median quantile
 #' @examples
 #' \dontrun{
 #' library(nsink)
 #' niantic_huc <- nsink_get_huc_id("Niantic River")$huc_12
 #' niantic_data <- nsink_get_data(niantic_huc, data_dir = "nsink_data")
-#' aea <- "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=23 +lon_0=-96 +x_0=0 +y_0=0
+#' aea <- "+proj=aea +lat_0=23 +lon_0=-96 +lat_1=29.5 +lat_2=45.5 +x_0=0 +y_0=0
 #' +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
 #' niantic_nsink_data <- nsink_prep_data(niantic_huc, projection = aea ,
 #'                                       data_dir = "nsink_data")
@@ -193,14 +196,17 @@ nsink_calc_removal <- function(input_data,off_network_lakes = NULL,
 
     land_off_network_removal_v <- st_as_sf(
       st_as_stars(land_off_network_removal_r), as_points = FALSE, merge = TRUE)
+    land_off_network_removal_v <- st_make_valid(land_off_network_removal_v)
     #land_off_network_removal_v <- st_as_sf(raster::rasterToPolygons(land_off_network_removal_r,
     #                                                                dissolve = TRUE))
     land_off_network_removal_type_v <- st_as_sf(
       st_as_stars(land_off_network_removal_type_r),
       as_points = FALSE, merge = TRUE)
+    land_off_network_removal_type_v <- st_make_valid(land_off_network_removal_type_v)
     #land_off_network_removal_type_v <- st_as_sf(raster::rasterToPolygons(land_off_network_removal_type_r,
     #                                                                     dissolve = TRUE))
     # Supressing warnings from raster on proj
+
     suppressWarnings({
     return(list(
       raster_method = raster::stack(merged_removal, merged_type),
@@ -251,9 +257,9 @@ nsink_calc_off_network_removal <- function(input_data, off_network_lakes,
     any(!input_data$lakes$lake_comid %in% input_data$network_removal$lake_comid)){
 
     # Calculate removal stats for lakes and streams that have removal
-    removal_stats_lakes <- filter(input_data$network_removal, n_removal > 0,
+    removal_stats_lakes <- filter(input_data$network_removal, .data$n_removal > 0,
                                   ftype == "LakePond")
-    removal_stats_lakes <- group_by(removal_stats_lakes, ftype)
+    removal_stats_lakes <- group_by(removal_stats_lakes, .data$ftype)
     removal_stats_lakes <- summarize(removal_stats_lakes,
                              avg_n_remove = mean(.data$n_removal, na.rm = TRUE),
                              med_n_remove = median(.data$n_removal, na.rm = TRUE),
@@ -264,12 +270,13 @@ nsink_calc_off_network_removal <- function(input_data, off_network_lakes,
                                                              na.rm = TRUE),
                              num_lakes = n())
 
-    removal_stats_streams <- filter(input_data$network_removal, n_removal > 0)
-    removal_stats_streams <- filter(removal_stats_streams, ftype == "StreamRiver" |
+    removal_stats_streams <- filter(input_data$network_removal, .data$n_removal > 0)
+    removal_stats_streams <- filter(removal_stats_streams, .data$ftype == "StreamRiver" |
                                       ftype == "CanalDitch")
     removal_stats_streams <- left_join(removal_stats_streams,
                                        input_data$tot, by = "stream_comid")
-    removal_stats_streams <- group_by(removal_stats_streams, ftype, stream_order)
+    removal_stats_streams <- group_by(removal_stats_streams, .data$ftype,
+                                      .data$stream_order)
     removal_stats_streams <- summarize(removal_stats_streams,
                                        avg_n_remove = mean(.data$n_removal,
                                                            na.rm = TRUE),
@@ -288,25 +295,22 @@ nsink_calc_off_network_removal <- function(input_data, off_network_lakes,
                                        num_streams = n())
 
     # Off network streams
-    removal_stats_1st <- filter(removal_stats_streams, stream_order == 1)
+    removal_stats_1st <- filter(removal_stats_streams, .data$stream_order == 1)
     if(removal_stats_1st$num_streams == 0 & is.null(off_network_streams)){
-      stop("There are no on network streams available to estimate removal for
-           off network streams  Please specify a removal value with the
-           off_network_streams argument.")
+      stop("There are no on network streams available to estimate removal for off network streams.  Please specify a removal value with the off_network_streams argument.")
     } else if(removal_stats_1st$num_streams > 0 &
-              removal_stats_1st$num_streams <= 3){
-      warning("There are three or fewer on network streams available to estimate
-              removal for the off network streams.  It may be advisable to
-              manually set an N removal values via the off_network_streams argument.")
+              removal_stats_1st$num_streams <= 3 &
+              is.null(off_network_streams)){
+      warning("There are three or fewer on network streams available to estimate removal for the off network streams.  It may be advisable to manually set an N removal value via the off_network_streams argument.")
     }
     if(any(input_data$streams$flowdir == "Uninitialized") &
        any(input_data$streams$ftype == "StreamRiver")){
       off_network_streams_sf <- filter(input_data$streams,
                                     input_data$streams$flowdir ==
                                       "Uninitialized")
-      off_network_streams_sf <- filter(off_network_streams_sf, ftype == "StreamRiver")
+      off_network_streams_sf <- filter(off_network_streams_sf, .data$ftype == "StreamRiver")
       if(is.null(off_network_streams)){
-        med_removal_1st_order <- pull(removal_stats_1st, med_n_remove)
+        med_removal_1st_order <- pull(removal_stats_1st, .data$med_n_remove)
       } else if(is.numeric(off_network_streams)){
         med_removal_1st_order <- off_network_streams
       } else {
@@ -326,16 +330,13 @@ nsink_calc_off_network_removal <- function(input_data, off_network_lakes,
 
     # Off network canals/ditches
     removal_stats_high_order <- filter(removal_stats_streams,
-                                       stream_order == max(stream_order))
+                                       stream_order == max(.data$stream_order))
     if(removal_stats_high_order$num_streams == 0 & is.null(off_network_canalsditches)){
-      stop("There are no on network streams available to estimate removal for
-           off network canals and ditches  Please specify a removal value with the
-           off_network_canalsditches argument.")
+      stop("There are no on network streams available to estimate removal for off network canals and ditches  Please specify a removal value with the off_network_canalsditches argument.")
     } else if(removal_stats_high_order$num_streams > 0 &
-              removal_stats_high_order$num_streams <= 3){
-      warning("There are three or fewer on network streams available to estimate
-              removal for the off network canals and ditches.  It may be advisable to
-              manually set an N removal values via the off_network_canalsditches argument.")
+              removal_stats_high_order$num_streams <= 3 &
+              is.null(off_network_canalsditches)){
+      warning("There are three or fewer on network streams available to estimate removal for the off network canals and ditches.  It may be advisable to manually set an N removal values via the off_network_canalsditches argument.")
     }
 
     if(any(input_data$streams$flowdir == "Uninitialized")&
@@ -343,14 +344,14 @@ nsink_calc_off_network_removal <- function(input_data, off_network_lakes,
       off_network_canal_ditch_sf <- filter(input_data$streams,
                                     input_data$streams$flowdir ==
                                       "Uninitialized")
-      off_network_canal_ditch_sf <- filter(off_network_canal_ditch_sf, ftype ==
+      off_network_canal_ditch_sf <- filter(off_network_canal_ditch_sf, .data$ftype ==
                                           "CanalDitch")
       #Something good goes here. For time being use lower quartile of higher
       #order streams
 
       if(is.null(off_network_canalsditches)){
         low_quart_removal_high_order <- pull(removal_stats_high_order,
-                                             low_quart_n_remove)
+                                             .data$low_quart_n_remove)
       } else if(is.numeric(off_network_canalsditches)){
         low_quart_removal_high_order <- off_network_canalsditches
       } else {
@@ -371,30 +372,27 @@ nsink_calc_off_network_removal <- function(input_data, off_network_lakes,
 
     # Off network lakes
     if(removal_stats_lakes$num_lakes == 0 & is.null(off_network_lakes)){
-      stop("There are no on network lakes available to estimate removal for
-           off network lakes.  Please specify a removal value with the
-           off_network_lakes argument.")
+      stop("There are no on network lakes available to estimate removal for off network lakes.  Please specify a removal value with the off_network_lakes argument.")
     } else if(removal_stats_lakes$num_lakes > 0 &
-              removal_stats_lakes$num_lakes <= 3){
-      warning("There three or fewer on network lakes available to estimate
-              removal for the off network lakes.  It may be advisable to
-              manually set an N removal values via the off_network_lakes argument.")
+              removal_stats_lakes$num_lakes <= 3 &
+              is.null(off_network_lakes)){
+      warning("There are three or fewer on network lakes available to estimate removal for the off network lakes.  It may be advisable to manually set an N removal values via the off_network_lakes argument.")
     }
 
     if(any(!input_data$lakes$lake_comid %in% input_data$network_removal$lake_comid)){
       off_network_lakes_sf <- filter(input_data$lakes,!input_data$lakes$lake_comid
                                 %in% input_data$network_removal$lake_comid)
       on_network_lakes_df <- filter(input_data$network_removal,
-                                    ftype == "LakePond")
+                                    .data$ftype == "LakePond")
       on_network_lakes_df <- st_set_geometry(on_network_lakes_df, NULL)
       on_network_lakes <- full_join(input_data$lakes, on_network_lakes_df,
                                     by = "lake_comid")
-      on_network_lakes <- filter(on_network_lakes, n_removal > 0,
-                                 !is.na(n_removal))
-      third_quart_lake_removal <- filter(removal_stats_lakes, ftype == "LakePond")
+      on_network_lakes <- filter(on_network_lakes, .data$n_removal > 0,
+                                 !is.na(.data$n_removal))
+      third_quart_lake_removal <- filter(removal_stats_lakes, .data$ftype == "LakePond")
       if(is.null(off_network_lakes)){
         third_quart_lake_removal <- pull(third_quart_lake_removal,
-                                         third_quart_n_remove)
+                                         .data$third_quart_n_remove)
       } else if(is.numeric(off_network_lakes)){
         third_quart_lake_removal <- off_network_lakes
       } else {
@@ -426,9 +424,13 @@ nsink_calc_off_network_removal <- function(input_data, off_network_lakes,
   if(!exists("off_network_streams_sf")){off_network_streams_sf <- NA}
   if(!exists("off_network_canal_ditch_sf")){off_network_canal_ditch_sf <- NA}
   # Suppress warnings from raster on proj
+  off_network_removal_v <- st_as_sf(
+    st_as_stars(off_network_removal_r), as_points = FALSE, merge = TRUE)
+  off_network_removal_v <- st_make_valid(off_network_removal_v)
+  #off_network_removal_v = suppressWarnings(st_as_sf(raster::rasterToPolygons(
+  #off_network_removal_r, dissolve = TRUE)))
   list(off_network_removal_r = off_network_removal_r,
-       off_network_removal_v = suppressWarnings(st_as_sf(raster::rasterToPolygons(
-         off_network_removal_r, dissolve = TRUE))),
+       off_network_removal_v = off_network_removal_v,
        off_network_lakes_v = off_network_lakes_sf,
        off_network_streams_v = off_network_streams_sf,
        off_network_canal_ditch_v = off_network_canal_ditch_sf)
@@ -487,7 +489,9 @@ nsink_calc_land_removal <- function(input_data) {
 #' @return raster and vector versions of stream based nitrogen removal
 #' @import dplyr sf
 #' @importFrom rlang .data
-#' @importFrom stars as st_rasterize st_as_stars
+#' @importFrom stars st_rasterize st_as_stars
+#' @importFrom stars st_rasterize st_as_stars
+#' @importFrom methods as
 #' @keywords internal
 nsink_calc_stream_removal <- function(input_data) {
 
@@ -513,29 +517,33 @@ nsink_calc_stream_removal <- function(input_data) {
   )
   # When time of travel not available in NHDPlus, use median removal of other
   # streams of the same order.
-  stream_removal_stats <- group_by(st_set_geometry(stream_removal, NULL), stream_order)
+  stream_removal_stats <- group_by(st_set_geometry(stream_removal, NULL),
+                                   .data$stream_order)
   stream_removal_stats <- summarize(stream_removal_stats,
-                                    median_removal = median(n_removal,
+                                    median_removal = median(.data$n_removal,
                                                             na.rm = TRUE))
   stream_removal_stats <- ungroup(stream_removal_stats)
-  stream_removal_stats <- filter(stream_removal_stats, !is.na(median_removal))
+  stream_removal_stats <- filter(stream_removal_stats, !is.na(.data$median_removal))
 
   # add existing order (not sure if this is necessary, just being cautious)
-  stream_removal <- mutate(stream_removal, order = seq_along(n_removal))
-  stream_removal_missing <- filter(stream_removal, is.na(n_removal) &
-                                     stream_order > 0 & !is.na(stream_order))
-  stream_removal_not_missing <- filter(stream_removal, !(is.na(n_removal) &
-                                     stream_order > 0 & !is.na(stream_order)))
+  stream_removal <- mutate(stream_removal, order = seq_along(.data$n_removal))
+  stream_removal_missing <- filter(stream_removal, is.na(.data$n_removal) &
+                                     .data$stream_order > 0 &
+                                     !is.na(.data$stream_order))
+  stream_removal_not_missing <- filter(stream_removal,
+                                       !(is.na(.data$n_removal) &
+                                           .data$stream_order > 0 &
+                                           !is.na(.data$stream_order)))
   stream_removal_missing <- left_join(stream_removal_missing,
                                       stream_removal_stats,
                                       by = "stream_order")
-  stream_removal_missing <- mutate(stream_removal_missing, n_removal = median_removal)
-  stream_removal_missing <- select(stream_removal_missing, -median_removal)
+  stream_removal_missing <- mutate(stream_removal_missing, n_removal = .data$median_removal)
+  stream_removal_missing <- select(stream_removal_missing, -.data$median_removal)
 
   stream_removal <- rbind(stream_removal_not_missing, stream_removal_missing)
-  stream_removal <- arrange(stream_removal, order)
-  stream_removal <- select(stream_removal, -order)
-  stream_removal <- filter(stream_removal, !is.na(n_removal))
+  stream_removal <- arrange(stream_removal, .data$order)
+  stream_removal <- select(stream_removal, -.data$order)
+  stream_removal <- filter(stream_removal, !is.na(.data$n_removal))
   # Suppressing warnings from raster on proj
   stream_removal_r <- stars::st_rasterize(stream_removal["n_removal"],
                                           st_as_stars(input_data$raster_template))
@@ -587,7 +595,27 @@ nsink_calc_lake_removal <- function(input_data) {
     .data$n_removal < 0 ~ 0,
     TRUE ~ .data$n_removal
   ))
-  lake_removal <- filter(lake_removal, !is.na(n_removal))
+
+  # When time of travel not available in NHDPlus, use median removal of other
+  # lakes of the same order.
+  lake_removal_stats <- st_set_geometry(lake_removal, NULL)
+  lake_removal_stats <- summarize(lake_removal_stats,
+                                    median_removal = median(.data$n_removal,
+                                                            na.rm = TRUE))
+  lake_removal_stats <- filter(lake_removal_stats, !is.na(.data$median_removal))
+  lake_removal_median <- pull(lake_removal_stats, .data$median_removal)
+
+  # add existing order (not sure if this is necessary, just being cautious)
+  lake_removal <- mutate(lake_removal, order = seq_along(.data$n_removal))
+  lake_removal_missing <- filter(lake_removal, is.na(.data$n_removal))
+  lake_removal_not_missing <- filter(lake_removal, !is.na(.data$n_removal))
+  lake_removal_missing <- mutate(lake_removal_missing,
+                                 n_removal = .data$lake_removal_median)
+
+  lake_removal <- rbind(lake_removal_not_missing, lake_removal_missing)
+  lake_removal <- arrange(lake_removal, .data$order)
+  lake_removal <- select(lake_removal, -.data$order)
+  lake_removal <- filter(lake_removal, !is.na(.data$n_removal))
 
   lake_removal_sf <- lake_removal
 

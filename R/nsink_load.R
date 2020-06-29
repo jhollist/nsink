@@ -16,7 +16,7 @@
 #' \dontrun{
 #' library(nsink)
 #'
-#' aea <- "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=23 +lon_0=-96 +x_0=0 +y_0=0
+#' aea <- "+proj=aea +lat_0=23 +lon_0=-96 +lat_1=29.5 +lat_2=45.5 +x_0=0 +y_0=0
 #' +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
 #' nsink_build(nsink_get_huc_id("Niantic River")$huc_12, aea,
 #'             output_folder = "nsink_output", samp_dens = 300)
@@ -28,15 +28,17 @@ nsink_load <- function(input_folder, base_name = "nsink_"){
   if(!dir.exists(input_folder)){
     stop(paste("The input folder,", input_folder, "does not currently exist, please create it with nsink_build."))
   }
-
+  input_folder_orig <- input_folder
   input_folder <- nsink_fix_data_directory(input_folder)
-  huc_sf <- st_read(paste0(input_folder, "huc.shp"))
-  prep <- list(streams = st_read(paste0(input_folder,"streams.shp")),
-               lakes = st_read(paste0(input_folder,"lakes.shp")),
+  message("Reading in built files...")
+  huc_sf <- st_read(paste0(input_folder, "huc.shp"), quiet = TRUE)
+  suppressWarnings({
+  prep <- list(streams = st_read(paste0(input_folder,"streams.shp"), quiet = TRUE),
+               lakes = st_read(paste0(input_folder,"lakes.shp"), quiet = TRUE),
                fdr = raster(paste0(input_folder, "fdr.tif")),
                impervious = raster(paste0(input_folder, "impervious.tif")),
                nlcd = raster(paste0(input_folder, "nlcd.tif")),
-               ssurgo = st_read(paste0(input_folder,"ssurgo.shp")),
+               ssurgo = st_read(paste0(input_folder,"ssurgo.shp"), quiet = TRUE),
                q = read.csv(paste0(input_folder, "q.csv")),
                tot = read.csv(paste0(input_folder, "tot.csv")),
                lakemorpho = read.csv(paste0(input_folder, "lakemorpho.csv")),
@@ -58,18 +60,20 @@ nsink_load <- function(input_folder, base_name = "nsink_"){
 
 
   removal <- nsink_calc_removal(prep)
+  message("Reading in static maps...")
   static <- list(removal_effic = raster(paste0(input_folder, "removal_effic.tif")),
                  loading_idx = raster(paste0(input_folder, "loading_idx.tif")),
                  transport_idx = raster(paste0(input_folder, "transport_idx.tif")),
                  delivery_idx = raster(paste0(input_folder, "delivery_idx.tif")))
-
-
-
-
-
+  })
   assign(paste0(base_name,"data"), prep, envir = parent.frame())
   assign(paste0(base_name,"removal"), removal, envir = parent.frame())
   assign(paste0(base_name,"static_maps"), static, envir = parent.frame())
+
+  message(paste0("The nsink folder, ", input_folder_orig,
+                 " was loaded into:\n ",
+                 paste(ls(pattern = base_name, envir = parent.frame()),
+                       collapse = "\n "), "."))
 }
 
 

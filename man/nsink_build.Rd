@@ -10,7 +10,7 @@ nsink_build(
   output_folder = normalizePath("nsink_output", winslash = "/"),
   force = FALSE,
   samp_dens = 300,
-  signal_finish = FALSE
+  ...
 )
 }
 \arguments{
@@ -30,7 +30,9 @@ creating the nitrogen removal heat map.  The area of the
 watershed is sampled with points that are separated by the
 \code{samp_dens} value.  The larger the value, the fewer the points.}
 
-\item{signal_finish}{Logical that triggers a sound when build is finished.}
+\item{...}{Passes to \code{\link{nsink_calc_removal}} for the off network
+arguments: \code{off_network_lakes}, \code{off_network_streams},
+and \code{off_network_canalsditches}.}
 }
 \value{
 a list providing details on the huc used and the output location of
@@ -49,7 +51,7 @@ and then creating output files.
 \examples{
 \dontrun{
 library(nsink)
-aea <- "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=23 +lon_0=-96 +x_0=0 +y_0=0
+aea <- "+proj=aea +lat_0=23 +lon_0=-96 +lat_1=29.5 +lat_2=45.5 +x_0=0 +y_0=0
 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
 nsink_build(nsink_get_huc_id("Niantic River")$huc_12, aea,
             output_folder = "nsink_output", samp_dens = 300)}

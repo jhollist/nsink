@@ -19,7 +19,7 @@
 #' library(nsink)
 #' niantic_huc <- nsink_get_huc_id("Niantic River")$huc_12
 #' niantic_data <- nsink_get_data(niantic_huc, data_dir = "nsink_data")
-#' aea <- "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=23 +lon_0=-96 +x_0=0 +y_0=0
+#' aea <- "+proj=aea +lat_0=23 +lon_0=-96 +lat_1=29.5 +lat_2=45.5 +x_0=0 +y_0=0
 #' +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
 #' niantic_nsink_data <- nsink_prep_data(niantic_huc, projection = aea,
 #'                                       data_dir = "nsink_data")
@@ -28,14 +28,19 @@
 #' }
 nsink_generate_static_maps <- function(input_data, removal, samp_dens) {
 
+  # Suppressing warnings from raster due to proj
+  suppressWarnings({
   # Create static rasters
-
+  message("Creating removal efficiency map...")
   removal_map <- removal$raster_method[["layer.1"]]
+  message("Creating the loading index map...")
   n_load_idx <- nsink_generate_n_loading_index(input_data)
+  message("Creating the transport and delivery index maps...")
   n_delivery_heat <- 100 - nsink_generate_n_removal_heatmap(input_data,
     removal, samp_dens,
     ncpu = 1
   )
+
   n_delivery_heat <- raster::projectRaster(
     n_delivery_heat,
     input_data$raster_template
@@ -48,11 +53,13 @@ nsink_generate_static_maps <- function(input_data, removal, samp_dens) {
   )
   n_delivery_index <- n_load_idx * n_delivery_heat
 
-  summary(raster::getValues(n_delivery_index))
 
-  lapply(list(removal_effic = removal_map, loading_idx = n_load_idx,
+  static_maps <- lapply(list(removal_effic = removal_map, loading_idx = n_load_idx,
               transport_idx = n_delivery_heat,delivery_idx = n_delivery_index),
          function(x) signif(x, 3))
+  })
+
+  static_maps
 }
 
 #' Generates the Nitrogen Loading Index
@@ -68,7 +75,7 @@ nsink_generate_n_loading_index <- function(input_data) {
     n_load_idx_lookup$codes,
     n_load_idx_lookup$n_loading_index
   ), ncol = 2)
-  raster::reclassify(nlcd, rcl_m)
+  suppressWarnings(raster::reclassify(nlcd, rcl_m))
 }
 
 #' Generate Nitrogen Removal Heatmap
@@ -84,51 +91,77 @@ nsink_generate_n_loading_index <- function(input_data) {
 #'             instance a value of 90 would roughly equate to a point per every
 #'             90 meters.
 #' @param ncpu number of CPUs to use for calculating flowpath removal
+#' @import future furrr purrr
 #' @importFrom sf st_area st_sample st_sf st_sfc st_crs
 #' @importFrom methods as
 #'
 #' @keywords internal
 nsink_generate_n_removal_heatmap <- function(input_data, removal, samp_dens, ncpu) {
-  num_pts <- round(st_area(input_data$huc) / (samp_dens * samp_dens))
 
-  sample_pts <- st_sample(input_data$huc, as.numeric(num_pts), type = "regular")
-  pb <- dplyr::progress_estimated(length(sample_pts))
+  num_pts <- as.numeric(round(st_area(input_data$huc) / (samp_dens * samp_dens)))
+  sample_pts <- st_sample(input_data$huc, num_pts, type = "regular")
 
-  fp_removal <- function(pt, input_data, removal) {
-    pb$tick()$print()
-    pt <- st_sf(st_sfc(pt, crs = st_crs(input_data$huc)))
-    fp <- nsink_generate_flowpath(pt, input_data)
-    fp_summary <- nsink_summarize_flowpath(fp, removal)
-    data.frame(fp_removal = 100 - min(fp_summary$n_out))
+  # for fewer points, the interp sample is done serially
+  # for more points, it is done in parallel
+  message(paste0(" Running ", length(sample_pts), " sampled flowpaths..."))
+  if(num_pts < 50){
+
+    pb <- utils::txtProgressBar(max = length(sample_pts), style = 3)
+    xdf <- data.frame(fp_removal = vector("numeric", length(sample_pts)))
+    for(i in seq_along(st_geometry(sample_pts))){
+      setTxtProgressBar(pb, i)
+      pt <- sample_pts[i,]
+      pt <- st_sf(st_sfc(pt, crs = st_crs(input_data$huc)))
+      fp <- nsink_generate_flowpath(pt, input_data)
+      fp_summary <- nsink_summarize_flowpath(fp, removal)
+      xdf <- rbind(xdf, data.frame(fp_removal = 100 - min(fp_summary$n_out)))
+    }
+    close(pb)
+
+    sample_pts_removal <- st_sf(sample_pts, data = xdf)
+
+  } else {
+    fp_removal <- function(pt, input_data, removal) {
+
+      pt <- st_sf(st_sfc(pt, crs = st_crs(input_data$huc)))
+      fp <- nsink_generate_flowpath(pt, input_data)
+      fp_summary <- nsink_summarize_flowpath(fp, removal)
+      data.frame(fp_removal = 100 - min(fp_summary$n_out))
+
+    }
+    future::plan(future::multiprocess)
+    sample_pts_removal <- st_sf(sample_pts,
+      data = furrr::future_map_dfr(
+        sample_pts,
+        function(x) {
+          fp_removal(
+            x, input_data,
+            removal
+          )
+        }, .progress = TRUE)
+    )
   }
 
-  sample_pts_removal <- st_sf(sample_pts,
-    data = purrr::map_df(
-      sample_pts,
-      function(x) {
-        fp_removal(
-          x, input_data,
-          removal
-        )
-      }
-    )
-  )
-
+  message("\n Interpolating sampled flowpaths...")
   num_pts <- round(st_area(input_data$huc) / (30 * 30))
-  interp_points <- as(
+  interp_points <- suppressWarnings(as(
     st_sample(input_data$huc, as.numeric(num_pts), type = "regular"),
     "Spatial"
-  )
-  interp_points <- sp::SpatialPixels(interp_points)
+  ))
 
+  #Suppressing warnings from raster/proj
+  suppressWarnings({
+  interp_points <- sp::SpatialPixels(interp_points)
   interpolated_pts <- gstat::idw(fp_removal ~ 1,
     as(sample_pts_removal, "Spatial"),
     interp_points,
     nmin = 5, nmax = 10,
-    idp = 0.5
+    idp = 0.5, debug.level = 0
   )
 
   idw_n_removal_heat_map <- raster::raster(interpolated_pts)
   idw_n_removal_heat_map_agg <- raster::aggregate(idw_n_removal_heat_map, fun = max, fact = 3)
+  })
   idw_n_removal_heat_map_agg
+
 }

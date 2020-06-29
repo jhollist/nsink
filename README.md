@@ -23,7 +23,7 @@ Total run times vary, but range from minutes up to 5 hours depending on
 options selected. Previous versions took weeks of manual data
 manipulation.
 
-As of 2020-06-10 user functions for the `nsink` package are:
+As of 2020-06-24 user functions for the `nsink` package are:
 
   - `nsink_get_data()` - Pass HUC, get data, use cache to avoid repeat
     downloads
@@ -75,7 +75,7 @@ it. The code below will take care of installing `remotes` and installing
 
 ``` r
 install.packages("remotes")
-remotes::install_github("jhollist/nsink", build_vignettes = TRUE)
+remotes::install_github("jhollist/nsink", build_vignettes = TRUE, ref = "main")
 ```
 
 And then to load up the package and view the “Introduction to nsink”

@@ -20,7 +20,7 @@
 #' library(nsink)
 #' niantic_huc <- nsink_get_huc_id("Niantic River")$huc_12
 #' niantic_data <- nsink_get_data(niantic_huc, data_dir = "nsink_data")
-#' aea <- "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=23 +lon_0=-96 +x_0=0 +y_0=0
+#' aea <- "+proj=aea +lat_0=23 +lon_0=-96 +lat_1=29.5 +lat_2=45.5 +x_0=0 +y_0=0
 #' +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
 #' niantic_nsink_data <- nsink_prep_data(niantic_huc, projection = aea,
 #'                                       data_dir = "nsink_niantic_data")
@@ -34,7 +34,7 @@ nsink_generate_flowpath <- function(starting_location, input_data){
     stop(paste0("The coordinate reference systems for your starting location and the input data do not match.  Re-project to a common reference system."))
   }
   fp <- suppressWarnings(raster::flowPath(input_data$fdr, st_coordinates(starting_location)))
-  fp <- raster::xyFromCell(input_data$raster_template, fp)
+  fp <- suppressWarnings(raster::xyFromCell(input_data$raster_template, fp))
   fp <- st_sfc(st_linestring(fp), crs =st_crs(input_data$streams))
   fp_ends <- nsink_get_flowpath_ends(fp, input_data$streams, input_data$tot)
   # This is for cases where flowpath doesn't intersect existing flowlines
@@ -74,7 +74,7 @@ nsink_get_flowpath_ends <- function(flowpath, streams, tot){
   streams <- filter(streams, !is.na(.data$tonode))
   streams <- st_difference(st_combine(streams), st_combine(flowpath))
   splits <- lwgeom::st_split(flowpath, st_combine(streams))
-  splits <- st_collection_extract(splits, "LINESTRING")
+  splits <- suppressWarnings(st_collection_extract(splits, "LINESTRING"))
   ends <- splits[c(1,length(splits))]
   ends
 }
@@ -121,7 +121,7 @@ nsink_get_flowline <- function(flowpath_ends, streams, tot){
   fp_flowlines <- slice(streams_tot, match(fl_comids, streams_tot$stream_comid))
   fp_flowlines <- st_snap(fp_flowlines, fp_end_pt, tolerance = 1)
   fp_flowlines <- lwgeom::st_split(fp_flowlines, st_combine(fp_end_pt))
-  fp_flowlines <- st_collection_extract(fp_flowlines, "LINESTRING")
+  fp_flowlines <- suppressWarnings(st_collection_extract(fp_flowlines, "LINESTRING"))
   fp_flowlines <- filter(fp_flowlines, !st_overlaps(st_snap(fp_flowlines,
                                                             flowpath_ends[1,],
                                                             0.1),

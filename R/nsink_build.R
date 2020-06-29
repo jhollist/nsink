@@ -20,21 +20,23 @@
 #'             creating the nitrogen removal heat map.  The area of the
 #'             watershed is sampled with points that are separated by the
 #'             \code{samp_dens} value.  The larger the value, the fewer the points.
-#' @param signal_finish Logical that triggers a sound when build is finished.
+#' @param ... Passes to \code{\link{nsink_calc_removal}} for the off network
+#'            arguments: \code{off_network_lakes}, \code{off_network_streams},
+#'            and \code{off_network_canalsditches}.
 #' @export
 #' @return a list providing details on the huc used and the output location of
 #'         the dataset
 #' @examples
 #' \dontrun{
 #' library(nsink)
-#' aea <- "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=23 +lon_0=-96 +x_0=0 +y_0=0
+#' aea <- "+proj=aea +lat_0=23 +lon_0=-96 +lat_1=29.5 +lat_2=45.5 +x_0=0 +y_0=0
 #' +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
 #' nsink_build(nsink_get_huc_id("Niantic River")$huc_12, aea,
 #'             output_folder = "nsink_output", samp_dens = 300)}
 nsink_build <- function(huc, projection,
                         output_folder = normalizePath("nsink_output", winslash = "/"),
                         force = FALSE,
-                        samp_dens = 300, signal_finish = FALSE) {
+                        samp_dens = 300, ...) {
 
   # Check for/create/clean data directory
   if (!dir.exists(output_folder)) {
@@ -56,22 +58,24 @@ nsink_build <- function(huc, projection,
   )
   # Calculate nitrogen removal
   message("Calculating removal...")
-  nsink_removal <- nsink_calc_removal(nsink_prepped_data)
+  nsink_removal <- nsink_calc_removal(nsink_prepped_data, ...)
 
   # Generate the static maps
   message("Creating static maps...")
-  nsink_static_maps <- nsink_generate_static_maps(
+  # Raster/proj warning coming from somewhere, but could not locate, so
+  # suppressing here.
+  nsink_static_maps <- suppressWarnings(nsink_generate_static_maps(
     input_data = nsink_prepped_data, removal = nsink_removal, samp_dens = samp_dens
-  )
+  ))
 
   # Write everything out to a folder
   message("Writing files...")
+  # More raster/proj warning suppression...
+  suppressWarnings({
   nsink_write_prepped_data(nsink_prepped_data, output_folder)
   nsink_write_static_maps(nsink_static_maps, output_folder)
+  })
 
-  if(signal_finish){
-    beepr::beep(8)
-  }
 }
 
 #' Write prepped data to files
@@ -84,17 +88,17 @@ nsink_build <- function(huc, projection,
 #' @keywords internal
 nsink_write_prepped_data <- function(prepped_data, output_folder) {
   sf::st_write(prepped_data$streams, paste0(output_folder, "streams.shp"),
-    delete_layer = TRUE
+    delete_layer = TRUE, quiet = TRUE
   )
   prepped_data$lakes <- sf::st_zm(prepped_data$lakes, drop = TRUE)
   sf::st_write(prepped_data$lakes, paste0(output_folder, "lakes.shp"),
-    delete_layer = TRUE
+    delete_layer = TRUE, quiet = TRUE
   )
   sf::st_write(prepped_data$ssurgo, paste0(output_folder, "ssurgo.shp"),
-    delete_layer = TRUE
+    delete_layer = TRUE, quiet = TRUE
   )
   sf::st_write(prepped_data$huc, paste0(output_folder, "huc.shp"),
-    delete_layer = TRUE
+    delete_layer = TRUE, quiet = TRUE
   )
   raster::writeRaster(prepped_data$fdr, paste0(output_folder, "fdr.tif"),
     overwrite = TRUE

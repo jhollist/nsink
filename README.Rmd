@@ -47,7 +47,7 @@ At this time we plan on maintaining the `nsink` package as a GitHub only package
 
 ```{r, eval=FALSE}
 install.packages("remotes")
-remotes::install_github("jhollist/nsink", build_vignettes = TRUE)
+remotes::install_github("jhollist/nsink", build_vignettes = TRUE, ref = "main")
 ```
 
 And then to load up the package and view the "Introduction to nsink" vignette:

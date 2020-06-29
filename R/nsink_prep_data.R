@@ -20,7 +20,7 @@
 #' @examples
 #' \dontrun{
 #' library(nsink)
-#' aea <- "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=23 +lon_0=-96 +x_0=0 +y_0=0
+#' aea <- "+proj=aea +lat_0=23 +lon_0=-96 +lat_1=29.5 +lat_2=45.5 +x_0=0 +y_0=0
 #' +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
 #' niantic_huc <- nsink_get_huc_id("Niantic River")$huc_12
 #' niantic_nsink_data <- nsink_prep_data(huc = niantic_huc, projection = aea,
@@ -32,6 +32,7 @@
 #' }
 nsink_prep_data <- function(huc, projection,
                             data_dir = normalizePath("nsink_data/", winslash = "/")) {
+
   # Check for/create/clean data directory
   message("Preparing data for nsink analysis...")
   data_dir <- nsink_fix_data_directory(data_dir)
@@ -48,6 +49,7 @@ nsink_prep_data <- function(huc, projection,
     huc_raster <- suppressWarnings(fasterize::raster(as(huc_sf, "Spatial"),
                                                      resolution = 30,
                                                      crs = st_crs(huc_sf)))
+    stars::st_rasterize(huc_sf["HUC_12"])
 
     list(
       streams = nsink_prep_streams(huc_sf, data_dir),

@@ -1,0 +1,21 @@
+context("nsink_load")
+
+test_that("load runs as expected", {
+  skip_on_ci()
+  library(nsink)
+  library(sf)
+  nsink_load("nsink_test_data", "tested_")
+  expect_setequal(names(tested_data), c("streams", "lakes", "fdr", "impervious",
+                                        "nlcd", "ssurgo","q", "tot",
+                                        "lakemorpho", "huc", "raster_template"))
+  expect_setequal(names(tested_removal), c("raster_method",
+                                           "land_off_network_removal",
+                                           "land_off_network_removal_type",
+                                           "network_removal"))
+  expect_setequal(names(tested_static_maps), c("removal_effic", "loading_idx",
+                                               "transport_idx", "delivery_idx"))
+
+
+})
+
+unlink("nsink_test_data", recursive = TRUE, force = TRUE)
