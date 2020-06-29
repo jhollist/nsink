@@ -271,8 +271,9 @@ nsink_calc_off_network_removal <- function(input_data, off_network_lakes,
                              num_lakes = n())
 
     removal_stats_streams <- filter(input_data$network_removal, .data$n_removal > 0)
-    removal_stats_streams <- filter(removal_stats_streams, .data$ftype == "StreamRiver" |
-                                      ftype == "CanalDitch")
+    removal_stats_streams <- filter(removal_stats_streams,
+                                    .data$ftype == "StreamRiver" |
+                                      .data$ftype == "CanalDitch")
     removal_stats_streams <- left_join(removal_stats_streams,
                                        input_data$tot, by = "stream_comid")
     removal_stats_streams <- group_by(removal_stats_streams, .data$ftype,
