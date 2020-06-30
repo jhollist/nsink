@@ -32,7 +32,7 @@
 #' }
 nsink_prep_data <- function(huc, projection,
                             data_dir = normalizePath("nsink_data/", winslash = "/")) {
-
+  browser()
   # Check for/create/clean data directory
   message("Preparing data for nsink analysis...")
   data_dir <- nsink_fix_data_directory(data_dir)

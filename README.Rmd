@@ -40,7 +40,6 @@ As of `r lubridate::today()` user functions for the `nsink` package are:
 - `nsink_load()` - Another convenience function that will load the results of `nsink_build()` into R.  This makes it easier to continue to work in R on an `nsink` analysis if build for a given watershed has already occurred.
 
 
-
 ## Installation
 
 At this time we plan on maintaining the `nsink` package as a GitHub only package and thus it won't be available directly from CRAN.  You may use the `install_github()` function from the `remotes` package to install it.  The code below will take care of installing `remotes` and installing `nsink` from the GitHub repository.
