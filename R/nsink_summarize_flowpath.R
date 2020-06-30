@@ -290,7 +290,7 @@ nsink_generate_from_to_nodes <- function(land_off_network){
   nodes <- mutate(nodes, xy = paste(.data$X, .data$Y))
   nodes <- mutate(nodes, grouping = as.character(
     factor(.data$xy, levels = unique(.data$xy))))
-  nodes <- group_by(nodes,.data$grouping)
+  nodes <- group_by(nodes, .data$grouping)
   nodes <- mutate(nodes, node_id = cur_group_id())
   nodes <- ungroup(nodes)
   nodes <- select(nodes, -.data$xy, -.data$grouping)
@@ -311,7 +311,7 @@ nsink_generate_from_to_nodes <- function(land_off_network){
 #' @param land_removal_df land and off network summary df
 #' @keywords internal
 nsink_group_land_off_network <- function(land_removal_df){
-
+  browser()
   land_removal_df <- mutate(land_removal_df, group_id = case_when(segment_type == "No Removal" ~
                                                  "1",
                                                segment_type == "Hydric" ~
