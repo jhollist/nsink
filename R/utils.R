@@ -7,7 +7,7 @@ get_nhd_plus <- function(download_url,
                          data_dir = normalizePath("nsink_data/", winslash = "/"),
                          download_again = FALSE) {
   if (!file.exists(paste0(data_dir, basename(download_url))) | download_again) {
-    message(paste0("Downloading ", basename(download_url), " to ", data_dir))
+    message(paste0("Downloading ", basename(download_url)))
     down <- httr::GET(download_url,
       httr::write_disk(paste0(data_dir, basename(download_url)),
                        overwrite = download_again),
@@ -92,13 +92,15 @@ nsink_get_plus_remotepath <- function(rpu, component = c(
 #' and https://github.com/jsta/nhdR/blob/master/R/get.R to determine if 7 zip is
 #' available.  If available it unzips a 7z zipfile to a destination directory.
 #' This avoids needing to use archive package which is only available via
-#' GitHub.  Need to acknowledge jsta as original author.
+#' GitHub.
 #'
 #' @param zipfile The zipfile to be extracted
 #' @param destdir Where to put the extracted files
 #' @param force Whether or not to extract again if the destination files
 #'                      already exist
 #' @keywords internal
+#' @author Joseph Stachelek, \email{stachel2@msu.edu}
+
 
 nsink_run_7z <- function(zipfile, destdir, extract_again = FALSE) {
   paths_7z <- c(
@@ -109,14 +111,18 @@ nsink_run_7z <- function(zipfile, destdir, extract_again = FALSE) {
   )
 
   if (!any(nchar(Sys.which(paths_7z)) > 0)) {
-    stop("The 7-zip program is needed to unpack NHDPlus downloads (https://www.7-zip.org/).")
+    stop("The 7-zip program is needed to unpack NHDPlus downloads (https://www.7-zip.org/).\n
+         Windows: Install from https://www.7-zip.org/ \n
+         MacOS: Instll p7zip via homebrew \n
+         Linux: Install p7zip for your distribution.")
   }
 
   path_7z <- paths_7z[nchar(Sys.which(paths_7z)) > 0][1]
   if (!dir.exists(destdir) | extract_again) {
-    system(paste0(path_7z, " e ", shQuote(zipfile), " -aos -o", shQuote(destdir)))
+    system(paste0(path_7z, " e ", shQuote(zipfile), " -bso0 -bsp0 -aos -o", shQuote(destdir)))
   } else {
-    message(paste0("It appears you have already extracted", zipfile, "\nIf you would like to force another extraction, set force = TRUE."))
+    message(paste0("It appears you have already extracted ", zipfile,
+                   "\nIf you would like to force another extraction, set force = TRUE."))
   }
 }
 
@@ -130,8 +136,8 @@ nsink_run_7z <- function(zipfile, destdir, extract_again = FALSE) {
 #' @return a string with the normalized path
 #' @keywords internal
 nsink_fix_data_directory <- function(data_dir) {
-  #browser()
-  data_dir <- normalizePath(data_dir, winslash = "/")
+
+  data_dir <- normalizePath(data_dir, winslash = "/", mustWork = FALSE)
   if (!dir.exists(data_dir)) {
     dir.create(data_dir)
   }
@@ -140,3 +146,76 @@ nsink_fix_data_directory <- function(data_dir) {
   }
   data_dir
 }
+
+#' Get closest
+#'
+#' This function will return the index of one vector that is closest, by
+#' absolute values, to the values in another vector.  Usually used to
+#' identify the closest lake or stream, in area or length respectively, to
+#' another lake or stream.
+#'
+#' @param v1 The first vector of values, likely length or area of a feature
+#' @param v2 The second vector of values, also likely length or area of a
+#'           feature.
+#' @return Returns a vector, of length v1, of the index from v2 that is closest
+#'         in absolute value to each value in v1.
+#' @keywords internal
+nsink_get_closest <- function(v1, v2){
+  v2_idx <- vector("integer", length = length(v1))
+  for(i in seq_along(v1)){
+
+    v2_idx[i] <- which.min(abs(v1[i] - v2))
+  }
+  v2_idx
+}
+
+#' Get closest, but less than
+#'
+#' This function will return the index of one vector that is closest and less
+#' than, by absolute values, to the values in another vector.  If the value in
+#' v1 is less than all values in v2, then just the next closest is returned.
+#' Usually used to identify the closest lake or stream, in area or length
+#' respectively, to another lake or stream.
+#'
+#' @param v1 The first vector of values, likely length or area of a feature
+#' @param v2 The second vector of values, also likely length or area of a
+#'           feature.
+#' @return Returns a vector, of length v1, of the index from v2 that is less
+#'         than and  closest in absolute value to each value in v1.
+#' @keywords internal
+nsink_get_closest_lt <- function(v1, v2){
+  v2_idx <- vector("integer", length = length(v1))
+
+  for(i in seq_along(v1)){
+    lt_idx <- v2 < v1[i]
+    if(sum(lt_idx > 0)){
+      closest_min <- min(abs(v1[i]-v2[lt_idx]))
+      v2_idx[i] <- min(which(closest_min == abs(v1[i]-v2)))
+    } else {
+      v2_idx[i] <- which.min(abs(v1[i] - v2))
+    }
+  }
+  v2_idx
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

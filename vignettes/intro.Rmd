@@ -2,7 +2,7 @@
 title: "Introduction to `nsink`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{intro}
+  %\VignetteIndexEntry{Introduction to `nsink`}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 bibliography: nsink.bib
@@ -15,7 +15,7 @@ knitr::opts_chunk$set(
   cache = TRUE,
   tidy = FALSE
 )
-load("intro_vignette.rda")
+load(system.file("testdata.rda", package="nsink"))
 ```
 
 ```{r setup, echo=FALSE}
@@ -43,7 +43,7 @@ The `nsink` packages provides several functions to set up and run an N-Sink
 analysis for a specified 12-digit HUC code.  All required data are downloaded, 
 prepared for the analysis, HUC-wide nitrogen removal calculated, and flow paths 
 summarized.  Additionally, a convenience function that will run all of the 
-required functions for a specified HUC is included.  Details on each step are 
+required functions for a specified HUC is included.  Details on each of the steps are 
 outlined in this vignette.
 
 # Get data
@@ -77,7 +77,7 @@ already exist in the data directory.
 ```{r get_data_norun, eval=FALSE}
 # Get data for selected HUC
 niantic_download <- nsink_get_data(niantic_huc_id, 
-                                   ata_dir = "nsink_niantic_data")
+                                   data_dir = "nsink_niantic_data")
 ```
 
 In addition to download the data, the function returns the basic information about your download: HUC ID and download location.
@@ -105,12 +105,11 @@ The `nsink_prep_data()` function will complete all of these processing steps.
 It requires a HUC ID, a specified CRS, and a path to a data directory.  It 
 returns a list with all required data for subsequent N-Sink analyses.
 
-A quick note on the CRS.  In the near futre, the preferred way to specify the CRS values will either be with Well-Known Text (WKT) or [EPSG Codes](http://spatialreference.org/ref/epsg/). Proj.4 strings will eventually be deprecated.  Currently the packages that `nsink` relies on are at different stages in implementing the changes to PROJ.  Currently Proj.4 strings are preferred, but that will change soon.
+A quick note on the CRS.  In the near future, the preferred way to specify the CRS values will either be with Well-Known Text (WKT) or [EPSG Codes](http://spatialreference.org/ref/epsg/). Proj.4 strings will eventually be deprecated.  Currently the packages that `nsink` relies on are at different stages in implementing the changes to PROJ.  Proj.4 strings are currently preferred with `nsink` now as conversions between EPSG, WKT, and PROJ are not guaranteed to result in equivalent CRSs.  This will change in future versions.
 
 ```{r prep_data, eval=FALSE}
 # PROJ.4 string for Albers Equal Area
-aea <- "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=23 +lon_0=-96 +x_0=0 +y_0=0 
-+ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
+aea <- "+proj=aea +lat_0=23 +lon_0=-96 +lat_1=29.5 +lat_2=45.5 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
 
 # Prep data for selected HUC
 niantic_data <- nsink_prep_data(niantic_huc_id, projection = aea, 
@@ -202,8 +201,12 @@ identified by type, the percent removal associated with that segment, and
 relative removal.  Total relative removal is 100 - minimum of the `n_out` 
 column.
 
-```{r summarize_it}
+```{r summarize_it, eval=FALSE}
 niantic_fp_removal <- nsink_summarize_flowpath(niantic_fp, niantic_removal)
+niantic_fp_removal
+100-min(niantic_fp_removal$n_out)
+```
+```{r summarize_show, echo=FALSE}
 niantic_fp_removal
 100-min(niantic_fp_removal$n_out)
 ```
@@ -239,8 +242,12 @@ And with these static maps made, you can plot them quickly with
 `nsink_plot_removal()`, `nsink_plot_delivery()`, or `nsink_plot_transport()`.  
 An example of `nsink_plot_transport()` is below.
 
-```{r plots}
+```{r plots_fake, eval=FALSE}
 nsink_plot_transport(niantic_static_maps$transport_idx)
+```
+
+```{r plots, echo=FALSE}
+suppressWarnings(nsink_plot_transport(niantic_static_maps$transport_idx))
 ```
 
 # Convenience function: Build it all!
@@ -258,10 +265,10 @@ written to into the output folder for use in other applications.
 
 
 ```{r build, eval=FALSE}
-niantic_huc <- nsink_get_huc_id("Niantic River")$huc_12
+niantic_huc_id <- nsink_get_huc_id("Niantic River")$huc_12
 aea <- "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=23 +lon_0=-96 +x_0=0 +y_0=0 
 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
-nsink_build(niantic_huc, aea, samp_dens = 900)
+nsink_build(niantic_huc_id, aea, samp_dens = 900)
 ```
 
 # References

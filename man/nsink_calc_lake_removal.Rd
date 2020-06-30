@@ -11,7 +11,7 @@ nsink_calc_lake_removal(input_data)
 and "raster_template".}
 }
 \value{
-raster of lake based nitrogen removal
+raster and vector versions of lake based nitrogen removal
 }
 \description{
 Calculates lake-based nitrogen removal

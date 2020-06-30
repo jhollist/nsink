@@ -11,7 +11,7 @@ nsink_calc_stream_removal(input_data)
 "raster_template".}
 }
 \value{
-raster of stream based nitrogen removal
+raster and vector versions of stream based nitrogen removal
 }
 \description{
 Calculates stream-based nitrogen removal

@@ -54,17 +54,17 @@ Imports:
   fasterize,
   zoo,
   igraph,
-  stringr,
   lwgeom,
   readr,
   FedData, 
-  beepr,
   foreign,
   gstat,
-  purrr,
   sp,
   methods,
-  rlang
+  rlang,
+  furrr,
+  future, 
+  stars
 Remotes: 
   ropensci/FedData,
   r-spatial/lwgeom
