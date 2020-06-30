@@ -4,13 +4,16 @@
 \alias{nsink_load}
 \title{Load an existing N-Sink analysis folder}
 \usage{
-nsink_load(input_folder, base_name = "nsink_")
+nsink_load(input_folder, base_name = "nsink_", projection = NULL)
 }
 \arguments{
 \item{input_folder}{Folder to that contains nsink files produced by
 \code{\link{nsink_build}}}
 
 \item{base_name}{a base name used to assign objects to the global environment.}
+
+\item{projection}{An optional crs specified as a proj4string or EPSG code.
+Useful if projection is returned as unknown.}
 }
 \value{
 Creates several lists in the global environment that would normally

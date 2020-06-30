@@ -2,7 +2,7 @@
 title: "Introduction to `nsink`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{intro}
+  %\VignetteIndexEntry{Introduction to `nsink`}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 bibliography: nsink.bib
@@ -15,7 +15,7 @@ knitr::opts_chunk$set(
   cache = TRUE,
   tidy = FALSE
 )
-load("intro_vignette.rda")
+load(system.file("testdata.rda", package="nsink"))
 ```
 
 ```{r setup, echo=FALSE}
@@ -43,7 +43,7 @@ The `nsink` packages provides several functions to set up and run an N-Sink
 analysis for a specified 12-digit HUC code.  All required data are downloaded, 
 prepared for the analysis, HUC-wide nitrogen removal calculated, and flow paths 
 summarized.  Additionally, a convenience function that will run all of the 
-required functions for a specified HUC is included.  Details on each step are 
+required functions for a specified HUC is included.  Details on each of the steps are 
 outlined in this vignette.
 
 # Get data
@@ -265,10 +265,10 @@ written to into the output folder for use in other applications.
 
 
 ```{r build, eval=FALSE}
-niantic_huc <- nsink_get_huc_id("Niantic River")$huc_12
+niantic_huc_id <- nsink_get_huc_id("Niantic River")$huc_12
 aea <- "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=23 +lon_0=-96 +x_0=0 +y_0=0 
 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
-nsink_build(niantic_huc, aea, samp_dens = 900)
+nsink_build(niantic_huc_id, aea, samp_dens = 900)
 ```
 
 # References

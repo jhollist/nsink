@@ -4,7 +4,8 @@ test_that("load runs as expected", {
   skip_on_ci()
   library(nsink)
   library(sf)
-  nsink_load("nsink_test_data", "tested_")
+  aea <- "+proj=aea +lat_0=23 +lon_0=-96 +lat_1=29.5 +lat_2=45.5 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
+  nsink_load("nsink_test_data", "tested_", aea)
   expect_setequal(names(tested_data), c("streams", "lakes", "fdr", "impervious",
                                         "nlcd", "ssurgo","q", "tot",
                                         "lakemorpho", "huc", "raster_template"))
