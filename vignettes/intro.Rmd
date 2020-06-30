@@ -201,8 +201,12 @@ identified by type, the percent removal associated with that segment, and
 relative removal.  Total relative removal is 100 - minimum of the `n_out` 
 column.
 
-```{r summarize_it}
+```{r summarize_it, eval=FALSE}
 niantic_fp_removal <- nsink_summarize_flowpath(niantic_fp, niantic_removal)
+niantic_fp_removal
+100-min(niantic_fp_removal$n_out)
+```
+```{r summarize_show, echo=FALSE}
 niantic_fp_removal
 100-min(niantic_fp_removal$n_out)
 ```
