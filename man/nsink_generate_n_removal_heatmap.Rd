@@ -4,7 +4,12 @@
 \alias{nsink_generate_n_removal_heatmap}
 \title{Generate Nitrogen Removal Heatmap}
 \usage{
-nsink_generate_n_removal_heatmap(input_data, removal, samp_dens, ncpu)
+nsink_generate_n_removal_heatmap(
+  input_data,
+  removal,
+  samp_dens,
+  ncpu = future::availableCores() - 1
+)
 }
 \arguments{
 \item{input_data}{A list of input datasets created with
@@ -19,7 +24,9 @@ determined through a regular sample, to calculate removal.  For
 instance a value of 90 would roughly equate to a point per every
 90 meters.}
 
-\item{ncpu}{number of CPUs to use for calculating flowpath removal}
+\item{ncpu}{number of CPUs to use for calculating flowpath removal for larger
+(i.e. greater than 50) number of flowpaths.  Defaults to one
+minus the number of cores available.}
 }
 \description{
 Generates the heatmap

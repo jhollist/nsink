@@ -90,14 +90,17 @@ nsink_generate_n_loading_index <- function(input_data) {
 #'             determined through a regular sample, to calculate removal.  For
 #'             instance a value of 90 would roughly equate to a point per every
 #'             90 meters.
-#' @param ncpu number of CPUs to use for calculating flowpath removal
+#' @param ncpu number of CPUs to use for calculating flowpath removal for larger
+#'             (i.e. greater than 50) number of flowpaths.  Defaults to one
+#'             minus the number of cores available.
 #' @import future furrr
 #' @importFrom sf st_area st_sample st_sf st_sfc st_crs
 #' @importFrom utils txtProgressBar setTxtProgressBar
 #' @importFrom methods as
 #'
 #' @keywords internal
-nsink_generate_n_removal_heatmap <- function(input_data, removal, samp_dens, ncpu) {
+nsink_generate_n_removal_heatmap <- function(input_data, removal, samp_dens,
+                                             ncpu = future::availableCores() - 1) {
 
   num_pts <- as.numeric(round(st_area(input_data$huc) / (samp_dens * samp_dens)))
   sample_pts <- st_sample(input_data$huc, num_pts, type = "regular")
@@ -130,7 +133,7 @@ nsink_generate_n_removal_heatmap <- function(input_data, removal, samp_dens, ncp
       data.frame(fp_removal = 100 - min(fp_summary$n_out))
 
     }
-    future::plan(future::multiprocess)
+    future::plan(future::multiprocess, workers = ncpu)
     sample_pts_removal <- st_sf(sample_pts,
       data = furrr::future_map_dfr(
         sample_pts,
