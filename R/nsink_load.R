@@ -13,7 +13,7 @@
 #'         a \code{\link{nsink_calc_removal}} object, and a
 #'         \code{\link{nsink_generate_static_maps}} object
 #' @importFrom sf st_read
-#' @importFrom raster raster
+#' @importFrom raster raster projection
 #' @examples
 #' \dontrun{
 #' library(nsink)
@@ -35,6 +35,7 @@ nsink_load <- function(input_folder, base_name = "nsink_", projection = NULL){
   message("Reading in built files...")
   huc_sf <- st_read(paste0(input_folder, "huc.shp"), quiet = TRUE)
   suppressWarnings({
+  fdr <- raster(paste0(input_folder, "fdr.tif"))
   prep <- list(streams = st_read(paste0(input_folder,"streams.shp"), quiet = TRUE),
                lakes = st_read(paste0(input_folder,"lakes.shp"), quiet = TRUE),
                fdr = raster(paste0(input_folder, "fdr.tif")),
@@ -47,7 +48,7 @@ nsink_load <- function(input_folder, base_name = "nsink_", projection = NULL){
                huc = huc_sf,
                raster_template = fasterize::raster(as(huc_sf, "Spatial"),
                                                    resolution = 30,
-                                                   crs = st_crs(huc_sf))
+                                                   crs = projection(fdr))
                )
   # The shapefile driver butchers output names, need to restore them.
   names(prep$streams) <- c("stream_comid", "fdate", "resolution", "gnis_id",

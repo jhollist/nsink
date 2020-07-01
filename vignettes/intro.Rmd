@@ -12,7 +12,7 @@ csl: ecology.csl
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   eval = TRUE,
-  cache = TRUE,
+  cache = FALSE,
   tidy = FALSE
 )
 load(system.file("testdata.rda", package="nsink"))

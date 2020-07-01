@@ -97,7 +97,7 @@ nsink_get_data <- function(huc, data_dir = normalizePath("nsink_data", winslash 
   # FedData::get_ssurgo will throw parsing warnings if data already downloaded.
   sdm <- httr::GET("https://sdmdataaccess.sc.egov.usda.gov")
   wss <- httr::GET("https://websoilsurvey.sc.egov.usda.gov/App/HomePage.htm")
-  if(sdm$status_code != 200 & wss$status_code != 200){
+  if(sdm$status_code != 200 | wss$status_code != 200){
     warning("The required SSURGO sites do not appear to be available and the SSURGO data are not downloaded.  Try again later.")
   } else if(sdm$status_code == 200 & wss$status_code == 200){
     message("Getting SSURGO...")
