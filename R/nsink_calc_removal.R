@@ -565,9 +565,6 @@ nsink_calc_stream_removal <- function(input_data) {
 nsink_calc_lake_removal <- function(input_data) {
   residence_time <- suppressMessages(left_join(input_data$streams, input_data$tot))
   residence_time <- filter(residence_time, .data$lake_comid > 0)
-  # TODO When time of travel not available in NHDPlus, need to use other methods
-  #      to calculate residence time (in Kellogg et al)
-  #      Don't think this is possible as drainage area unavailble...
   residence_time <- mutate(residence_time, totma = case_when(
     .data$totma == -9999 ~
     NA_real_,
@@ -597,8 +594,7 @@ nsink_calc_lake_removal <- function(input_data) {
     TRUE ~ .data$n_removal
   ))
 
-  # When time of travel not available in NHDPlus, use median removal of other
-  # lakes of the same order.
+  # When time of travel not available in NHDPlus, use median removal of lake.
   lake_removal_stats <- st_set_geometry(lake_removal, NULL)
   lake_removal_stats <- summarize(lake_removal_stats,
                                     median_removal = median(.data$n_removal,

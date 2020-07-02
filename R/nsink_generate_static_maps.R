@@ -9,6 +9,9 @@
 #'             determined through a regular sample, to caluclate removal.  For
 #'             instance a value of 90 would roughly equate to a point per every
 #'             90 meters.
+#' @param ncpu number of CPUs to use for calculating flowpath removal for larger
+#'             (i.e. greater than 50) number of flowpaths.  Defaults to one
+#'             minus the number of cores available.
 #' @return This function returns a list or rasters: nitrogen removal efficiency,
 #'         nitrogen loading index, nitrogen transport index, and the
 #'         nitrogen delivery index.
@@ -26,7 +29,8 @@
 #' removal <- nsink_calc_removal(niantic_nsink_data)
 #' static_maps <- nsink_generate_static_maps(niantic_nsink_data, removal,samp_dens = 900)
 #' }
-nsink_generate_static_maps <- function(input_data, removal, samp_dens) {
+nsink_generate_static_maps <- function(input_data, removal, samp_dens,
+                                       ncpu = future::availableCores() - 1) {
 
   # Suppressing warnings from raster due to proj
   suppressWarnings({
@@ -38,7 +42,7 @@ nsink_generate_static_maps <- function(input_data, removal, samp_dens) {
   message("Creating the transport and delivery index maps...")
   n_delivery_heat <- 100 - nsink_generate_n_removal_heatmap(input_data,
     removal, samp_dens,
-    ncpu = 1
+    ncpu = ncpu
   )
 
   n_delivery_heat <- raster::projectRaster(
@@ -108,6 +112,7 @@ nsink_generate_n_removal_heatmap <- function(input_data, removal, samp_dens,
   # for fewer points, the interp sample is done serially
   # for more points, it is done in parallel
   message(paste0(" Running ", length(sample_pts), " sampled flowpaths..."))
+
   if(num_pts < 50){
 
     pb <- txtProgressBar(max = length(sample_pts), style = 3)
@@ -133,6 +138,7 @@ nsink_generate_n_removal_heatmap <- function(input_data, removal, samp_dens,
       data.frame(fp_removal = 100 - min(fp_summary$n_out))
 
     }
+
     future::plan(future::multiprocess, workers = ncpu)
     sample_pts_removal <- st_sf(sample_pts,
       data = furrr::future_map_dfr(
