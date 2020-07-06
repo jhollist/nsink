@@ -1,3 +1,39 @@
+#' N-Sink plot function for the a list of nsink static maps
+#'
+#' This function creates a simple plot with pre-selected color palettes from a
+#' list of static maps created by \code{\link{nsink_generate_static_maps}}.
+#' This is meant as a quick means to visualize the various static maps.
+#'
+#' @param static_maps A list of \code{raster} objectsm ost likely created
+#'                      via \code{\link{nsink_generate_static_maps}}.  The list
+#'                      should have removal_effic, delivery_idx, and
+#'                      transport_idx.
+#' @param map A character of either, "removal","transport", or "delivery."
+#' @examples
+#' \dontrun{
+#' library(nsink)
+#' niantic_huc <- nsink_get_huc_id("Niantic River")$huc_12
+#' niantic_data <- nsink_get_data(niantic_huc, data_dir = "nsink_data")
+#' aea <- "+proj=aea +lat_0=23 +lon_0=-96 +lat_1=29.5 +lat_2=45.5 +x_0=0 +y_0=0
+#' +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
+#' niantic_nsink_data <- nsink_prep_data(niantic_huc, projection = aea,
+#'                                       data_dir = "nsink_data")
+#' removal <- nsink_calc_removal(niantic_nsink_data)
+#' static_maps <- nsink_generate_static_maps(niantic_nsink_data, removal,
+#' samp_dens = 900)
+#' nsink_plot(static_maps, "transport")
+#' }
+#' @export
+nsink_plot <- function(static_maps, map = c("removal", "transport",
+                                            "delivery")){
+  map <- match.arg(map)
+  switch(map,
+    "removal" = nsink_plot_removal(static_maps$removal_effic),
+    "transport" = nsink_plot_transport(static_maps$transport_idx),
+    "delivery" = nsink_plot_delivery(static_maps$delivery_idx)
+  )
+}
+
 #' N-Sink plot function for the nitrogen delivery index
 #'
 #' This function creates a simple plot with a pre-selected color palette,
