@@ -64,7 +64,8 @@ Imports:
   rlang,
   furrr,
   future, 
-  stars
+  stars,
+  units
 Remotes: 
   ropensci/FedData,
   r-spatial/lwgeom

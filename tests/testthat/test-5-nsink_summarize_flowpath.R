@@ -8,7 +8,7 @@ test_that("flowpath summary works correctly", {
   start_loc <- st_sf(st_sfc(st_point(c(pt)), crs = aea))
   niantic_fp <- nsink_generate_flowpath(start_loc, niantic_data)
   niantic_fp_removal <- nsink_summarize_flowpath(niantic_fp, niantic_removal)
-  expect_setequal(names(niantic_fp_removal), c("segment_type", "length",
+  expect_setequal(names(niantic_fp_removal), c("segment_type", "length_meters",
                                          "percent_removal", "n_in", "n_out"))
 })
 

@@ -153,7 +153,7 @@ nsink_generate_n_removal_heatmap <- function(input_data, removal, samp_dens,
   }
 
   message("\n Interpolating sampled flowpaths...")
-  num_pts <- round(st_area(input_data$huc) / (30 * 30))
+  num_pts <- round(units::set_units(st_area(input_data$huc), "m^2") / (30 * 30))
   interp_points <- suppressWarnings(as(
     st_sample(input_data$huc, as.numeric(num_pts), type = "regular"),
     "Spatial"
