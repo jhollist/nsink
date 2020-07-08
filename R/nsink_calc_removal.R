@@ -67,7 +67,8 @@ nsink_calc_removal <- function(input_data,off_network_lakes = NULL,
     message("Calculating lake-based removal...")
     lake_removal <- nsink_calc_lake_removal(input_data[c("streams", "lakes",
                                                          "tot","lakemorpho",
-                                                         "raster_template")])
+                                                         "raster_template",
+                                                         "q")])
     message("Calculating off network removal...")
     off_network_removal <- nsink_calc_off_network_removal(
       list(streams = input_data$streams, lakes = input_data$lakes,
@@ -347,8 +348,8 @@ nsink_calc_off_network_removal <- function(input_data, off_network_lakes,
                                       "Uninitialized")
       off_network_canal_ditch_sf <- filter(off_network_canal_ditch_sf, .data$ftype ==
                                           "CanalDitch")
-      #Something good goes here. For time being use lower quartile of higher
-      #order streams
+
+      #Use lower quartile of higher order streams
 
       if(is.null(off_network_canalsditches)){
         low_quart_removal_high_order <- pull(removal_stats_high_order,
@@ -594,21 +595,56 @@ nsink_calc_lake_removal <- function(input_data) {
     TRUE ~ .data$n_removal
   ))
 
-  # When time of travel not available in NHDPlus, use median removal of lake.
-  lake_removal_stats <- st_set_geometry(lake_removal, NULL)
-  lake_removal_stats <- summarize(lake_removal_stats,
-                                    median_removal = median(.data$n_removal,
-                                                            na.rm = TRUE))
-  lake_removal_stats <- filter(lake_removal_stats, !is.na(.data$median_removal))
-  lake_removal_median <- pull(lake_removal_stats, .data$median_removal)
+  # When time of travel not available in NHDPlus, use removal as calculated with
+  # q_cms for downstream reach and lake_area.
 
   # add existing order (not sure if this is necessary, just being cautious)
-  lake_removal <- mutate(lake_removal, order = seq_along(.data$n_removal))
+  lake_removal <- mutate(lake_removal,
+                         order = seq_along(.data$n_removal),
+                         lakearea = as.numeric(units::set_units(
+                           sf::st_area(lake_removal), "m^2")))
   lake_removal_missing <- filter(lake_removal, is.na(.data$n_removal))
+  lake_removal_missing <- select(lake_removal_missing, -.data$n_removal)
   lake_removal_not_missing <- filter(lake_removal, !is.na(.data$n_removal))
-  lake_removal_missing <- mutate(lake_removal_missing,
-                                 n_removal = lake_removal_median)
-
+  lake_removal_afp_missing <- right_join(input_data$streams,
+                                    st_set_geometry(lake_removal_missing, NULL),
+                                    by = "lake_comid")
+  lake_removal_afp_missing <- left_join(lake_removal_afp_missing, input_data$q,
+                                    by = "stream_comid")
+  lake_removal_afp_missing <- left_join(lake_removal_afp_missing,
+                                        input_data$tot, by = "stream_comid")
+  lake_removal_afp_missing <- filter(lake_removal_afp_missing,
+                                     !is.na(.data$tonode))
+  # Grabs terminal node, by lake
+  lake_removal_afp_missing <- group_by(lake_removal_afp_missing,
+                                       .data$lake_comid)
+  lake_removal_afp_missing <- filter(lake_removal_afp_missing,
+                                     !.data$tonode %in% .data$fromnode)
+  lake_removal_afp_missing <- ungroup(lake_removal_afp_missing)
+  # If terminal node happens to have two input aritfical flowpaths (e.g like a
+  # "V") then pull one with highest flow
+  lake_removal_afp_missing <- group_by(lake_removal_afp_missing,
+                                       .data$lake_comid, .data$tonode)
+  lake_removal_afp_missing <- mutate(lake_removal_afp_missing,
+                                     q_cms = max(.data$q_cms))
+  lake_removal_afp_missing <- ungroup(lake_removal_afp_missing)
+  lake_removal_afp_missing <- select(lake_removal_afp_missing,
+                                     .data$stream_comid, .data$lake_comid,
+                                     .data$q_cms, .data$lakearea)
+  # Calc n_removal using Kellogg et al
+  lake_removal_afp_missing <- mutate(lake_removal_afp_missing,
+                                     n_removal = 79.24 - 33.26 *
+                                       log10((.data$q_cms/.data$lakearea) *
+                                               10^6 * 31.536))
+  lake_removal_afp_missing <- mutate(lake_removal_afp_missing, n_removal =
+                                       case_when(.data$n_removal < 0 ~
+                                                   0,
+                                                 TRUE ~ .data$n_removal))
+  lake_removal_afp_missing <- select(lake_removal_afp_missing, .data$lake_comid,
+                                     .data$n_removal)
+  lake_removal_missing <- left_join(lake_removal_missing,
+                                    st_set_geometry(lake_removal_afp_missing,
+                                                    NULL), by = "lake_comid")
   lake_removal <- rbind(lake_removal_not_missing, lake_removal_missing)
   lake_removal <- arrange(lake_removal, .data$order)
   lake_removal <- select(lake_removal, -.data$order)
