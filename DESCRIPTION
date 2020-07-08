@@ -1,6 +1,6 @@
 Package: nsink
 Title: Set-up and run N-Sink
-Version: 1.0.0
+Version: 1.0.1
 Authors@R: c(person(given = "Jeffrey",
            family = "Hollister",
            role = c("aut", "cre"),
