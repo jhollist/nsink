@@ -91,8 +91,8 @@ nsink_summarize_flowpath <- function(flowpath, removal) {
                                           TRUE ~ .data$n_removal),
                                         segment_id = nsink_create_segment_ids(
                                           paste(.data$segment_type,.data$n_removal)),
-                                        length = as.numeric(st_length(
-                                          land_off_network_removal)))
+                                        length = as.numeric(units::set_units(st_length(
+                                          land_off_network_removal), "m")))
 
   if (!is.null(flowpath$flowpath_network)) {
     n_removal_df <- select(
@@ -100,6 +100,9 @@ nsink_summarize_flowpath <- function(flowpath, removal) {
       .data$stream_comid, .data$n_removal
     )
     flowpath_removal <- suppressMessages(left_join(flowpath$flowpath_network, n_removal_df))
+    flowpath_removal <- mutate(flowpath_removal, length =
+                                 as.numeric(units::set_units(st_length(
+                                   flowpath_removal), "m")))
     flowpath_removal_df <- st_drop_geometry(flowpath_removal)
     flowpath_removal_df <- unique(flowpath_removal_df)
     flowpath_removal_df <- mutate(flowpath_removal_df,
@@ -110,9 +113,9 @@ nsink_summarize_flowpath <- function(flowpath, removal) {
           .data$ftype == "StreamRiver" ~
           "Stream",
           TRUE ~ "Unknown"
-        ),
-      length = .data$lengthkm * 1000
+        )
     )
+
     flowpath_removal_df <- select(
       flowpath_removal_df, .data$stream_comid,
       .data$lake_comid, .data$n_removal, .data$segment_type, length
@@ -134,6 +137,7 @@ nsink_summarize_flowpath <- function(flowpath, removal) {
                             percent_removal = signif(.data$percent_removal, 3),
                             n_in = signif(.data$n_in, 3),
                             n_out = signif(.data$n_out, 3))
+  removal_summary <- rename(removal_summary, length_meters = length)
   return(removal_summary)
 }
 
