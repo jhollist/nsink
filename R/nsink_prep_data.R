@@ -241,8 +241,17 @@ nsink_prep_ssurgo <- function(huc_sf, data_dir) {
     ssurgo_tbl <- mutate(ssurgo_tbl, mukey = as(.data$mukey, "character"))
     ssurgo_tbl <- select(
       ssurgo_tbl, .data$mukey, .data$cokey, .data$hydricrating,
-      .data$comppct.r
+      .data$comppct.r, .data$compname, .data$drainagecl
     )
+    # Limiting hydric removal to only land-based sources of removal
+    # i.e. no removal from water polys in SSURGO and none from subaqueous soils
+    ssurgo_tbl <- mutate(ssurgo_tbl, hydricrating =
+                           case_when(.data$compname == "Water" ~
+                                       "No",
+                                     .data$drainagecl == "Subaqueous" ~
+                                       "No",
+                                     TRUE ~ hydricrating))
+    #browser()
     ssurgo_tbl <- filter(ssurgo_tbl, .data$hydricrating == "Yes")
     ssurgo_tbl <- group_by(ssurgo_tbl, .data$mukey, .data$hydricrating)
     ssurgo_tbl <- summarize(ssurgo_tbl, hydric_pct = sum(.data$comppct.r))
