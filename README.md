@@ -17,13 +17,13 @@ The `nsink` package is an R implementation of the methods described in
 [Kellogg et. al (2010)](https://doi.org/10.1016/j.ecoleng.2010.02.006).
 Previous implementation of this approach relied on a manual, vector
 based approach that was time consuming to prepare. This approach uses a
-hybrid raster-vector approach that takes very relatively little time to
-set up for each new watershed and relies on readily available data.
-Total run times vary, but range from minutes up to 5 hours depending on
+hybrid raster-vector approach that takes relatively little time to set
+up for each new watershed and relies on readily available data. Total
+run times vary, but range from minutes up to 5 hours depending on
 options selected. Previous versions took weeks of manual data
 manipulation.
 
-As of 2020-06-24 user functions for the `nsink` package are:
+As of 2020-07-09 user functions for the `nsink` package are:
 
   - `nsink_get_data()` - Pass HUC, get data, use cache to avoid repeat
     downloads
@@ -49,6 +49,8 @@ As of 2020-06-24 user functions for the `nsink` package are:
       - Nitrogen Loading Index
       - Nitrogen Transport Index
       - Nitrogen Delivery Index
+  - `nsink_plot()` - Plot function to plot removal, transport or
+    delivery static maps.
   - `nsink_plot_removal()` - Plot function to quickly visualize the
     Nitrogen Removal Efficiency rasters.
   - `nsink_plot_transport()` - Plot function to quickly visualize the
