@@ -8,7 +8,8 @@ nsink_generate_n_removal_heatmap(
   input_data,
   removal,
   samp_dens,
-  ncpu = future::availableCores() - 1
+  ncpu = future::availableCores() - 1,
+  seed = 23
 )
 }
 \arguments{
@@ -27,6 +28,9 @@ instance a value of 90 would roughly equate to a point per every
 \item{ncpu}{number of CPUs to use for calculating flowpath removal for larger
 (i.e. greater than 50) number of flowpaths.  Defaults to one
 minus the number of cores available.}
+
+\item{seed}{Random seed to ensure reproducibility of sample point creation
+across runs.  Default set to 23.}
 }
 \description{
 Generates the heatmap

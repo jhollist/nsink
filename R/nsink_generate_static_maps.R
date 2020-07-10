@@ -6,12 +6,14 @@
 #'                \code{\link{nsink_calc_removal}}
 #' @param samp_dens A value, in the units of the input data, divided by total area of
 #'             the input HUC.  It is used to determine the number of points,
-#'             determined through a regular sample, to caluclate removal.  For
+#'             determined through a regular sample, to calculate removal.  For
 #'             instance a value of 90 would roughly equate to a point per every
 #'             90 meters.
 #' @param ncpu number of CPUs to use for calculating flowpath removal for larger
 #'             (i.e. greater than 50) number of flowpaths.  Defaults to one
 #'             minus the number of cores available.
+#' @param seed Random seed to ensure reproducibility of sample point creation
+#'             for transport maps. Default set to 23.
 #' @return This function returns a list or rasters: nitrogen removal efficiency,
 #'         nitrogen loading index, nitrogen transport index, and the
 #'         nitrogen delivery index.
@@ -30,7 +32,8 @@
 #' static_maps <- nsink_generate_static_maps(niantic_nsink_data, removal,samp_dens = 900)
 #' }
 nsink_generate_static_maps <- function(input_data, removal, samp_dens,
-                                       ncpu = future::availableCores() - 1) {
+                                       ncpu = future::availableCores() - 1,
+                                       seed = 23) {
 
   # Suppressing warnings from raster due to proj
   suppressWarnings({
@@ -42,7 +45,7 @@ nsink_generate_static_maps <- function(input_data, removal, samp_dens,
   message("Creating the transport and delivery index maps...")
   n_delivery_heat <- 100 - nsink_generate_n_removal_heatmap(input_data,
     removal, samp_dens,
-    ncpu = ncpu
+    ncpu = ncpu, seed
   )
 
   n_delivery_heat <- raster::projectRaster(
@@ -97,6 +100,8 @@ nsink_generate_n_loading_index <- function(input_data) {
 #' @param ncpu number of CPUs to use for calculating flowpath removal for larger
 #'             (i.e. greater than 50) number of flowpaths.  Defaults to one
 #'             minus the number of cores available.
+#' @param seed Random seed to ensure reproducibility of sample point creation
+#'             across runs.  Default set to 23.
 #' @import future furrr
 #' @importFrom sf st_area st_sample st_sf st_sfc st_crs
 #' @importFrom utils txtProgressBar setTxtProgressBar
@@ -104,8 +109,9 @@ nsink_generate_n_loading_index <- function(input_data) {
 #'
 #' @keywords internal
 nsink_generate_n_removal_heatmap <- function(input_data, removal, samp_dens,
-                                             ncpu = future::availableCores() - 1) {
-
+                                             ncpu = future::availableCores() - 1,
+                                             seed = 23) {
+  set.seed(seed)
   num_pts <- as.numeric(round(st_area(input_data$huc) / (samp_dens * samp_dens)))
   sample_pts <- st_sample(input_data$huc, num_pts, type = "regular")
 

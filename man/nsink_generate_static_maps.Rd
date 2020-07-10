@@ -8,7 +8,8 @@ nsink_generate_static_maps(
   input_data,
   removal,
   samp_dens,
-  ncpu = future::availableCores() - 1
+  ncpu = future::availableCores() - 1,
+  seed = 23
 )
 }
 \arguments{
@@ -20,13 +21,16 @@ nsink_generate_static_maps(
 
 \item{samp_dens}{A value, in the units of the input data, divided by total area of
 the input HUC.  It is used to determine the number of points,
-determined through a regular sample, to caluclate removal.  For
+determined through a regular sample, to calculate removal.  For
 instance a value of 90 would roughly equate to a point per every
 90 meters.}
 
 \item{ncpu}{number of CPUs to use for calculating flowpath removal for larger
 (i.e. greater than 50) number of flowpaths.  Defaults to one
 minus the number of cores available.}
+
+\item{seed}{Random seed to ensure reproducibility of sample point creation
+for transport maps. Default set to 23.}
 }
 \value{
 This function returns a list or rasters: nitrogen removal efficiency,
