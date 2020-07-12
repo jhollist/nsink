@@ -34,6 +34,9 @@ nsink_load <- function(input_folder, base_name = "nsink_", projection = NULL){
   input_folder <- nsink_fix_data_directory(input_folder)
   message("Reading in built files...")
   huc_sf <- st_read(paste0(input_folder, "huc.shp"), quiet = TRUE)
+  res <- units::set_units(30, "m")
+  res <- units::set_units(res, st_crs(huc_sf, parameters = TRUE)$ud_unit,
+                          mode = "standard")
   suppressWarnings({
   fdr <- raster(paste0(input_folder, "fdr.tif"))
   prep <- list(streams = st_read(paste0(input_folder,"streams.shp"), quiet = TRUE),
@@ -46,8 +49,8 @@ nsink_load <- function(input_folder, base_name = "nsink_", projection = NULL){
                tot = read.csv(paste0(input_folder, "tot.csv")),
                lakemorpho = read.csv(paste0(input_folder, "lakemorpho.csv")),
                huc = huc_sf,
-               raster_template = fasterize::raster(as(huc_sf, "Spatial"),
-                                                   resolution = 30,
+               raster_template = raster::raster(as(huc_sf, "Spatial"),
+                                                   resolution = as.numeric(res),
                                                    crs = projection(fdr))
                )
   # The shapefile driver butchers output names, need to restore them.
@@ -73,22 +76,24 @@ nsink_load <- function(input_folder, base_name = "nsink_", projection = NULL){
   #Deal with possible CRS mismatches due to proj4 write and read
   if(!is.null(projection)){
     suppressWarnings({
+    projection_template <- st_transform(prep[["streams"]], crs = projection)
     prep <- list(streams = st_transform(prep[["streams"]], crs = projection),
                  lakes = st_transform(prep[["lakes"]], crs = projection),
-                 fdr = raster::projectRaster(prep[["fdr"]], crs = projection),
+                 fdr = raster::projectRaster(prep[["fdr"]],
+                                             crs = projection(projection_template)),
                  impervious = raster::projectRaster(prep[["impervious"]],
-                                                    crs = projection),
-                 nlcd = raster::projectRaster(prep[["nlcd"]], crs = projection),
+                                                    crs = projection(projection_template)),
+                 nlcd = raster::projectRaster(prep[["nlcd"]], crs = projection(projection_template)),
                  ssurgo = st_transform(prep[["ssurgo"]], crs = projection),
                  q = prep[["q"]],
                  tot = prep[["tot"]],
                  lakemorpho = prep[["lakemorpho"]],
                  huc = st_transform(prep[["huc"]], crs = projection),
                  raster_template = raster::projectRaster(prep[["raster_template"]],
-                                                         crs = projection))
+                                                         crs = projection(projection_template)))
 
     removal <- list(raster_method = raster::projectRaster(removal[["raster_method"]],
-                                                          crs = projection),
+                                                          crs = projection(projection_template)),
                     land_off_network_removal = st_transform(removal[["land_off_network_removal"]],
                                                             crs = projection),
                     land_off_network_removal_type = st_transform(removal[["land_off_network_removal_type"]],
@@ -96,13 +101,13 @@ nsink_load <- function(input_folder, base_name = "nsink_", projection = NULL){
                     network_removal = st_transform(removal[["network_removal"]],
                                                    crs = projection))
     static <- list(removal_effic = raster::projectRaster(static[["removal_effic"]],
-                                                         crs = projection),
+                                                         crs = projection(projection_template)),
                    loading_idx = raster::projectRaster(static[["loading_idx"]],
-                                                       crs = projection),
+                                                       crs = projection(projection_template)),
                    transport_idx = raster::projectRaster(static[["transport_idx"]],
-                                                         crs = projection),
+                                                         crs = projection(projection_template)),
                    delivery_idx = raster::projectRaster(static[["delivery_idx"]],
-                                                        crs = projection))
+                                                        crs = projection(projection_template)))
 
     })
   }

@@ -469,6 +469,7 @@ nsink_calc_land_removal <- function(input_data) {
   impervious <- input_data$impervious
   impervious[impervious >= 0] <- 0
   impervious[is.na(impervious)] <- 1
+
   imp_land_removal <- land_removal_rast * impervious
 
   land_removal_v <- st_as_sf(st_as_stars(imp_land_removal), as_points = FALSE,
@@ -633,15 +634,16 @@ nsink_calc_lake_removal <- function(input_data) {
                                      .data$q_cms, .data$lakearea)
   # Calc n_removal using Kellogg et al
   lake_removal_afp_missing <- mutate(lake_removal_afp_missing,
-                                     n_removal = 79.24 - 33.26 *
+                                     n_removal = (79.24 - 33.26 *
                                        log10((.data$q_cms/.data$lakearea) *
-                                               10^6 * 31.536))
+                                               10^6 * 31.536))/100)
   lake_removal_afp_missing <- mutate(lake_removal_afp_missing, n_removal =
                                        case_when(.data$n_removal < 0 ~
                                                    0,
                                                  TRUE ~ .data$n_removal))
   lake_removal_afp_missing <- select(lake_removal_afp_missing, .data$lake_comid,
                                      .data$n_removal)
+
   lake_removal_missing <- left_join(lake_removal_missing,
                                     st_set_geometry(lake_removal_afp_missing,
                                                     NULL), by = "lake_comid")

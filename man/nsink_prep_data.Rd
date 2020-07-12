@@ -14,7 +14,10 @@ nsink_prep_data(
 \item{huc}{A character string of the HUC12 ID.  Use
 \code{\link{nsink_get_huc_id}} to look up ID by name.}
 
-\item{projection}{EPSG code as an integer or proj4 string as a character}
+\item{projection}{EPSG code as an numeric or proj4 string as a character.
+This much be a projected CRS and not geographic as many of
+the measurements required for the nsink analysis require
+reliable length and area measurments.}
 
 \item{data_dir}{Base directory that contains N-Sink data folders.  Data may
 be downloaded with the \code{\link{nsink_get_data}} function.}

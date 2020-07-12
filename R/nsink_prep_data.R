@@ -8,7 +8,10 @@
 #'
 #' @param huc A character string of the HUC12 ID.  Use
 #'            \code{\link{nsink_get_huc_id}} to look up ID by name.
-#' @param projection EPSG code as an integer or proj4 string as a character
+#' @param projection EPSG code as an numeric or proj4 string as a character.
+#'                   This much be a projected CRS and not geographic as many of
+#'                   the measurements required for the nsink analysis require
+#'                   reliable length and area measurments.
 #' @param data_dir Base directory that contains N-Sink data folders.  Data may
 #'                 be downloaded with the \code{\link{nsink_get_data}} function.
 #' @return returns a list of sf, raster, or tabular objects for each of the
@@ -46,10 +49,11 @@ nsink_prep_data <- function(huc, projection,
     huc_sf <- ungroup(huc_sf)
     huc_sf <- st_transform(huc_sf, crs = projection)
     # Suppressing warnings from raster/fasterize use of proj4strings
-    huc_raster <- suppressWarnings(fasterize::raster(as(huc_sf, "Spatial"),
-                                                     resolution = 30,
-                                                     crs = projection))
-    stars::st_rasterize(huc_sf["HUC_12"])
+    res <- units::set_units(30, "m")
+    res <- units::set_units(res, st_crs(huc_sf, parameters = TRUE)$ud_unit, mode = "standard")
+    huc_raster <- suppressWarnings(raster::raster(as(huc_sf, "Spatial"),
+                                                     resolution = as.numeric(res),
+                                                     crs = projection(huc_sf)))
 
     list(
       streams = nsink_prep_streams(huc_sf, data_dir),
@@ -140,7 +144,8 @@ nsink_prep_lakes <- function(huc_sf, data_dir) {
 #' @param huc_raster A raster object of the Watershed Boundaries Dataset HUC12
 #' @param data_dir Base directory that contains N-Sink data folders.  Data may be
 #'                 downloaded with the \code{\link{nsink_get_data}} function.
-#' @return returns a raster object of the flow direction for the huc_sf
+#' @return returns a raster object of the flow direction for the huc_sf but in
+#'         the original fdr projection
 #' @importFrom methods as
 #' @keywords  internal
 nsink_prep_fdr <- function(huc_sf, huc_raster, data_dir) {
@@ -149,7 +154,8 @@ nsink_prep_fdr <- function(huc_sf, huc_raster, data_dir) {
     # Suppressing warnings from rasters use of proj 4
     suppressWarnings({
     fdr <- raster::raster(paste0(data_dir, "fdr"))
-    fdr <-raster::projectRaster(fdr, huc_raster, method = "ngb")
+    #fdr <-raster::projectRaster(fdr, huc_raster, method = "ngb")
+    huc_sf <- st_transform(huc_sf, st_crs(fdr))
     fdr <- raster::crop(fdr, as(huc_sf, "Spatial"))
     })
   } else {

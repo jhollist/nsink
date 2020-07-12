@@ -114,12 +114,14 @@ nsink_generate_n_removal_heatmap <- function(input_data, removal, samp_dens,
   set.seed(seed)
   num_pts <- as.numeric(round(st_area(input_data$huc) / (samp_dens * samp_dens)))
   sample_pts <- st_sample(input_data$huc, num_pts, type = "regular")
+  #idx <- which(st_coordinates(sample_pts)[,1] >= 1140977.7 & st_coordinates(sample_pts)[,2] >= 718065.0)[419]
+  #i <- 1365
+
 
   # for fewer points, the interp sample is done serially
   # for more points, it is done in parallel
   message(paste0(" Running ", length(sample_pts), " sampled flowpaths..."))
-
-  if(num_pts < 50){
+  if(length(sample_pts) < 50){
 
     pb <- txtProgressBar(max = length(sample_pts), style = 3)
     xdf <- data.frame(fp_removal = vector("numeric", length(sample_pts)))
@@ -128,8 +130,12 @@ nsink_generate_n_removal_heatmap <- function(input_data, removal, samp_dens,
       pt <- sample_pts[i,]
       pt <- st_sf(st_sfc(pt, crs = st_crs(input_data$huc)))
       fp <- nsink_generate_flowpath(pt, input_data)
-      fp_summary <- nsink_summarize_flowpath(fp, removal)
-      xdf <- rbind(xdf, data.frame(fp_removal = 100 - min(fp_summary$n_out)))
+      if(any(st_within(fp$flowpath_ends, input_data$huc, sparse = FALSE))){
+        fp_summary <- nsink_summarize_flowpath(fp, removal)
+        xdf <- rbind(xdf, data.frame(fp_removal = 100 - min(fp_summary$n_out)))
+      } else {
+        xdf <- rbind(xdf, data.frame(fp_removal = NA))
+      }
     }
     close(pb)
 
@@ -137,12 +143,14 @@ nsink_generate_n_removal_heatmap <- function(input_data, removal, samp_dens,
 
   } else {
     fp_removal <- function(pt, input_data, removal) {
-
       pt <- st_sf(st_sfc(pt, crs = st_crs(input_data$huc)))
       fp <- nsink_generate_flowpath(pt, input_data)
-      fp_summary <- nsink_summarize_flowpath(fp, removal)
-      data.frame(fp_removal = 100 - min(fp_summary$n_out))
-
+      if(any(st_within(fp$flowpath_ends, input_data$huc, sparse = FALSE))){
+        fp_summary <- nsink_summarize_flowpath(fp, removal)
+        return(data.frame(fp_removal = 100 - min(fp_summary$n_out)))
+      } else {
+        return(data.frame(fp_removal = NA))
+      }
     }
 
     future::plan(future::multiprocess, workers = ncpu)
@@ -157,7 +165,7 @@ nsink_generate_n_removal_heatmap <- function(input_data, removal, samp_dens,
         }, .progress = TRUE)
     )
   }
-
+  sample_pts_removal <- dplyr::filter(sample_pts_removal, !is.na(.data$fp_removal))
   message("\n Interpolating sampled flowpaths...")
   num_pts <- round(units::set_units(st_area(input_data$huc), "m^2") / (30 * 30))
   interp_points <- suppressWarnings(as(
