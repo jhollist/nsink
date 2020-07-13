@@ -23,7 +23,7 @@
 #' nsink_build(nsink_get_huc_id("Niantic River")$huc_12, aea,
 #'             output_folder = "nsink_output", samp_dens = 300)
 #' nsink_load(input_folder = "nsink_output",
-#'            basename = "nsink_")
+#'            base_name = "nsink_")
 #' }
 nsink_load <- function(input_folder, base_name = "nsink_", projection = NULL){
 
@@ -37,8 +37,8 @@ nsink_load <- function(input_folder, base_name = "nsink_", projection = NULL){
   res <- units::set_units(30, "m")
   res <- units::set_units(res, st_crs(huc_sf, parameters = TRUE)$ud_unit,
                           mode = "standard")
+
   suppressWarnings({
-  fdr <- raster(paste0(input_folder, "fdr.tif"))
   prep <- list(streams = st_read(paste0(input_folder,"streams.shp"), quiet = TRUE),
                lakes = st_read(paste0(input_folder,"lakes.shp"), quiet = TRUE),
                fdr = raster(paste0(input_folder, "fdr.tif")),
@@ -51,7 +51,7 @@ nsink_load <- function(input_folder, base_name = "nsink_", projection = NULL){
                huc = huc_sf,
                raster_template = raster::raster(as(huc_sf, "Spatial"),
                                                    resolution = as.numeric(res),
-                                                   crs = projection(nlcd))
+                                                   crs = projection(huc_sf))
                )
   # The shapefile driver butchers output names, need to restore them.
   names(prep$streams) <- c("stream_comid", "fdate", "resolution", "gnis_id",
