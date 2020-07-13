@@ -37,6 +37,7 @@ nsink_generate_flowpath <- function(starting_location, input_data){
   starting_location <- st_transform(starting_location, st_crs(input_data$fdr))
   fp <- suppressWarnings(raster::flowPath(input_data$fdr, st_coordinates(starting_location)))
   fp <- suppressWarnings(raster::xyFromCell(input_data$fdr, fp))
+  # Fixes cases with a single point flowpath: rare but annoying
   if(nrow(fp) == 1){
     dist <- units::set_units(1, "m")
     dist <- units::set_units(dist, st_crs(input_data$streams,
@@ -49,7 +50,12 @@ nsink_generate_flowpath <- function(starting_location, input_data){
   fp_ends <- nsink_get_flowpath_ends(fp, input_data$streams, input_data$tot)
 
   # This is for cases where flowpath doesn't intersect existing flowlines
-  if(any(st_intersects(fp_ends, input_data$streams, sparse = FALSE))){
+  dist <- units::set_units(0.001, "m")
+  dist <- units::set_units(dist, st_crs(input_data$streams,
+                                        parameters = TRUE)$ud_unit,
+                           mode = "standard")
+  if(any(st_is_within_distance(fp_ends, input_data$streams, as.numeric(dist),
+                               sparse = FALSE))){
     fp_flowlines <- nsink_get_flowline(fp_ends, input_data$streams, input_data$tot)
   } else {
     fp_flowlines <- NULL
@@ -127,7 +133,7 @@ nsink_get_flowline <- function(flowpath_ends, streams, tot){
   st_geometry(streams_df) <- NULL
   streams_df <- mutate_all(streams_df, as.character)
   streams_g <- graph_from_data_frame(streams_df, directed = TRUE)
-  dist <- units::set_units(0.000001, "m")
+  dist <- units::set_units(0.001, "m")
   dist <- units::set_units(dist, st_crs(streams, parameters = TRUE)$ud_unit, mode = "standard")
   from_nd_idx <- st_is_within_distance(flowpath_ends[1,], streams_tot, dist)[[1]]
   to_nd_idx <- st_is_within_distance(flowpath_ends[2,], streams_tot, dist)[[1]]

@@ -51,7 +51,7 @@ nsink_load <- function(input_folder, base_name = "nsink_", projection = NULL){
                huc = huc_sf,
                raster_template = raster::raster(as(huc_sf, "Spatial"),
                                                    resolution = as.numeric(res),
-                                                   crs = projection(fdr))
+                                                   crs = projection(nlcd))
                )
   # The shapefile driver butchers output names, need to restore them.
   names(prep$streams) <- c("stream_comid", "fdate", "resolution", "gnis_id",
@@ -79,8 +79,7 @@ nsink_load <- function(input_folder, base_name = "nsink_", projection = NULL){
     projection_template <- st_transform(prep[["streams"]], crs = projection)
     prep <- list(streams = st_transform(prep[["streams"]], crs = projection),
                  lakes = st_transform(prep[["lakes"]], crs = projection),
-                 fdr = raster::projectRaster(prep[["fdr"]],
-                                             crs = projection(projection_template)),
+                 fdr = prep[["fdr"]],
                  impervious = raster::projectRaster(prep[["impervious"]],
                                                     crs = projection(projection_template)),
                  nlcd = raster::projectRaster(prep[["nlcd"]], crs = projection(projection_template)),
