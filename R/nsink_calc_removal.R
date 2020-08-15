@@ -322,7 +322,7 @@ nsink_calc_off_network_removal <- function(input_data, off_network_lakes,
                                       med_removal_1st_order,
                                       segment_type = 5)
       # Suppressing warnings from raster on proj
-      browser()
+
       off_network_streams_r <- suppressWarnings(rasterize(off_network_streams_sf,
                                          input_data$raster_template,
                                          field = "n_removal",
