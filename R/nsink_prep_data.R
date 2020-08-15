@@ -230,42 +230,52 @@ nsink_prep_nlcd <- function(huc_sf, huc_raster, data_dir) {
 #' @keywords  internal
 nsink_prep_ssurgo <- function(huc_sf, data_dir) {
   huc12 <- unique(as.character(huc_sf$HUC_12))
-  if (file.exists(paste0(
-    data_dir, "ssurgo/", huc12,
-    "_SSURGO_Mapunits.shp"
-  ))) {
+
+  if (file.exists(paste0(data_dir, "ssurgo/", huc12,"_SSURGO_Mapunits.shp"))) {
     message("Preparing SSURGO...")
     ssurgo <- st_read(paste0(data_dir, "ssurgo/", huc12,
                              "_SSURGO_Mapunits.shp"), quiet = TRUE)
-    ssurgo <- st_transform(ssurgo, st_crs(huc_sf))
-    ssurgo <- rename_all(ssurgo, tolower)
-    ssurgo <- mutate(ssurgo, mukey = as(.data$mukey, "character"))
     ssurgo_tbl <- read.csv(paste0(
       data_dir, "ssurgo/", huc12,
       "_SSURGO_component.csv"
     ))
-    ssurgo_tbl <- mutate(ssurgo_tbl, mukey = as(.data$mukey, "character"))
-    ssurgo_tbl <- select(
-      ssurgo_tbl, .data$mukey, .data$cokey, .data$hydricrating,
-      .data$comppct.r, .data$compname, .data$drainagecl
-    )
-    # Limiting hydric removal to only land-based sources of removal
-    # i.e. no removal from water polys in SSURGO and none from subaqueous soils
-    ssurgo_tbl <- mutate(ssurgo_tbl, hydricrating =
-                           case_when(.data$compname == "Water" ~
-                                       "No",
-                                     .data$drainagecl == "Subaqueous" ~
-                                       "No",
-                                     TRUE ~ hydricrating))
-    #browser()
-    ssurgo_tbl <- filter(ssurgo_tbl, .data$hydricrating == "Yes")
-    ssurgo_tbl <- group_by(ssurgo_tbl, .data$mukey, .data$hydricrating)
-    ssurgo_tbl <- summarize(ssurgo_tbl, hydric_pct = sum(.data$comppct.r))
-    ssurgo_tbl <- ungroup(ssurgo_tbl)
-    ssurgo <- full_join(ssurgo, ssurgo_tbl, by = "mukey")
+  } else if(file.exists(paste0(data_dir, "ssurgo/", huc12, "_ssurgo.gpkg"))){
+    message("Preparing SSURGO...")
+    suppressWarnings({
+    ssurgo <- st_read(paste0(data_dir, "ssurgo/", huc12, "_ssurgo.gpkg"),
+                      layer = "geometry", quiet = TRUE)
+    ssurgo_tbl <-
+      st_read(paste0(data_dir, "ssurgo/", huc12, "_ssurgo.gpkg"),
+              layer = "component", quiet = TRUE)
+    })
+
   } else {
     stop("The required data file does not exist.  Run nsink_get_data().")
   }
+  ssurgo <- st_transform(ssurgo, st_crs(huc_sf))
+  ssurgo <- rename_all(ssurgo, tolower)
+  ssurgo <- mutate(ssurgo, mukey = as(.data$mukey, "character"))
+  ssurgo_tbl <- mutate(ssurgo_tbl, mukey = as(.data$mukey, "character"))
+  ssurgo_tbl <- select(
+    ssurgo_tbl, .data$mukey, .data$cokey, .data$hydricrating,
+    .data$comppct.r, .data$compname, .data$drainagecl
+  )
+  # Limiting hydric removal to only land-based sources of removal
+  # i.e. no removal from water polys in SSURGO and none from subaqueous soils
+  ssurgo_tbl <- mutate(ssurgo_tbl, hydricrating =
+                         case_when(.data$compname == "Water" ~
+                                     "No",
+                                   .data$drainagecl == "Subaqueous" ~
+                                     "No",
+                                   TRUE ~ hydricrating))
+
+  ssurgo_tbl <- filter(ssurgo_tbl, .data$hydricrating == "Yes")
+  ssurgo_tbl <- group_by(ssurgo_tbl, .data$mukey, .data$hydricrating)
+  ssurgo_tbl <- summarize(ssurgo_tbl, hydric_pct = sum(.data$comppct.r))
+  ssurgo_tbl <- ungroup(ssurgo_tbl)
+  ssurgo <- full_join(ssurgo, ssurgo_tbl, by = "mukey")
+  ssurgo <- select(ssurgo, areasymbol, spatialver, musym, mukey, hydricrating,
+                   hydric_pct)
   ssurgo
 }
 

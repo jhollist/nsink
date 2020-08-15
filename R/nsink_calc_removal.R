@@ -79,6 +79,7 @@ nsink_calc_removal <- function(input_data,off_network_lakes = NULL,
       off_network_streams, off_network_canalsditches)
 
     message("Combining all removal...")
+    #browser()
     removal <- list(
       land_removal_r = land_removal$land_removal_r,
       land_removal_v = land_removal$land_removal_v,
@@ -187,10 +188,9 @@ nsink_calc_removal <- function(input_data,off_network_lakes = NULL,
                                input_data$raster_template, field = "segment_type",
                                background = NA, fun = "max"))
       } else{
-        land_off_network_removal_type_r <- raster::merge(
-          fasterize::fasterize(removal$land_removal_v,
+        land_off_network_removal_type_r <- fasterize::fasterize(removal$land_removal_v,
                                input_data$raster_template, field = "segment_type",
-                               background = NA, fun = "max"))
+                               background = NA, fun = "max")
       }})
 
 
@@ -305,8 +305,8 @@ nsink_calc_off_network_removal <- function(input_data, off_network_lakes,
               is.null(off_network_streams)){
       warning("There are three or fewer on network streams available to estimate removal for the off network streams.  It may be advisable to manually set an N removal value via the off_network_streams argument.")
     }
-    if(any(input_data$streams$flowdir == "Uninitialized") &
-       any(input_data$streams$ftype == "StreamRiver")){
+    if(any(input_data$streams$flowdir == "Uninitialized" &
+           input_data$streams$ftype == "StreamRiver")){
       off_network_streams_sf <- filter(input_data$streams,
                                     input_data$streams$flowdir ==
                                       "Uninitialized")
@@ -322,6 +322,7 @@ nsink_calc_off_network_removal <- function(input_data, off_network_lakes,
                                       med_removal_1st_order,
                                       segment_type = 5)
       # Suppressing warnings from raster on proj
+      browser()
       off_network_streams_r <- suppressWarnings(rasterize(off_network_streams_sf,
                                          input_data$raster_template,
                                          field = "n_removal",
@@ -413,7 +414,12 @@ nsink_calc_off_network_removal <- function(input_data, off_network_lakes,
       off_network_lakes_r <- input_data$raster_template
     }
   } else {
-    return(NA)
+
+    return(list(off_network_removal_r = input_data$raster_template,
+                off_network_removal_v = NULL,
+                off_network_lakes_v = NULL,
+                off_network_streams_v = NULL,
+                off_network_canal_ditch_v = NULL))
   }
 
   # Create raster
@@ -448,7 +454,6 @@ nsink_calc_off_network_removal <- function(input_data, off_network_lakes,
 #' @importFrom stars st_as_stars
 #' @keywords internal
 nsink_calc_land_removal <- function(input_data) {
-  #browser()
   land_removal <- mutate(input_data$ssurgo,
     n_removal = 0.8 * (.data$hydric_pct / 100)
   )
@@ -686,6 +691,7 @@ nsink_merge_removal <- function(removal_rasters) {
                              cbind(-Inf, 0, NA), right=FALSE)
   land_removal <- raster::reclassify(removal_rasters$land_removal,
                              cbind(-Inf, 0, NA), right=FALSE)
+
   off_network_removal <- raster::reclassify(removal_rasters$off_network_removal,
                                     cbind(-Inf, 0, NA), right=FALSE)
 

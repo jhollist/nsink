@@ -24,7 +24,7 @@ nsink_get_data <- function(huc, data_dir = normalizePath("nsink_data", winslash 
 
   huc <- as.character(huc)
   if (nchar(gsub("[[:alpha:]]+", "", huc)) != 12) {
-    stop("The supplied huc does not appear to be a 12 digit value")
+    stop("The supplied huc does not appear to be a 12 digit value.  If HUC has a leading 0, pass as character")
   }
 
   # Check for/create/clean data directory
@@ -102,8 +102,9 @@ nsink_get_data <- function(huc, data_dir = normalizePath("nsink_data", winslash 
   } else if(sdm$status_code == 200 & wss$status_code == 200){
     message("Getting SSURGO...")
     repeat_it <- TRUE
-    count <- 1
+    count <- 0
     while(is.logical(repeat_it) & count <= 10) {
+      count <- count + 1
       repeat_it <- tryCatch(
         suppressWarnings({
           suppressMessages(
@@ -113,7 +114,6 @@ nsink_get_data <- function(huc, data_dir = normalizePath("nsink_data", winslash 
           raw.dir = paste0(data_dir, "ssurgo"),
           force.redo = force
         ))
-        count <- count + 1
         }),
         error = function(e) TRUE
       )
