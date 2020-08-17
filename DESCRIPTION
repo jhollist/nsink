@@ -1,5 +1,5 @@
 Package: nsink
-Title: Set-up and run N-Sink
+Title: Flow path based nitrogen removal analysis
 Version: 1.0.2
 Authors@R: c(person(given = "Jeffrey",
            family = "Hollister",

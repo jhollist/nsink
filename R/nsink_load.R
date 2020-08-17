@@ -6,6 +6,9 @@
 #' @param base_name a base name used to assign objects to the global environment.
 #' @param projection An optional crs specified as a proj4string or EPSG code.
 #'                   Useful if projection is returned as unknown.
+#' @param ... Passes to \code{\link{nsink_calc_removal}} for the off network
+#'            arguments: \code{off_network_lakes}, \code{off_network_streams},
+#'            and \code{off_network_canalsditches}.
 #' @export
 #' @return Creates several lists in the global environment that would normally
 #'         be created when running an N-Sink analysis.  These include:
@@ -25,7 +28,8 @@
 #' nsink_load(input_folder = "nsink_output",
 #'            base_name = "nsink_")
 #' }
-nsink_load <- function(input_folder, base_name = "nsink_", projection = NULL){
+nsink_load <- function(input_folder, base_name = "nsink_", projection = NULL
+                       , ...){
 
   if(!dir.exists(input_folder)){
     stop(paste("The input folder,", input_folder, "does not currently exist, please create it with nsink_build."))
@@ -65,7 +69,7 @@ nsink_load <- function(input_folder, base_name = "nsink_", projection = NULL){
                           "hydric_pct", "geometry")
 
 
-  removal <- nsink_calc_removal(prep)
+  removal <- nsink_calc_removal(prep, ...)
   message("Reading in static maps...")
   static <- list(removal_effic = raster(paste0(input_folder, "removal_effic.tif")),
                  loading_idx = raster(paste0(input_folder, "loading_idx.tif")),

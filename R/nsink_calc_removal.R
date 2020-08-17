@@ -260,50 +260,58 @@ nsink_calc_off_network_removal <- function(input_data, off_network_lakes,
     # Calculate removal stats for lakes and streams that have removal
     removal_stats_lakes <- filter(input_data$network_removal, .data$n_removal > 0,
                                   .data$ftype == "LakePond")
-    removal_stats_lakes <- group_by(removal_stats_lakes, .data$ftype)
-    removal_stats_lakes <- summarize(removal_stats_lakes,
-                             avg_n_remove = mean(.data$n_removal, na.rm = TRUE),
-                             med_n_remove = median(.data$n_removal, na.rm = TRUE),
-                             min_n_remove = min(.data$n_removal, na.rm = TRUE),
-                             max_n_remove = max(.data$n_removal, na.rm = TRUE),
-                             third_quart_n_remove = quantile(.data$n_removal,
-                                                             probs = 0.75,
-                                                             na.rm = TRUE),
-                             num_lakes = n())
-
+    if(nrow(removal_stats_lakes)>0){
+      removal_stats_lakes <- group_by(removal_stats_lakes, .data$ftype)
+      removal_stats_lakes <- summarize(removal_stats_lakes,
+                               avg_n_remove = mean(.data$n_removal, na.rm = TRUE),
+                               med_n_remove = median(.data$n_removal, na.rm = TRUE),
+                               min_n_remove = min(.data$n_removal, na.rm = TRUE),
+                               max_n_remove = max(.data$n_removal, na.rm = TRUE),
+                               third_quart_n_remove = quantile(.data$n_removal,
+                                                               probs = 0.75,
+                                                               na.rm = TRUE),
+                               num_lakes = n())
+      removal_stats_streams <- ungroup(removal_stats_lakes)
+    }
     removal_stats_streams <- filter(input_data$network_removal, .data$n_removal > 0)
     removal_stats_streams <- filter(removal_stats_streams,
                                     .data$ftype == "StreamRiver" |
                                       .data$ftype == "CanalDitch")
     removal_stats_streams <- left_join(removal_stats_streams,
                                        input_data$tot, by = "stream_comid")
-    removal_stats_streams <- group_by(removal_stats_streams, .data$ftype,
-                                      .data$stream_order)
-    removal_stats_streams <- summarize(removal_stats_streams,
-                                       avg_n_remove = mean(.data$n_removal,
-                                                           na.rm = TRUE),
-                                       med_n_remove = median(.data$n_removal,
+    if(nrow(removal_stats_streams)>0){
+      removal_stats_streams <- group_by(removal_stats_streams, .data$ftype,
+                                        .data$stream_order)
+      removal_stats_streams <- summarize(removal_stats_streams,
+                                         avg_n_remove = mean(.data$n_removal,
                                                              na.rm = TRUE),
-                                       min_n_remove = min(.data$n_removal,
-                                                          na.rm = TRUE),
-                                       max_n_remove = max(.data$n_removal,
-                                                          na.rm = TRUE),
-                                       third_quart_n_remove =
-                                         quantile(.data$n_removal, probs = 0.75,
-                                                  na.rm = TRUE),
-                                       low_quart_n_remove =
-                                         quantile(.data$n_removal, probs = 0.25,
-                                                  na.rm = TRUE),
-                                       num_streams = n())
+                                         med_n_remove = median(.data$n_removal,
+                                                               na.rm = TRUE),
+                                         min_n_remove = min(.data$n_removal,
+                                                            na.rm = TRUE),
+                                         max_n_remove = max(.data$n_removal,
+                                                            na.rm = TRUE),
+                                         third_quart_n_remove =
+                                           quantile(.data$n_removal, probs = 0.75,
+                                                    na.rm = TRUE),
+                                         low_quart_n_remove =
+                                           quantile(.data$n_removal, probs = 0.25,
+                                                    na.rm = TRUE),
+                                         num_streams = n())
+      removal_stats_streams <- ungroup(removal_stats_streams)
+    }
 
     # Off network streams
     removal_stats_1st <- filter(removal_stats_streams, .data$stream_order == 1)
-    if(removal_stats_1st$num_streams == 0 & is.null(off_network_streams)){
+    if(nrow(removal_stats_1st) == 0 &
+       is.null(off_network_streams) &
+       any(input_data$streams$ftype == "StreamRiver")){
       stop("There are no on network streams available to estimate removal for off network streams.  Please specify a removal value with the off_network_streams argument.")
-    } else if(removal_stats_1st$num_streams > 0 &
-              removal_stats_1st$num_streams <= 3 &
+    } else if(nrow(removal_stats_1st) > 0 &
               is.null(off_network_streams)){
-      warning("There are three or fewer on network streams available to estimate removal for the off network streams.  It may be advisable to manually set an N removal value via the off_network_streams argument.")
+        if(removal_stats_1st$num_streams <= 3){
+          warning("There are three or fewer on network streams available to estimate removal for the off network streams.  It may be advisable to manually set an N removal value via the off_network_streams argument.")
+        }
     }
     if(any(input_data$streams$flowdir == "Uninitialized" &
            input_data$streams$ftype == "StreamRiver")){
@@ -332,14 +340,19 @@ nsink_calc_off_network_removal <- function(input_data, off_network_lakes,
     }
 
     # Off network canals/ditches
-    removal_stats_high_order <- filter(removal_stats_streams,
-                                       .data$stream_order == max(.data$stream_order))
-    if(removal_stats_high_order$num_streams == 0 & is.null(off_network_canalsditches)){
+    if(nrow(removal_stats_streams) > 0){
+      removal_stats_high_order <- filter(removal_stats_streams,
+                                         .data$stream_order == max(.data$stream_order))
+    }
+    if(nrow(removal_stats_streams) == 0 &
+       is.null(off_network_canalsditches) &
+       any(input_data$streams$ftype == "CanalDitch")){
       stop("There are no on network streams available to estimate removal for off network canals and ditches  Please specify a removal value with the off_network_canalsditches argument.")
-    } else if(removal_stats_high_order$num_streams > 0 &
-              removal_stats_high_order$num_streams <= 3 &
+    } else if(nrow(removal_stats_streams) > 0 &
               is.null(off_network_canalsditches)){
-      warning("There are three or fewer on network streams available to estimate removal for the off network canals and ditches.  It may be advisable to manually set an N removal values via the off_network_canalsditches argument.")
+        if(removal_stats_high_order$num_streams <= 3){
+          warning("There are three or fewer on network streams available to estimate removal for the off network canals and ditches.  It may be advisable to manually set an N removal values via the off_network_canalsditches argument.")
+        }
     }
 
     if(any(input_data$streams$flowdir == "Uninitialized")&
@@ -374,7 +387,7 @@ nsink_calc_off_network_removal <- function(input_data, off_network_lakes,
     }
 
     # Off network lakes
-    if(removal_stats_lakes$num_lakes == 0 & is.null(off_network_lakes)){
+    if(nrow(removal_stats_lakes) == 0 & is.null(off_network_lakes)){
       stop("There are no on network lakes available to estimate removal for off network lakes.  Please specify a removal value with the off_network_lakes argument.")
     } else if(removal_stats_lakes$num_lakes > 0 &
               removal_stats_lakes$num_lakes <= 3 &
