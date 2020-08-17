@@ -274,8 +274,8 @@ nsink_prep_ssurgo <- function(huc_sf, data_dir) {
   ssurgo_tbl <- summarize(ssurgo_tbl, hydric_pct = sum(.data$comppct.r))
   ssurgo_tbl <- ungroup(ssurgo_tbl)
   ssurgo <- full_join(ssurgo, ssurgo_tbl, by = "mukey")
-  ssurgo <- select(ssurgo, areasymbol, spatialver, musym, mukey, hydricrating,
-                   hydric_pct)
+  ssurgo <- select(ssurgo, .data$areasymbol, .data$spatialver, .data$musym,
+                   .data$mukey, .data$hydricrating, .data$hydric_pct)
   ssurgo
 }
 

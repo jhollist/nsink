@@ -4,7 +4,7 @@
 \alias{nsink_load}
 \title{Load an existing N-Sink analysis folder}
 \usage{
-nsink_load(input_folder, base_name = "nsink_", projection = NULL)
+nsink_load(input_folder, base_name = "nsink_", projection = NULL, ...)
 }
 \arguments{
 \item{input_folder}{Folder to that contains nsink files produced by
@@ -14,6 +14,10 @@ nsink_load(input_folder, base_name = "nsink_", projection = NULL)
 
 \item{projection}{An optional crs specified as a proj4string or EPSG code.
 Useful if projection is returned as unknown.}
+
+\item{...}{Passes to \code{\link{nsink_calc_removal}} for the off network
+arguments: \code{off_network_lakes}, \code{off_network_streams},
+and \code{off_network_canalsditches}.}
 }
 \value{
 Creates several lists in the global environment that would normally
