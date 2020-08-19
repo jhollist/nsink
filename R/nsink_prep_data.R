@@ -177,10 +177,11 @@ nsink_prep_fdr <- function(huc_sf, huc_raster, data_dir) {
 nsink_prep_impervious <- function(huc_sf, huc_raster, data_dir) {
   # Suppressing warnings from raster's use of proj 4
   huc12 <- unique(as.character(huc_sf$HUC_12))
-  if (file.exists(paste0(data_dir, "imperv/", "NLCD_2016_Impervious_L48.tif"))){
+  file <- list.files(paste0(data_dir, "imperv/"), pattern = ".tif")
+  if (grepl("NLCD_2016_Impervious_L48", file)){
     message("Preparing impervious...")
-    impervious <- suppressWarnings(raster::raster(paste0(data_dir, "imperv/",
-                                        "NLCD_2016_Impervious_L48.tif")))
+
+    impervious <- suppressWarnings(raster::raster(paste0(data_dir, "imperv/", file)))
 
     impervious <- suppressWarnings(raster::projectRaster(impervious, huc_raster))
   } else {
@@ -201,10 +202,10 @@ nsink_prep_impervious <- function(huc_sf, huc_raster, data_dir) {
 #' @keywords  internal
 nsink_prep_nlcd <- function(huc_sf, huc_raster, data_dir) {
   huc12 <- unique(as.character(huc_sf$HUC_12))
-  if (file.exists(paste0(data_dir, "nlcd/","NLCD_2016_Land_Cover_L48.tif"))){
+  file <- list.files(paste0(data_dir, "nlcd/"), pattern = ".tif")
+  if (grepl("NLCD_2016_Land_Cover_L48", file)){
     message("Preparing NLCD...")
-    nlcd <- suppressWarnings(raster::raster(paste0(data_dir, "nlcd/",
-                                  "NLCD_2016_Land_Cover_L48.tif")))
+    nlcd <- suppressWarnings(raster::raster(paste0(data_dir, "nlcd/", file)))
     # Suppressing warnings from raster's use of proj 4
     nlcd <- suppressWarnings(raster::projectRaster(nlcd, huc_raster,
                                                    method = "ngb"))
