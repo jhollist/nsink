@@ -36,6 +36,7 @@
 #' }
 nsink_summarize_flowpath <- function(flowpath, removal) {
 
+
   # Off Network based removal in flowpath ends
 
   # Suppressing sf warnings
@@ -84,6 +85,7 @@ nsink_summarize_flowpath <- function(flowpath, removal) {
     segment_type = land_off_network_removal$layer.1,
     remove_id = land_off_network_removal$remove_id
   )
+
   land_off_network_removal_df <- mutate(land_off_network_removal_df,
                                         n_removal = case_when(
                                           is.na(.data$n_removal) ~ 0,
@@ -291,6 +293,7 @@ nsink_generate_from_to_nodes <- function(land_off_network){
   nodes <- slice(nodes, c(1, n()))
   nodes <- ungroup(nodes)
   nodes <- mutate(nodes, start_end = rep(c('start', 'end'), times = n()/2))
+  nodes <- mutate(nodes, X = round(.data$X, 7), Y = round(.data$Y, 7))
   nodes <- mutate(nodes, xy = paste(.data$X, .data$Y))
   nodes <- mutate(nodes, grouping = as.character(
     factor(.data$xy, levels = unique(.data$xy))))

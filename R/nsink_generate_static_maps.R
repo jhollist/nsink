@@ -143,6 +143,7 @@ nsink_generate_n_removal_heatmap <- function(input_data, removal, samp_dens,
 
   } else {
     fp_removal <- function(pt, input_data, removal) {
+
       pt <- st_sf(st_sfc(pt, crs = st_crs(input_data$huc)))
       fp <- nsink_generate_flowpath(pt, input_data)
       if(any(st_within(fp$flowpath_ends, input_data$huc, sparse = FALSE))){
