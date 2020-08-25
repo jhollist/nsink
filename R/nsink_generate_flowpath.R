@@ -143,6 +143,14 @@ nsink_get_flowline <- function(flowpath_ends, streams, tot){
   #to_nd <- unique(pull(to_nd, .data$tonode))
   idx <- shortest_paths(streams_g, from_nd, to_nd, output = "epath",
                         mode = "out")$epath[[1]]
+  if(length(idx) == 0){
+    idx <- shortest_paths(streams_g, from_nd, output = "epath",
+                          mode = "out")$epath
+    idx_lng <- unlist(lapply(idx, length))
+    idx_idx <- which(idx_lng == max(idx_lng))
+    idx <- shortest_paths(streams_g, from_nd, output = "epath",
+                          mode = "out")$epath[[idx_idx]]
+  }
   fl_comids <- edge_attr(streams_g, "stream_comid", idx)
   fp_end_pt <- tail(st_cast(flowpath_ends[1], "POINT"), 1)
   tol1 <- units::set_units(1, "m")
