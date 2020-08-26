@@ -6,7 +6,9 @@
 #' @param huc A character string of a HUC12 identifier.  Currently can run only a single HUC at a time.
 #' @param data_dir A directory to store N-Sink data downloads.  Defaults to
 #'                 "nsink_data" inside of the current working directory.
-#'                 Created if it doesn't exist.
+#'                 Created if it doesn't exist.  May be used for multiple HUCs
+#'                 and only data that doesn't currently exist will be
+#'                 downloaded.
 #' @param force Logical to determine if files should be downloaded
 #'                       again if they already exist locally.
 #' @export
@@ -120,7 +122,7 @@ nsink_get_data <- function(huc, data_dir = normalizePath("nsink_data", winslash 
     }
   }
   if(is.logical(repeat_it) & count > 10){
-    stop("SSURGO did not download correcly.  Try again or check package FedData
+    stop("SSURGO did not download correctly.  Try again or check package FedData
          for possible clues as to why FedData::get_ssurgo is not able to
          download the soils data.")
   }

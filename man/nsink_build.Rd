@@ -8,6 +8,7 @@ nsink_build(
   huc,
   projection,
   output_folder = normalizePath("nsink_output", winslash = "/"),
+  data_dir = NULL,
   force = FALSE,
   samp_dens = 300,
   ...
@@ -20,7 +21,16 @@ nsink_build(
 \item{projection}{Projection to use for all spatial data, passed as a PROJ
 string}
 
-\item{output_folder}{Folder to store downloaded data and process nsink files}
+\item{output_folder}{Folder to store downloaded data (if not in a separate
+data folder) and write out processed nsink files.
+Currently, the processed files will be overwritten if
+the same output folder is used.  To run different
+HUC12's specify separate output folders.}
+
+\item{data_dir}{An optional folder to hold downloaded data.  The same data
+directory can be used to hold data for multiple HUCs.  Data
+will not be downloaded again if it already exists in this
+folder.}
 
 \item{force}{Logical value used to force a new download if data already
 exists on file system}
@@ -54,6 +64,7 @@ library(nsink)
 aea <- "+proj=aea +lat_0=23 +lon_0=-96 +lat_1=29.5 +lat_2=45.5 +x_0=0 +y_0=0
 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
 nsink_build(nsink_get_huc_id("Niantic River")$huc_12, aea,
-            output_folder = "nsink_output", samp_dens = 300)
+            output_folder = "nsink_output", data_dir = "nsink_data",
+             samp_dens = 600)
 }
 }

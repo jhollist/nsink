@@ -15,7 +15,9 @@ nsink_get_data(
 
 \item{data_dir}{A directory to store N-Sink data downloads.  Defaults to
 "nsink_data" inside of the current working directory.
-Created if it doesn't exist.}
+Created if it doesn't exist.  May be used for multiple HUCs
+and only data that doesn't currently exist will be
+downloaded.}
 
 \item{force}{Logical to determine if files should be downloaded
 again if they already exist locally.}
