@@ -559,6 +559,12 @@ nsink_calc_stream_removal <- function(input_data) {
                                       stream_removal_stats,
                                       by = "stream_order")
   stream_removal_missing <- mutate(stream_removal_missing, n_removal = .data$median_removal)
+  # Deals with cases when missing streams do not have matching stream order
+  # For example if higher order streams are the missing ones, then possible to
+  # have no other streams of that order to calc stats
+  stream_removal_missing <- mutate(stream_removal_missing,
+                                   n_removal = case_when(is.na(.data$n_removal) ~ 0,
+                                                         TRUE ~ .data$n_removal))
   stream_removal_missing <- select(stream_removal_missing, -.data$median_removal)
 
   stream_removal <- rbind(stream_removal_not_missing, stream_removal_missing)

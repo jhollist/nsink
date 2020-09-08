@@ -1,6 +1,6 @@
 Package: nsink
 Title: Flow path based nitrogen removal analysis
-Version: 1.0.5
+Version: 1.0.6
 Authors@R: c(person(given = "Jeffrey",
            family = "Hollister",
            role = c("aut", "cre"),
