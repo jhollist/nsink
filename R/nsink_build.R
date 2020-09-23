@@ -101,8 +101,9 @@ nsink_build <- function(huc, projection,
   message("Writing files...")
   # More raster/proj warning suppression...
   suppressWarnings({
-  nsink_write_prepped_data(nsink_prepped_data, output_folder)
-  nsink_write_static_maps(nsink_static_maps, output_folder)
+    nsink_write_prepped_data(nsink_prepped_data, output_folder)
+    save(nsink_removal, file=paste0(output_folder, "removal.rda"), compress = "xz")
+    nsink_write_static_maps(nsink_static_maps, output_folder)
   })
 
 }

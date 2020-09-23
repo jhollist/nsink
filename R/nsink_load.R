@@ -69,7 +69,9 @@ nsink_load <- function(input_folder, base_name = "nsink_", projection = NULL
                           "hydric_pct", "geometry")
 
 
-  removal <- nsink_calc_removal(prep, ...)
+  #removal <- nsink_calc_removal(prep, ...)
+  load(paste0(input_folder,"removal.rda"))
+  removal <- get("nsink_removal")
   message("Reading in static maps...")
   static <- list(removal_effic = readAll(raster(paste0(input_folder, "removal_effic.tif"))),
                  loading_idx = readAll(raster(paste0(input_folder, "loading_idx.tif"))),
