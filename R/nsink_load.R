@@ -16,7 +16,7 @@
 #'         a \code{\link{nsink_calc_removal}} object, and a
 #'         \code{\link{nsink_generate_static_maps}} object
 #' @importFrom sf st_read
-#' @importFrom raster raster projection
+#' @importFrom raster raster projection readAll
 #' @examples
 #' \dontrun{
 #' library(nsink)
@@ -45,9 +45,9 @@ nsink_load <- function(input_folder, base_name = "nsink_", projection = NULL
   suppressWarnings({
   prep <- list(streams = st_read(paste0(input_folder,"streams.shp"), quiet = TRUE),
                lakes = st_read(paste0(input_folder,"lakes.shp"), quiet = TRUE),
-               fdr = raster(paste0(input_folder, "fdr.tif")),
-               impervious = raster(paste0(input_folder, "impervious.tif")),
-               nlcd = raster(paste0(input_folder, "nlcd.tif")),
+               fdr = readAll(raster(paste0(input_folder, "fdr.tif"))),
+               impervious = readAll(raster(paste0(input_folder, "impervious.tif"))),
+               nlcd = readAll(raster(paste0(input_folder, "nlcd.tif"))),
                ssurgo = st_read(paste0(input_folder,"ssurgo.shp"), quiet = TRUE),
                q = read.csv(paste0(input_folder, "q.csv")),
                tot = read.csv(paste0(input_folder, "tot.csv")),
@@ -71,10 +71,10 @@ nsink_load <- function(input_folder, base_name = "nsink_", projection = NULL
 
   removal <- nsink_calc_removal(prep, ...)
   message("Reading in static maps...")
-  static <- list(removal_effic = raster(paste0(input_folder, "removal_effic.tif")),
-                 loading_idx = raster(paste0(input_folder, "loading_idx.tif")),
-                 transport_idx = raster(paste0(input_folder, "transport_idx.tif")),
-                 delivery_idx = raster(paste0(input_folder, "delivery_idx.tif")))
+  static <- list(removal_effic = readAll(raster(paste0(input_folder, "removal_effic.tif"))),
+                 loading_idx = readAll(raster(paste0(input_folder, "loading_idx.tif"))),
+                 transport_idx = readAll(raster(paste0(input_folder, "transport_idx.tif"))),
+                 delivery_idx = readAll(raster(paste0(input_folder, "delivery_idx.tif"))))
   })
 
   #Deal with possible CRS mismatches due to proj4 write and read
