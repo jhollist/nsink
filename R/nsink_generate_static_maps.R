@@ -114,18 +114,17 @@ nsink_generate_n_removal_heatmap <- function(input_data, removal, samp_dens,
   set.seed(seed)
   num_pts <- as.numeric(round(st_area(input_data$huc) / (samp_dens * samp_dens)))
   sample_pts <- st_sample(input_data$huc, num_pts, type = "regular")
-  #idx <- which(st_coordinates(sample_pts)[,1] >= 1140977.7 & st_coordinates(sample_pts)[,2] >= 718065.0)[419]
-  #i <- 1365
-
 
   # for fewer points, the interp sample is done serially
   # for more points, it is done in parallel
   message(paste0(" Running ", length(sample_pts), " sampled flowpaths..."))
+
   if(length(sample_pts) < 50){
 
     pb <- txtProgressBar(max = length(sample_pts), style = 3)
     xdf <- data.frame(fp_removal = vector("numeric", length(sample_pts)))
     for(i in seq_along(st_geometry(sample_pts))){
+      print(i)
       setTxtProgressBar(pb, i)
       pt <- sample_pts[i,]
       pt <- st_sf(st_sfc(pt, crs = st_crs(input_data$huc)))
