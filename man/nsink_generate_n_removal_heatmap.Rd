@@ -33,6 +33,9 @@ minus the number of cores available.}
 across runs.  Default set to 23.}
 }
 \description{
-Generates the heatmap
+Generates the heatmap.  Only flowpaths that have one segment or more
+completely contained within the HUC are included. Practically, this will only
+remove flowpaths that do not intersect the stream network and extend beyond
+the HUC.  This is rare.
 }
 \keyword{internal}

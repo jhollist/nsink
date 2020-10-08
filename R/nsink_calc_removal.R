@@ -65,10 +65,14 @@ nsink_calc_removal <- function(input_data,off_network_lakes = NULL,
     stream_removal <- nsink_calc_stream_removal(input_data[c("streams","q", "tot",
                                                               "raster_template")])
     message("Calculating lake-based removal...")
+    if(nrow(input_data$lakes > 0)){
     lake_removal <- nsink_calc_lake_removal(input_data[c("streams", "lakes",
                                                          "tot","lakemorpho",
                                                          "raster_template",
                                                          "q")])
+    } else {
+      lake_removal <- NULL
+    }
     message("Calculating off network removal...")
     off_network_removal <- nsink_calc_off_network_removal(
       list(streams = input_data$streams, lakes = input_data$lakes,
@@ -79,7 +83,7 @@ nsink_calc_removal <- function(input_data,off_network_lakes = NULL,
       off_network_streams, off_network_canalsditches)
 
     message("Combining all removal...")
-    #browser()
+
     removal <- list(
       land_removal_r = land_removal$land_removal_r,
       land_removal_v = land_removal$land_removal_v,
@@ -589,6 +593,7 @@ nsink_calc_stream_removal <- function(input_data) {
 #' @importFrom rlang .data
 #' @keywords internal
 nsink_calc_lake_removal <- function(input_data) {
+
   residence_time <- suppressMessages(left_join(input_data$streams, input_data$tot))
   residence_time <- filter(residence_time, .data$lake_comid > 0)
   residence_time <- mutate(residence_time, totma = case_when(
@@ -712,18 +717,26 @@ nsink_merge_removal <- function(removal_rasters) {
 
   # Supressing warnings from raster on proj
   suppressWarnings({
-  lake_removal <- raster::reclassify(removal_rasters$lake_removal,
-                             cbind(-Inf, 0, NA), right=FALSE)
+  if(is.null(removal_rasters$lake_removal)){
+    land_removal <- NULL
+  } else {
+    lake_removal <- raster::reclassify(removal_rasters$lake_removal,
+                               cbind(-Inf, 0, NA), right=FALSE)
+  }
   land_removal <- raster::reclassify(removal_rasters$land_removal,
                              cbind(-Inf, 0, NA), right=FALSE)
 
   off_network_removal <- raster::reclassify(removal_rasters$off_network_removal,
                                     cbind(-Inf, 0, NA), right=FALSE)
 
-
-  removal <- raster::merge(removal_rasters$lake_removal,
-                           removal_rasters$off_network_removal,
-                           removal_rasters$land_removal)
+  if(is.null(removal_rasters$lake_removal)){
+    removal <- raster::merge(removal_rasters$off_network_removal,
+                             removal_rasters$land_removal)
+  } else {
+    removal <- raster::merge(removal_rasters$lake_removal,
+                             removal_rasters$off_network_removal,
+                             removal_rasters$land_removal)
+  }
   removal <- raster::mask(removal, as(removal_rasters$huc, "Spatial"))
   removal[is.na(removal)] <- 0
   removal <- raster::focal(removal, matrix(1, nrow = 3, ncol = 3), max)
@@ -744,25 +757,29 @@ nsink_merge_removal <- function(removal_rasters) {
 nsink_calc_removal_type <- function(removal_rasters) {
   type_it <- function(removal_rast, type = c("hydric", "stream", "lake",
                                              "off_network")) {
-    type <- match.arg(type)
-    if (type == "hydric") {
-      val <- raster::getValues(removal_rast)
-      val[val > 0] <- 1
-      val[val == 0] <- NA
-    } else if (type == "stream") {
-      val <- raster::getValues(removal_rast)
-      val[!is.na(val)] <- 2
-    } else if (type == "lake") {
-      val <- raster::getValues(removal_rast)
-      val[!is.na(val)] <- 3
-    } else if (type == "off_network") {
-      val <- raster::getValues(removal_rast)
-      val[!is.na(val)] <- 4
+    if(!is.null(removal_rast)){
+      type <- match.arg(type)
+      if (type == "hydric") {
+        val <- raster::getValues(removal_rast)
+        val[val > 0] <- 1
+        val[val == 0] <- NA
+      } else if (type == "stream") {
+        val <- raster::getValues(removal_rast)
+        val[!is.na(val)] <- 2
+      } else if (type == "lake") {
+        val <- raster::getValues(removal_rast)
+        val[!is.na(val)] <- 3
+      } else if (type == "off_network") {
+        val <- raster::getValues(removal_rast)
+        val[!is.na(val)] <- 4
+      }
+      # Suppress warnings from raster on proj
+      suppressWarnings({
+      raster::setValues(removal_rast, val)
+      })
+    } else {
+      NULL
     }
-    # Suppress warnings from raster on proj
-    suppressWarnings({
-    raster::setValues(removal_rast, val)
-    })
   }
 
   hydric_type <- type_it(removal_rasters$land_removal, "hydric")
@@ -770,7 +787,11 @@ nsink_calc_removal_type <- function(removal_rasters) {
   lake_type <- type_it(removal_rasters$lake_removal, "lake")
   off_network_type <- type_it(removal_rasters$off_network_removal, "off_network")
   suppressWarnings({
-  types <- raster::merge(lake_type, off_network_type, hydric_type)
+  if(!is.null(lake_type)){
+    types <- raster::merge(lake_type, off_network_type, hydric_type)
+  } else {
+    types <- raster::merge(off_network_type, hydric_type)
+  }
   types <- raster::mask(types, removal_rasters$huc)
   types[is.na(types)] <- 0
   types <- raster::focal(types, matrix(1, nrow = 3, ncol = 3), max)
