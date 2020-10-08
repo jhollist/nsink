@@ -55,7 +55,7 @@ nsink_generate_flowpath <- function(starting_location, input_data){
                                         parameters = TRUE)$ud_unit,
                            mode = "standard")
   if(any(st_is_within_distance(fp_ends, input_data$streams, as.numeric(dist),
-                               sparse = FALSE))){
+                               sparse = FALSE)) & fp_ends[1,] != fp_ends[2,]){
     fp_flowlines <- nsink_get_flowline(fp_ends, input_data$streams, input_data$tot)
   } else {
     fp_flowlines <- NULL
@@ -96,7 +96,7 @@ nsink_get_flowpath_ends <- function(flowpath, streams, tot){
   #} else { idx <- 1}
   #front_ends <- st_union(splits[seq(from = 1, to = idx)])
   #front_ends <- st_cast(front_ends, "LINESTRING")
-  #browser()
+
   #st_union(front_ends)
   ends <- splits[c(1,length(splits))]
   ends
@@ -134,7 +134,8 @@ nsink_get_flowline <- function(flowpath_ends, streams, tot){
   streams_df <- mutate_all(streams_df, as.character)
   streams_g <- graph_from_data_frame(streams_df, directed = TRUE)
   dist <- units::set_units(0.001, "m")
-  dist <- units::set_units(dist, st_crs(streams, parameters = TRUE)$ud_unit, mode = "standard")
+  dist <- units::set_units(dist, st_crs(streams, parameters = TRUE)$ud_unit,
+                           mode = "standard")
   from_nd_idx <- st_is_within_distance(flowpath_ends[1,], streams_tot, dist)[[1]]
   to_nd_idx <- st_is_within_distance(flowpath_ends[2,], streams_tot, dist)[[1]]
   from_nd <- streams_df[from_nd_idx,]$fromnode
