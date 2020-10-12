@@ -43,12 +43,15 @@ nsink_prep_data <- function(huc, projection,
   if (all(c("attr", "erom", "fdr", "imperv", "nhd", "ssurgo", "wbd", "nlcd") %in% dirs)) {
     huc_sf <- st_read(paste0(data_dir, "wbd/WBD_Subwatershed.shp"),
                       quiet = TRUE)
-    huc_sf <- huc_sf[huc_sf$HUC_12 == huc, ]
-    huc_sf <- group_by(huc_sf, .data$HUC_12)
-    huc_sf <- summarize(huc_sf, huc_12 = unique(as.character(.data$HUC_12)))
+
+    huc_sf <- huc_sf[grepl(paste0("^", huc), huc_sf$HUC_12), ]
+    huc_sf <- mutate(huc_sf, selected_huc = huc)
+    huc_sf <- group_by(huc_sf, selected_huc)
+    huc_sf <- summarize(huc_sf, selected_huc = unique(selected_huc))
     huc_sf <- ungroup(huc_sf)
     huc_sf <- st_transform(huc_sf, crs = projection)
-    # Suppressing warnings from raster/fasterize use of proj4strings
+
+        # Suppressing warnings from raster/fasterize use of proj4strings
     res <- units::set_units(30, "m")
     res <- units::set_units(res, st_crs(huc_sf, parameters = TRUE)$ud_unit, mode = "standard")
     huc_raster <- suppressWarnings(raster::raster(as(huc_sf, "Spatial"),
@@ -178,12 +181,13 @@ nsink_prep_fdr <- function(huc_sf, huc_raster, data_dir) {
 #' @keywords  internal
 nsink_prep_impervious <- function(huc_sf, huc_raster, data_dir) {
   # Suppressing warnings from raster's use of proj 4
-  huc12 <- unique(as.character(huc_sf$HUC_12))
+  huc12 <- unique(as.character(huc_sf$selected_huc))
   file <- list.files(paste0(data_dir, "imperv/"), pattern = ".tif")
   if (any(grepl("NLCD_2016_Impervious_L48", file))){
     message("Preparing impervious...")
+
     if(length(file)>1){
-      file <- file[grepl(huc12,file)]
+      file <- file[grepl(paste0("^",huc12,"_"),file)]
     }
     impervious <- suppressWarnings(raster::raster(paste0(data_dir, "imperv/", file)))
 
@@ -205,12 +209,12 @@ nsink_prep_impervious <- function(huc_sf, huc_raster, data_dir) {
 #' @return returns a raster object of the NLCD for the huc_sf
 #' @keywords  internal
 nsink_prep_nlcd <- function(huc_sf, huc_raster, data_dir) {
-  huc12 <- unique(as.character(huc_sf$HUC_12))
+  huc12 <- unique(as.character(huc_sf$selected_huc))
   file <- list.files(paste0(data_dir, "nlcd/"), pattern = ".tif")
   if (any(grepl("NLCD_2016_Land_Cover_L48", file))){
     message("Preparing NLCD...")
     if(length(file)>1){
-      file <- file[grepl(huc12,file)]
+      file <- file[grepl(paste0("^",huc12,"_"),file)]
     }
     nlcd <- suppressWarnings(raster::raster(paste0(data_dir, "nlcd/", file)))
     # Suppressing warnings from raster's use of proj 4
@@ -237,7 +241,7 @@ nsink_prep_nlcd <- function(huc_sf, huc_raster, data_dir) {
 #' @importFrom rlang .data
 #' @keywords  internal
 nsink_prep_ssurgo <- function(huc_sf, data_dir) {
-  huc12 <- unique(as.character(huc_sf$HUC_12))
+  huc12 <- unique(as.character(huc_sf$selected_huc))
 
   if (file.exists(paste0(data_dir, "ssurgo/", huc12,"_SSURGO_Mapunits.shp"))) {
     message("Preparing SSURGO...")

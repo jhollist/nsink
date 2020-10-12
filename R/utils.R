@@ -51,7 +51,6 @@ nsink_get_plus_remotepath <- function(rpu, component = c(
     component <- "NHDPlusAttributes_09"
   }
 
-
   url_components <- wbd_lookup[wbd_lookup$RPU == rpu, ]
   url_components <- select(url_components, .data$DrainageID, .data$VPUID, .data$RPU)
   url_components <- unique(url_components)

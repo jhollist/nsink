@@ -65,7 +65,8 @@ nsink_calc_removal <- function(input_data,off_network_lakes = NULL,
     stream_removal <- nsink_calc_stream_removal(input_data[c("streams","q", "tot",
                                                               "raster_template")])
     message("Calculating lake-based removal...")
-    if(nrow(input_data$lakes > 0)){
+
+    if(nrow(input_data$lakes) > 0){
     lake_removal <- nsink_calc_lake_removal(input_data[c("streams", "lakes",
                                                          "tot","lakemorpho",
                                                          "raster_template",
@@ -211,7 +212,6 @@ nsink_calc_removal <- function(input_data,off_network_lakes = NULL,
     #land_off_network_removal_type_v <- st_as_sf(raster::rasterToPolygons(land_off_network_removal_type_r,
     #                                                                     dissolve = TRUE))
     # Supressing warnings from raster on proj
-
     suppressWarnings({
     return(list(
       raster_method = raster::stack(merged_removal, merged_type),

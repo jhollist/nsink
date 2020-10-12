@@ -25,15 +25,16 @@ nsink_get_data <- function(huc, data_dir = normalizePath("nsink_data", winslash 
                            force = FALSE) {
 
   huc <- as.character(huc)
-  if (nchar(gsub("[[:alpha:]]+", "", huc)) != 12) {
-    stop("The supplied huc does not appear to be a 12 digit value.  If HUC has a leading 0, pass as character")
+  if (nchar(gsub("[[:alpha:]]+", "", huc)) %% 2 != 0) {
+    stop("The supplied huc does not appear to have an even number of digits.  If HUC has a leading 0, pass as character")
   }
 
   # Check for/create/clean data directory
   data_dir <- nsink_fix_data_directory(data_dir)
 
   # Get vpu
-  rpu <- unique(wbd_lookup[wbd_lookup$HUC_12 == huc, ]$RPU)
+  rpu <- unique(wbd_lookup[grepl(paste0("^", huc), wbd_lookup$HUC_12),]$RPU)
+  if(length(rpu) > 1){stop("More than 1 rpu selected.  This is not yet supported")}
   rpu <- rpu[!is.na(rpu)]
 
   # urls
@@ -63,7 +64,11 @@ nsink_get_data <- function(huc, data_dir = normalizePath("nsink_data", winslash 
   # Use actual huc to limit downloads on impervious and ssurgo
   huc_sf <- sf::st_read(paste0(data_dir, "wbd/WBD_Subwatershed.shp"),
                         quiet = TRUE)
-  huc_12 <- huc_sf[huc_sf$HUC_12 == huc, ]
+  huc_12 <- huc_sf[grepl(paste0("^", huc), huc_sf$HUC_12), ]
+  huc_12 <- mutate(huc_12, selected_huc = huc)
+  huc_12 <- group_by(huc_12, selected_huc)
+  huc_12 <- summarize(huc_12, selected_huc = unique(selected_huc))
+  huc_12 <- ungroup(huc_12)
 
   # Get impervious
   # Suppressing proj.4 warnings from raster
