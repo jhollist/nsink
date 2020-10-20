@@ -28,3 +28,5 @@
 ^nsink_test_data$
 ^bug\.R$
 ^LICENSE\.md$
+^bug_data$
+^bugs$

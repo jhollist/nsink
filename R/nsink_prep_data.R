@@ -104,7 +104,7 @@ nsink_prep_streams <- function(huc_sf, data_dir) {
     streams <- suppressWarnings(st_crop(streams, st_bbox(huc_sf)))
     streams <- mutate_if(streams, is.factor, as.character())
     # Remove coastline
-    streams <- filter(streams, ftype != "Coastline")
+    streams <- filter(streams, .data$ftype != "Coastline")
   } else {
     stop("The required data file does not exist.  Run nsink_get_data().")
   }

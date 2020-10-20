@@ -150,7 +150,8 @@ nsink_generate_n_removal_heatmap <- function(input_data, removal, samp_dens,
     }
     close(pb)
 
-    sample_pts_removal <- st_sf(sample_pts, data = xdf)
+    sample_pts_removal <- st_sf(sample_pts, data = xdf,
+                                row.names = row.names(xdf))
 
   } else {
     fp_removal <- function(pt, input_data, removal) {
