@@ -110,24 +110,30 @@ nsink_get_data <- function(huc, data_dir = normalizePath("nsink_data", winslash 
     message("Getting SSURGO...")
     repeat_it <- TRUE
     count <- 0
-    while(is.logical(repeat_it) & count <= 10) {
+    while(is.logical(repeat_it) & count <= 9) {
       count <- count + 1
       repeat_it <- tryCatch(
-        #suppressWarnings({
-          #suppressMessages(
+        suppressWarnings({
+          suppressMessages(
           ssurgo <- FedData::get_ssurgo(as(huc_12, "Spatial"),
           label = huc,
           extraction.dir = paste0(data_dir, "ssurgo"),
           raw.dir = paste0(data_dir, "ssurgo"),
           force.redo = force
-        )#)
-        #})
+        ))
+        })
       ,
         error = function(e) TRUE
       )
     }
   }
-  if(is.logical(repeat_it) & count > 10){
+  if(is.logical(repeat_it) & count > 9){
+    ssurgo <- FedData::get_ssurgo(as(huc_12, "Spatial"),
+                                  label = huc,
+                                  extraction.dir = paste0(data_dir, "ssurgo"),
+                                  raw.dir = paste0(data_dir, "ssurgo"),
+                                  force.redo = force
+    )
     stop("SSURGO did not download correctly.  Try again or check package FedData
          for possible clues as to why FedData::get_ssurgo is not able to
          download the soils data.")
