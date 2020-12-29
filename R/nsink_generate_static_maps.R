@@ -114,6 +114,7 @@ nsink_generate_n_loading_index <- function(input_data) {
 nsink_generate_n_removal_heatmap <- function(input_data, removal, samp_dens,
                                              ncpu = future::availableCores() - 1,
                                              seed = 23) {
+
   set.seed(seed)
   num_pts <- as.numeric(round(st_area(input_data$huc) / (samp_dens * samp_dens)))
   sample_pts <- st_sample(input_data$huc, num_pts, type = "regular")
@@ -186,8 +187,7 @@ nsink_generate_n_removal_heatmap <- function(input_data, removal, samp_dens,
 
   huc_polygon <- suppressWarnings(st_cast(input_data$huc, "POLYGON"))
 
-  for(i in seq_along(huc_polygon$selected_huc)){
-
+  for(i in 1:nrow(huc_polygon)){
     num_pts <- round(units::set_units(st_area(huc_polygon[i,]), "m^2") / (30 * 30))
     interp_points <- suppressWarnings(as(
       st_sample(huc_polygon[i,], as.numeric(num_pts), type = "regular"),
@@ -219,9 +219,10 @@ nsink_generate_n_removal_heatmap <- function(input_data, removal, samp_dens,
   if(length(idw_list) > 1){
     idw_n_removal_heat_map <- do.call(raster::merge, idw_list)
   } else {
-    idw_n_removal_heat_map <- idw1
+    idw_n_removal_heat_map <- idw_list[[1]]
   }
-  idw_n_removal_heat_map_agg <- raster::aggregate(idw_n_removal_heat_map, fun = max, fact = 3)
+  idw_n_removal_heat_map_agg <- raster::aggregate(idw_n_removal_heat_map,
+                                                  fun = max, fact = 3)
   idw_n_removal_heat_map_agg
 
 }

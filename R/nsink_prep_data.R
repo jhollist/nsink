@@ -46,8 +46,8 @@ nsink_prep_data <- function(huc, projection,
 
     huc_sf <- huc_sf[grepl(paste0("^", huc), huc_sf$HUC_12), ]
     huc_sf <- mutate(huc_sf, selected_huc = huc)
-    huc_sf <- group_by(huc_sf, selected_huc)
-    huc_sf <- summarize(huc_sf, selected_huc = unique(selected_huc))
+    huc_sf <- group_by(huc_sf, .data$selected_huc)
+    huc_sf <- summarize(huc_sf, selected_huc = unique(.data$selected_huc))
     huc_sf <- ungroup(huc_sf)
     huc_sf <- st_transform(huc_sf, crs = projection)
 

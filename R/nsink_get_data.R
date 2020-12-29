@@ -66,8 +66,8 @@ nsink_get_data <- function(huc, data_dir = normalizePath("nsink_data", winslash 
                         quiet = TRUE)
   huc_12 <- huc_sf[grepl(paste0("^", huc), huc_sf$HUC_12), ]
   huc_12 <- mutate(huc_12, selected_huc = huc)
-  huc_12 <- group_by(huc_12, selected_huc)
-  huc_12 <- summarize(huc_12, selected_huc = unique(selected_huc))
+  huc_12 <- group_by(huc_12, .data$selected_huc)
+  huc_12 <- summarize(huc_12, selected_huc = unique(.data$selected_huc))
   huc_12 <- ungroup(huc_12)
 
   # Get impervious
