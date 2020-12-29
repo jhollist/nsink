@@ -207,10 +207,11 @@ nsink_generate_n_removal_heatmap <- function(input_data, removal, samp_dens,
         interp_points,
         nmin = 2, nmax = 10,
         idp = 0.5, debug.level = 0
-      )})
+      )
       #assign(paste0("interpolated_points",i), interpolated_pts)
       assign(paste0("idw", i), raster::projectRaster(raster::raster(interpolated_pts),
                                                      input_data$raster_template))
+      })
     }
 
   }
