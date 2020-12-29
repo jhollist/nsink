@@ -182,25 +182,46 @@ nsink_generate_n_removal_heatmap <- function(input_data, removal, samp_dens,
   }
   sample_pts_removal <- dplyr::filter(sample_pts_removal, !is.na(.data$fp_removal))
   message("\n Interpolating sampled flowpaths...")
-  num_pts <- round(units::set_units(st_area(input_data$huc), "m^2") / (30 * 30))
-  interp_points <- suppressWarnings(as(
-    st_sample(input_data$huc, as.numeric(num_pts), type = "regular"),
-    "Spatial"
-  ))
+  # Interp each poly separately
 
-  #Suppressing warnings from raster/proj
-  suppressWarnings({
-  interp_points <- sp::SpatialPixels(interp_points)
-  interpolated_pts <- gstat::idw(fp_removal ~ 1,
-    as(sample_pts_removal, "Spatial"),
-    interp_points,
-    nmin = 5, nmax = 10,
-    idp = 0.5, debug.level = 0
-  )
+  huc_polygon <- suppressWarnings(st_cast(input_data$huc, "POLYGON"))
 
-  idw_n_removal_heat_map <- raster::raster(interpolated_pts)
+  for(i in seq_along(huc_polygon$selected_huc)){
+
+    num_pts <- round(units::set_units(st_area(huc_polygon[i,]), "m^2") / (30 * 30))
+    interp_points <- suppressWarnings(as(
+      st_sample(huc_polygon[i,], as.numeric(num_pts), type = "regular"),
+      "Spatial"
+    ))
+
+    #subset sample_pts_removal
+    sample_pts_removal_huc_poly <- sample_pts_removal[st_intersects(sample_pts_removal,
+                                                 huc_polygon[i,], sparse = FALSE),]
+
+    #Suppressing warnings from raster/proj
+    if(nrow(sample_pts_removal_huc_poly)>= 2){
+      suppressWarnings({
+      interp_points <- sp::SpatialPixels(interp_points)
+      interpolated_pts <- gstat::idw(fp_removal ~ 1,
+        as(sample_pts_removal_huc_poly, "Spatial"),
+        interp_points,
+        nmin = 2, nmax = 10,
+        idp = 0.5, debug.level = 0
+      )})
+      #assign(paste0("interpolated_points",i), interpolated_pts)
+      assign(paste0("idw", i), raster::projectRaster(raster::raster(interpolated_pts),
+                                                     input_data$raster_template))
+    }
+
+  }
+
+  idw_list <- lapply(ls(pattern = "idw"), function(x) get(x))
+  if(length(idw_list) > 1){
+    idw_n_removal_heat_map <- do.call(raster::merge, idw_list)
+  } else {
+    idw_n_removal_heat_map <- idw1
+  }
   idw_n_removal_heat_map_agg <- raster::aggregate(idw_n_removal_heat_map, fun = max, fact = 3)
-  })
   idw_n_removal_heat_map_agg
 
 }

@@ -65,10 +65,10 @@ Imports:
   furrr,
   future, 
   stars,
-  units
+  units,
+  lwgeom
 Remotes: 
-  ropensci/FedData,
-  r-spatial/lwgeom
+  ropensci/FedData
 License: GPL-3
 Encoding: UTF-8
 Language: es

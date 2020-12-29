@@ -51,6 +51,12 @@ nsink_prep_data <- function(huc, projection,
     huc_sf <- ungroup(huc_sf)
     huc_sf <- st_transform(huc_sf, crs = projection)
 
+
+    # Use SSURGO to pull out salt water ssurgo poly's
+    #browser()
+    #huc_no_open_water <- nsink_remove_openwater(huc_sf, data_dir)
+    huc_sf <- nsink_remove_openwater(huc_sf, data_dir)
+
         # Suppressing warnings from raster/fasterize use of proj4strings
     res <- units::set_units(30, "m")
     res <- units::set_units(res, st_crs(huc_sf, parameters = TRUE)$ud_unit, mode = "standard")
@@ -154,6 +160,7 @@ nsink_prep_lakes <- function(huc_sf, data_dir) {
 #' @importFrom methods as
 #' @keywords  internal
 nsink_prep_fdr <- function(huc_sf, huc_raster, data_dir) {
+
   if (dir.exists(paste0(data_dir, "fdr"))) {
     message("Preparing flow direction...")
     # Suppressing warnings from rasters use of proj 4
@@ -162,6 +169,7 @@ nsink_prep_fdr <- function(huc_sf, huc_raster, data_dir) {
     #fdr <-raster::projectRaster(fdr, huc_raster, method = "ngb")
     huc_sf <- st_transform(huc_sf, st_crs(fdr))
     fdr <- raster::crop(fdr, as(huc_sf, "Spatial"))
+    fdr <- raster::mask(fdr, as(huc_sf, "Spatial"))
     })
   } else {
     stop("The required data file does not exist.  Run nsink_get_data().")
@@ -181,6 +189,7 @@ nsink_prep_fdr <- function(huc_sf, huc_raster, data_dir) {
 #' @keywords  internal
 nsink_prep_impervious <- function(huc_sf, huc_raster, data_dir) {
   # Suppressing warnings from raster's use of proj 4
+
   huc12 <- unique(as.character(huc_sf$selected_huc))
   file <- list.files(paste0(data_dir, "imperv/"), pattern = ".tif")
   if (any(grepl("NLCD_2016_Impervious_L48", file))){
@@ -241,6 +250,7 @@ nsink_prep_nlcd <- function(huc_sf, huc_raster, data_dir) {
 #' @importFrom rlang .data
 #' @keywords  internal
 nsink_prep_ssurgo <- function(huc_sf, data_dir) {
+
   huc12 <- unique(as.character(huc_sf$selected_huc))
 
   if (file.exists(paste0(data_dir, "ssurgo/", huc12,"_SSURGO_Mapunits.shp"))) {
@@ -270,8 +280,12 @@ nsink_prep_ssurgo <- function(huc_sf, data_dir) {
   ssurgo_tbl <- mutate(ssurgo_tbl, mukey = as(.data$mukey, "character"))
   ssurgo_tbl <- select(
     ssurgo_tbl, .data$mukey, .data$cokey, .data$hydricrating,
-    .data$comppct.r, .data$compname, .data$drainagecl
+    .data$comppct.r, .data$compname, .data$drainagecl, .data$compkind,
+    .data$localphase
   )
+
+
+
   # Limiting hydric removal to only land-based sources of removal
   # i.e. no removal from water polys in SSURGO and none from subaqueous soils
   ssurgo_tbl <- mutate(ssurgo_tbl, hydricrating =
@@ -281,11 +295,12 @@ nsink_prep_ssurgo <- function(huc_sf, data_dir) {
                                      "No",
                                    TRUE ~ hydricrating))
 
-  ssurgo_tbl <- filter(ssurgo_tbl, .data$hydricrating == "Yes")
-  ssurgo_tbl <- group_by(ssurgo_tbl, .data$mukey, .data$hydricrating)
-  ssurgo_tbl <- summarize(ssurgo_tbl, hydric_pct = sum(.data$comppct.r))
-  ssurgo_tbl <- ungroup(ssurgo_tbl)
-  ssurgo <- full_join(ssurgo, ssurgo_tbl, by = "mukey")
+  hydric_tbl <- filter(ssurgo_tbl, .data$hydricrating == "Yes")
+  hydric_tbl <- group_by(hydric_tbl, .data$mukey, .data$hydricrating)
+  hydric_tbl <- summarize(hydric_tbl, hydric_pct = sum(.data$comppct.r))
+  hydric_tbl <- ungroup(hydric_tbl)
+  ssurgo <- full_join(ssurgo, hydric_tbl, by = "mukey")
+  ssurgo <- filter(ssurgo, .data$musym != "Ws")
   ssurgo <- select(ssurgo, .data$areasymbol, .data$spatialver, .data$musym,
                    .data$mukey, .data$hydricrating, .data$hydric_pct)
   ssurgo
@@ -365,4 +380,59 @@ nsink_prep_lakemorpho <- function(data_dir) {
     stop("The required data file does not exist.  Run nsink_get_data().")
   }
   as_tibble(lakemorpho)
+}
+
+
+#' Remove open water portions of the HUC
+#'
+#' Uses SSURGO polys and the SSURGO musym = Ws to check for and remove any
+#' portion of a HUC that is actually salt water.  This should account for the
+#' coastal HUCs with large areas of open water.
+#'
+#' @param huc_sf An sf object of the Watershed Boundaries Dataset HUC12
+#' @param data_dir Base directory that contains N-Sink data folders.  Data may
+#'                 be downloaded with the \code{\link{nsink_get_data}} function.
+#' @return returns a sf object of the HUC without salt water/open water area.
+#' @import dplyr sf
+#' @importFrom methods as
+#' @importFrom utils read.csv
+#' @importFrom rlang .data
+#' @keywords  internal
+nsink_remove_openwater <- function(huc_sf, data_dir){
+
+  huc12 <- unique(as.character(huc_sf$selected_huc))
+  if (file.exists(paste0(data_dir, "ssurgo/", huc12,"_SSURGO_Mapunits.shp"))) {
+
+    ssurgo <- st_read(paste0(data_dir, "ssurgo/", huc12,
+                             "_SSURGO_Mapunits.shp"), quiet = TRUE)
+    ssurgo_tbl <- read.csv(paste0(
+      data_dir, "ssurgo/", huc12,
+      "_SSURGO_mapunit.csv"
+    ))
+  } else if(file.exists(paste0(data_dir, "ssurgo/", huc12, "_ssurgo.gpkg"))){
+
+    suppressWarnings({
+      ssurgo <- st_read(paste0(data_dir, "ssurgo/", huc12, "_ssurgo.gpkg"),
+                        layer = "geometry", quiet = TRUE)
+      ssurgo_tbl <-
+        st_read(paste0(data_dir, "ssurgo/", huc12, "_ssurgo.gpkg"),
+                layer = "component", quiet = TRUE)
+    })
+
+  } else {
+    stop("The required data file does not exist.  Run nsink_get_data().")
+  }
+
+  ssurgo <- st_transform(ssurgo, st_crs(huc_sf))
+  ssurgo <- rename_all(ssurgo, tolower)
+  ssurgo <- mutate(ssurgo, mukey = as(.data$mukey, "character"))
+  ssurgo_tbl <- mutate(ssurgo_tbl, mukey = as(.data$mukey, "character"))
+  ssurgo <- full_join(ssurgo, ssurgo_tbl, by = "mukey")
+  saltwater <- filter(ssurgo, .data$musym == "Ws")
+  if(nrow(saltwater) > 0){
+    huc_ow_remove <- st_difference(st_union(huc_sf), st_union(saltwater))
+  } else {
+    huc_ow_remove <- huc_sf
+  }
+  st_as_sf(huc_ow_remove, data.frame(selected_huc = huc12))
 }
