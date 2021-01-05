@@ -35,8 +35,8 @@ nsink_generate_flowpath <- function(starting_location, input_data){
   }
 
   starting_location <- st_transform(starting_location, st_crs(input_data$fdr))
-  fp <- suppressWarnings(raster::flowPath(input_data$fdr, st_coordinates(starting_location)))
-  fp <- suppressWarnings(raster::xyFromCell(input_data$fdr, fp))
+  fp <- raster::flowPath(input_data$fdr, st_coordinates(starting_location))
+  fp <- raster::xyFromCell(input_data$fdr, fp)
   # Fixes cases with a single point flowpath: rare but annoying
   if(nrow(fp) == 1){
     dist <- units::set_units(1, "m")
@@ -90,14 +90,7 @@ nsink_get_flowpath_ends <- function(flowpath, streams, tot){
   streams <- filter(streams, !is.na(.data$tonode))
   streams <- st_difference(st_combine(streams), st_combine(flowpath))
   splits <- lwgeom::st_split(flowpath, st_combine(streams))
-  splits <- suppressWarnings(st_collection_extract(splits, "LINESTRING"))
-  #if(any(st_intersects(splits, streams, sparse = FALSE))){
-  #  idx <- min(which(st_intersects(splits, streams, sparse = FALSE)))
-  #} else { idx <- 1}
-  #front_ends <- st_union(splits[seq(from = 1, to = idx)])
-  #front_ends <- st_cast(front_ends, "LINESTRING")
-
-  #st_union(front_ends)
+  splits <- st_collection_extract(splits, "LINESTRING")
   ends <- splits[c(1,length(splits))]
   ends
 
@@ -161,7 +154,7 @@ nsink_get_flowline <- function(flowpath_ends, streams, tot){
   fp_flowlines <- slice(streams_tot, match(fl_comids, streams_tot$stream_comid))
   fp_flowlines <- st_snap(fp_flowlines, fp_end_pt, tolerance = tol1)
   fp_flowlines <- lwgeom::st_split(fp_flowlines, st_combine(fp_end_pt))
-  fp_flowlines <- suppressWarnings(st_collection_extract(fp_flowlines, "LINESTRING"))
+  fp_flowlines <- st_collection_extract(fp_flowlines, "LINESTRING")
   fp_flowlines <- filter(fp_flowlines, !st_overlaps(st_snap(fp_flowlines,
                                                             flowpath_ends[1,],
                                                             tol01),

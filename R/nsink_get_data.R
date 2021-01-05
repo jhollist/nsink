@@ -71,29 +71,25 @@ nsink_get_data <- function(huc, data_dir = normalizePath("nsink_data", winslash 
   huc_12 <- ungroup(huc_12)
 
   # Get impervious
-  # Suppressing proj.4 warnings from raster
   mrlc <- httr::GET("https://www.mrlc.gov")
   if(mrlc$status_code != 200){
     warning("The MRLC site does not appear to be available and the impervious surface and NLCD are not downloaded.  Try again later.")
   } else if(mrlc$status_code == 200){
     message("Getting Impervious Surface ...")
 
-    suppressWarnings({
     imp <- FedData::get_nlcd(
       template = as(huc_12, "Spatial"), dataset = "Impervious",
       label = huc, extraction.dir = paste0(data_dir, "imperv"),
       force.redo = force)
-    })
 
     # Get 2011 NLCD
-    # Suppressing proj.4 warnings from raster
     message("Getting NLCD ...")
-    suppressWarnings({
+
     nlcd <- FedData::get_nlcd(
       template = as(huc_12, "Spatial"), dataset = "Land_Cover",
       label = huc, extraction.dir = paste0(data_dir, "nlcd"),
       force.redo = force)
-    })
+
   }
 
   # Get SSURGO
@@ -113,7 +109,6 @@ nsink_get_data <- function(huc, data_dir = normalizePath("nsink_data", winslash 
     while(is.logical(repeat_it) & count <= 9) {
       count <- count + 1
       repeat_it <- tryCatch(
-        suppressWarnings({
           suppressMessages(
           ssurgo <- FedData::get_ssurgo(as(huc_12, "Spatial"),
           label = huc,
@@ -121,7 +116,6 @@ nsink_get_data <- function(huc, data_dir = normalizePath("nsink_data", winslash 
           raw.dir = paste0(data_dir, "ssurgo"),
           force.redo = force
         ))
-        })
       ,
         error = function(e) TRUE
       )

@@ -91,21 +91,15 @@ nsink_build <- function(huc, projection,
 
   # Generate the static maps
   message("Creating static maps...")
-  # Raster/proj warning coming from somewhere, but could not locate, so
-  # suppressing here.
-  nsink_static_maps <- suppressWarnings(nsink_generate_static_maps(
-    input_data = nsink_prepped_data, removal = nsink_removal, samp_dens = samp_dens
-  ))
+  nsink_static_maps <- nsink_generate_static_maps(input_data = nsink_prepped_data,
+                                                  removal = nsink_removal,
+                                                  samp_dens = samp_dens)
 
   # Write everything out to a folder
   message("Writing files...")
-  # More raster/proj warning suppression...
-  suppressWarnings({
-    nsink_write_prepped_data(nsink_prepped_data, output_folder)
-    save(nsink_removal, file=paste0(output_folder, "removal.rda"), compress = "xz")
-    nsink_write_static_maps(nsink_static_maps, output_folder)
-  })
-
+  nsink_write_prepped_data(nsink_prepped_data, output_folder)
+  save(nsink_removal, file=paste0(output_folder, "removal.rda"), compress = "xz")
+  nsink_write_static_maps(nsink_static_maps, output_folder)
 }
 
 #' Write prepped data to files

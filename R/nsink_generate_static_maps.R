@@ -34,38 +34,24 @@
 nsink_generate_static_maps <- function(input_data, removal, samp_dens,
                                        ncpu = future::availableCores() - 1,
                                        seed = 23) {
-
-  # Suppressing warnings from raster due to proj
-  suppressWarnings({
   # Create static rasters
   message("Creating removal efficiency map...")
   removal_map <- removal$raster_method[["layer.1"]]
   message("Creating the loading index map...")
   n_load_idx <- nsink_generate_n_loading_index(input_data)
-  message("Creating the transport and delivery index maps...")})
+  message("Creating the transport and delivery index maps...")
   n_delivery_heat <- 100 - nsink_generate_n_removal_heatmap(input_data,
     removal, samp_dens,
     ncpu = ncpu, seed
   )
-  suppressWarnings({
-  n_delivery_heat <- raster::projectRaster(
-    n_delivery_heat,
-    input_data$raster_template
-  )
-  n_load_idx <- raster::projectRaster(n_load_idx, input_data$raster_template,
-    method = "ngb"
-  )
-  n_delivery_heat <- raster::projectRaster(n_delivery_heat, input_data$raster_template,
-    method = "ngb"
-  )
+  n_load_idx <- raster::resample(n_load_idx, input_data$raster_template,
+                                 method = "ngb")
+  n_delivery_heat <- raster::resample(n_delivery_heat, input_data$raster_template,
+                                      method = "ngb")
   n_delivery_index <- n_load_idx * n_delivery_heat
-
-
   static_maps <- lapply(list(removal_effic = removal_map, loading_idx = n_load_idx,
               transport_idx = n_delivery_heat,delivery_idx = n_delivery_index),
          function(x) signif(x, 3))
-  })
-
   static_maps
 }
 
@@ -82,7 +68,7 @@ nsink_generate_n_loading_index <- function(input_data) {
     n_load_idx_lookup$codes,
     n_load_idx_lookup$n_loading_index
   ), ncol = 2)
-  suppressWarnings(raster::reclassify(nlcd, rcl_m))
+  raster::reclassify(nlcd, rcl_m)
 }
 
 #' Generate Nitrogen Removal Heatmap
@@ -117,12 +103,13 @@ nsink_generate_n_removal_heatmap <- function(input_data, removal, samp_dens,
 
   set.seed(seed)
   num_pts <- as.numeric(round(st_area(input_data$huc) / (samp_dens * samp_dens)))
+  num_pts <- sum(num_pts)
   sample_pts <- st_sample(input_data$huc, num_pts, type = "regular")
-  fdr_check <- suppressWarnings({extract(input_data$fdr, as(sample_pts, "Spatial"))})
+  fdr_check <- extract(input_data$fdr, as(sample_pts, "Spatial"))
 
   if(any(is.na(fdr_check))){
     sample_pts <- sample_pts[!is.na(fdr_check),]
-    warning("There may be an issue with the flow direction grid as NA values are present inside of the HUC.  Check your flow direction grid.  Static maps were still generated.")
+    message("Note: NA values detected in flow direction grid.  Static maps still generated.")
   }
 
   # for fewer points, the interp sample is done serially
@@ -138,8 +125,6 @@ nsink_generate_n_removal_heatmap <- function(input_data, removal, samp_dens,
       setTxtProgressBar(pb, i)
       pt <- sample_pts[i,]
       pt <- st_sf(st_sfc(pt, crs = st_crs(input_data$huc)))
-      # suppress proj4 warnings
-      suppressWarnings({
       fp <- nsink_generate_flowpath(pt, input_data)
       if(any(st_within(fp$flowpath_ends, input_data$huc, sparse = FALSE))){
         fp_summary <- nsink_summarize_flowpath(fp, removal)
@@ -147,7 +132,6 @@ nsink_generate_n_removal_heatmap <- function(input_data, removal, samp_dens,
       } else {
         xdf <- rbind(xdf, data.frame(fp_removal = NA))
       }
-      })
     }
     close(pb)
 
@@ -156,8 +140,6 @@ nsink_generate_n_removal_heatmap <- function(input_data, removal, samp_dens,
 
   } else {
     fp_removal <- function(pt, input_data, removal) {
-      # suppress proj4 warnings
-      suppressWarnings({
       pt <- st_sf(st_sfc(pt, crs = st_crs(input_data$huc)))
       fp <- nsink_generate_flowpath(pt, input_data)
       if(any(st_within(fp$flowpath_ends, input_data$huc, sparse = FALSE))){
@@ -166,10 +148,10 @@ nsink_generate_n_removal_heatmap <- function(input_data, removal, samp_dens,
       } else {
         return(data.frame(fp_removal = NA))
       }
-      })
     }
 
     future::plan(future::multiprocess, workers = ncpu)
+
     sample_pts_removal <- st_sf(sample_pts,
       data = furrr::future_map_dfr(
         sample_pts,
@@ -178,42 +160,33 @@ nsink_generate_n_removal_heatmap <- function(input_data, removal, samp_dens,
             x, input_data,
             removal
           )
-        }, .progress = TRUE)
+        }, .progress = TRUE, .options = furrr_options(seed = TRUE))
     )
   }
   sample_pts_removal <- dplyr::filter(sample_pts_removal, !is.na(.data$fp_removal))
   message("\n Interpolating sampled flowpaths...")
   # Interp each poly separately
-
-  huc_polygon <- suppressWarnings(st_cast(input_data$huc, "POLYGON"))
+  st_agr(input_data$huc) <- "constant"
+  huc_polygon <- st_cast(input_data$huc, "POLYGON")
 
   for(i in 1:nrow(huc_polygon)){
     num_pts <- round(units::set_units(st_area(huc_polygon[i,]), "m^2") / (30 * 30))
-    interp_points <- suppressWarnings(as(
-      st_sample(huc_polygon[i,], as.numeric(num_pts), type = "regular"),
-      "Spatial"
-    ))
+    interp_points <- st_sample(huc_polygon[i,], as.numeric(num_pts),
+                               type = "regular")
 
     #subset sample_pts_removal
     sample_pts_removal_huc_poly <- sample_pts_removal[st_intersects(sample_pts_removal,
                                                  huc_polygon[i,], sparse = FALSE),]
 
-    #Suppressing warnings from raster/proj
     if(nrow(sample_pts_removal_huc_poly)>= 2){
-      suppressWarnings({
-      interp_points <- sp::SpatialPixels(interp_points)
       interpolated_pts <- gstat::idw(fp_removal ~ 1,
-        as(sample_pts_removal_huc_poly, "Spatial"),
-        interp_points,
-        nmin = 2, nmax = 10,
-        idp = 0.5, debug.level = 0
-      )
-      #assign(paste0("interpolated_points",i), interpolated_pts)
-      assign(paste0("idw", i), raster::projectRaster(raster::raster(interpolated_pts),
-                                                     input_data$raster_template))
-      })
+                                     sample_pts_removal_huc_poly, interp_points,
+                                     nmin = 2, nmax = 10,
+                                     idp = 0.5, debug.level = 0)
+      assign(paste0("idw", i),
+             raster::resample(as(st_rasterize(interpolated_pts), "Raster"),
+                              input_data$raster_template))
     }
-
   }
 
   idw_list <- lapply(ls(pattern = "idw"), function(x) get(x))

@@ -14,7 +14,7 @@ get_nhd_plus <- function(download_url,
       overwrite = TRUE, httr::progress()
     )
   } else {
-    message("File, ", basename(download_url), " already downloaded. \nTo force another download of the file, set the force argument to TRUE. \n")
+    message(basename(download_url), " already downloaded. To download again, set force = TRUE.")
   }
 }
 
@@ -120,8 +120,8 @@ nsink_run_7z <- function(zipfile, destdir, extract_again = FALSE) {
   if (!dir.exists(destdir) | extract_again) {
     system(paste0(path_7z, " e ", shQuote(zipfile), " -bso0 -bsp0 -aos -o", shQuote(destdir)))
   } else {
-    message(paste0("It appears you have already extracted ", zipfile,
-                   "\nIf you would like to force another extraction, set force = TRUE."))
+    message(paste0(basename(zipfile),
+                   " is already extracted. To extract again, set force = TRUE."))
   }
 }
 

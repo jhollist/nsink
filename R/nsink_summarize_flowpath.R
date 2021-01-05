@@ -38,22 +38,24 @@ nsink_summarize_flowpath <- function(flowpath, removal) {
 
 
   # Off Network based removal in flowpath ends
-
-  # Suppressing sf warnings
-  suppressWarnings({
   type_poly <- st_cast(removal$land_off_network_removal_type, "POLYGON")
   type_poly <- mutate(type_poly, type_id = paste0("type_", seq_along(.data$layer)))
+  st_agr(type_poly) <- "constant"
   removal_poly <- st_cast(removal$land_off_network_removal, "POLYGON")
   removal_poly <- mutate(removal_poly, remove_id = paste0("remove_",
                                                            seq_along(.data$layer)))
+  st_agr(removal_poly) <- "constant"
   land_off_network_removal <- st_intersection(flowpath$flowpath_ends[1,],
                                               type_poly)
+  st_agr(land_off_network_removal) <- "constant"
   land_off_network_removal <- st_intersection(removal_poly,
                                               land_off_network_removal)
-  land_off_network_removal <- st_collection_extract(land_off_network_removal,
-                                                    "LINESTRING")
+  if(!all(st_is(land_off_network_removal, "LINESTRING"))){
+    land_off_network_removal <- st_collection_extract(land_off_network_removal,
+                                                      "LINESTRING")
+  }
+  st_agr(land_off_network_removal) <- "constant"
   land_off_network_removal <- st_cast(land_off_network_removal, "LINESTRING")
-  })
   land_off_network_removal <- mutate(land_off_network_removal,
                                      edge_id = c(1:n()))
 

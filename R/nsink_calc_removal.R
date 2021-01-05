@@ -117,18 +117,13 @@ nsink_calc_removal <- function(input_data,off_network_lakes = NULL,
       raster_template = removal$raster_template,
       huc = input_data$huc
     ))
-
-    # Suppressing warning from raster on proj
-    land_off_network_removal_r <- suppressWarnings(raster::merge(removal$off_network_removal_r,
-                  removal$land_removal_r))
+    land_off_network_removal_r <- raster::merge(removal$off_network_removal_r,
+                                                removal$land_removal_r)
 
     # Very ugly way to handle off network types that may or may not exist.
-
     lakesl <- any(class(removal$off_network_lakes_v) == "sf")
     streamsl <- any(class(removal$off_network_streams_v) == "sf")
     canal_ditchl <- any(class(removal$off_network_canal_ditch_v) == "sf")
-    # Suppressing warning from raster on proj
-    suppressWarnings({
     if(lakesl & streamsl & canal_ditchl){
       land_off_network_removal_type_r <- raster::merge(
         fasterize::fasterize(removal$off_network_lakes_v,
@@ -196,34 +191,20 @@ nsink_calc_removal <- function(input_data,off_network_lakes = NULL,
         land_off_network_removal_type_r <- fasterize::fasterize(removal$land_removal_v,
                                input_data$raster_template, field = "segment_type",
                                background = NA, fun = "max")
-      }})
+      }
 
-
-
-    land_off_network_removal_v <- st_as_sf(
-      st_as_stars(land_off_network_removal_r), as_points = FALSE, merge = TRUE)
+    land_off_network_removal_v <- st_as_sf(st_as_stars(land_off_network_removal_r),
+                                           as_points = FALSE, merge = TRUE)
     land_off_network_removal_v <- st_make_valid(land_off_network_removal_v)
-    #land_off_network_removal_v <- st_as_sf(raster::rasterToPolygons(land_off_network_removal_r,
-    #                                                                dissolve = TRUE))
     land_off_network_removal_type_v <- st_as_sf(
       st_as_stars(land_off_network_removal_type_r),
       as_points = FALSE, merge = TRUE)
     land_off_network_removal_type_v <- st_make_valid(land_off_network_removal_type_v)
-    #land_off_network_removal_type_v <- st_as_sf(raster::rasterToPolygons(land_off_network_removal_type_r,
-    #                                                                     dissolve = TRUE))
-    # Supressing warnings from raster on proj
-    suppressWarnings({
-    return(list(
-      raster_method = raster::stack(merged_removal, merged_type),
-      #land_removal = removal$land_removal_v, # May not need these separately
-      #off_network_removal = removal$off_network_removal_v,  # May not need these separately
-      land_off_network_removal = land_off_network_removal_v,
-      land_off_network_removal_type = land_off_network_removal_type_v,
-      network_removal = rbind(
-        removal$stream_removal_v,
-        removal$lake_removal_v
-      )
-    ))})
+    return(list(raster_method = raster::stack(merged_removal, merged_type),
+                land_off_network_removal = land_off_network_removal_v,
+                land_off_network_removal_type = land_off_network_removal_type_v,
+                network_removal = rbind(removal$stream_removal_v,
+                                        removal$lake_removal_v)))
   } else {
     stop("The input data do not contain the expected data.  Check the object and
          re-run with nsink_prep_data().")
@@ -333,12 +314,10 @@ nsink_calc_off_network_removal <- function(input_data, off_network_lakes,
       off_network_streams_sf <- transmute(off_network_streams_sf, n_removal =
                                       med_removal_1st_order,
                                       segment_type = 5)
-      # Suppressing warnings from raster on proj
-
-      off_network_streams_r <- suppressWarnings(rasterize(off_network_streams_sf,
+      off_network_streams_r <- rasterize(off_network_streams_sf,
                                          input_data$raster_template,
                                          field = "n_removal",
-                                         background = NA, fun = "max"))
+                                         background = NA, fun = "max")
     } else {
       off_network_streams_r <- input_data$raster_template
     }
@@ -380,11 +359,10 @@ nsink_calc_off_network_removal <- function(input_data, off_network_lakes,
       off_network_canal_ditch_sf <- transmute(off_network_canal_ditch_sf,
                                         n_removal = low_quart_removal_high_order,
                                         segment_type = 6)
-      # Suppressing warnings from rater on proj
-      off_network_canal_ditch_r <- suppressWarnings(rasterize(off_network_canal_ditch_sf,
+      off_network_canal_ditch_r <- rasterize(off_network_canal_ditch_sf,
                                            input_data$raster_template,
                                            field = "n_removal",
-                                           background = NA, fun = "max"))
+                                           background = NA, fun = "max")
 
     } else {
       off_network_canal_ditch_r <- input_data$raster_template
@@ -421,11 +399,10 @@ nsink_calc_off_network_removal <- function(input_data, off_network_lakes,
       off_network_lakes_sf <- transmute(off_network_lakes_sf,
                                      n_removal = third_quart_lake_removal,
                                      segment_type = 4)
-      # Suppressing warnings on proj from fasterize
-      off_network_lakes_r <- suppressWarnings(fasterize::fasterize(off_network_lakes_sf,
+      off_network_lakes_r <- fasterize::fasterize(off_network_lakes_sf,
                                                input_data$raster_template,
                                                field = "n_removal",
-                                               background = NA, fun = "max"))
+                                               background = NA, fun = "max")
 
     } else {
       off_network_lakes_r <- input_data$raster_template
@@ -440,20 +417,16 @@ nsink_calc_off_network_removal <- function(input_data, off_network_lakes,
   }
 
   # Create raster
-  # Suppress warnings from raster on proj
-  off_network_removal_r <- suppressWarnings(raster::merge(off_network_lakes_r,
+  off_network_removal_r <- raster::merge(off_network_lakes_r,
                                          off_network_streams_r,
-                                         off_network_canal_ditch_r))
+                                         off_network_canal_ditch_r)
 
   if(!exists("off_network_lakes_sf")){off_network_lakes_sf <- NA}
   if(!exists("off_network_streams_sf")){off_network_streams_sf <- NA}
   if(!exists("off_network_canal_ditch_sf")){off_network_canal_ditch_sf <- NA}
-  # Suppress warnings from raster on proj
-  off_network_removal_v <- st_as_sf(
-    st_as_stars(off_network_removal_r), as_points = FALSE, merge = TRUE)
+  off_network_removal_v <- st_as_sf(st_as_stars(off_network_removal_r),
+                                    as_points = FALSE, merge = TRUE)
   off_network_removal_v <- st_make_valid(off_network_removal_v)
-  #off_network_removal_v = suppressWarnings(st_as_sf(raster::rasterToPolygons(
-  #off_network_removal_r, dissolve = TRUE)))
   list(off_network_removal_r = off_network_removal_r,
        off_network_removal_v = off_network_removal_v,
        off_network_lakes_v = off_network_lakes_sf,
@@ -482,8 +455,6 @@ nsink_calc_land_removal <- function(input_data) {
   land_removal <- group_by(land_removal, .data$hydric_pct)
   land_removal <- summarize(land_removal, n_removal = unique(.data$n_removal))
   land_removal <- ungroup(land_removal)
-  # Suppressing warnings because proj4 warnings
-  suppressWarnings({
   land_removal_rast <- raster::rasterize(land_removal,
     input_data$raster_template,
     field = "n_removal", background = 0,
@@ -496,9 +467,6 @@ nsink_calc_land_removal <- function(input_data) {
 
   land_removal_v <- st_as_sf(st_as_stars(imp_land_removal), as_points = FALSE,
                              merge = TRUE)
-  #land_removal_v <- st_as_sf(raster::rasterToPolygons(imp_land_removal,
-  #                                                  dissolve = TRUE))
-  })
   land_removal_v <- mutate(land_removal_v, segment_type =
                              case_when(layer > 0 ~ 1,
                                        TRUE ~ 0))
@@ -522,14 +490,12 @@ nsink_calc_stream_removal <- function(input_data) {
 
   stream_removal <- mutate_if(input_data$streams, is.factor, as.character())
   #stream_removal <- filter(stream_removal, flowdir != "Uninitialized")
-  stream_removal <- suppressMessages(left_join(stream_removal,
-    input_data$q,
-    by = c("stream_comid" = "stream_comid")
-  ))
-  stream_removal <- suppressMessages(left_join(stream_removal,
-    input_data$tot,
-    by = c("stream_comid" = "stream_comid")
-  ))
+  stream_removal <- suppressMessages(left_join(stream_removal, input_data$q,
+                                               by = c("stream_comid" =
+                                                        "stream_comid")))
+  stream_removal <- suppressMessages(left_join(stream_removal,input_data$tot,
+                                               by = c("stream_comid" =
+                                                        "stream_comid")))
   stream_removal <- filter(stream_removal, .data$ftype != "ArtificialPath")
   stream_removal <- mutate(stream_removal, totma = case_when(
     .data$totma == -9999 ~ NA_real_,
@@ -562,7 +528,8 @@ nsink_calc_stream_removal <- function(input_data) {
   stream_removal_missing <- left_join(stream_removal_missing,
                                       stream_removal_stats,
                                       by = "stream_order")
-  stream_removal_missing <- mutate(stream_removal_missing, n_removal = .data$median_removal)
+  stream_removal_missing <- mutate(stream_removal_missing,
+                                   n_removal = .data$median_removal)
   # Deals with cases when missing streams do not have matching stream order
   # For example if higher order streams are the missing ones, then possible to
   # have no other streams of that order to calc stats
@@ -575,13 +542,13 @@ nsink_calc_stream_removal <- function(input_data) {
   stream_removal <- arrange(stream_removal, .data$order)
   stream_removal <- select(stream_removal, -.data$order)
   stream_removal <- filter(stream_removal, !is.na(.data$n_removal))
-  # Suppressing warnings from raster on proj
   stream_removal_r <- stars::st_rasterize(stream_removal["n_removal"],
                                           st_as_stars(input_data$raster_template))
-  stream_removal_r <- suppressWarnings(as(stream_removal_r, "Raster"))
+  stream_removal_r <- as(stream_removal_r, "Raster")
   list(stream_removal_r = stream_removal_r,
-       stream_removal_v = select(stream_removal, .data$stream_comid, .data$lake_comid,
-                                 .data$gnis_name, .data$ftype, .data$n_removal))
+       stream_removal_v = select(stream_removal, .data$stream_comid,
+                                 .data$lake_comid, .data$gnis_name, .data$ftype,
+                                 .data$n_removal))
 }
 
 #' Calculates lake-based nitrogen removal
@@ -692,10 +659,9 @@ nsink_calc_lake_removal <- function(input_data) {
 
   st_geometry(lake_removal) <- NULL
   lake_removal_flowpath <- suppressMessages(left_join(residence_time_sf, lake_removal))
-  # Supressing proj warnings from fasterize
-  lake_removal_r <- suppressWarnings(fasterize::fasterize(lake_removal_sf,
-                                         input_data$raster_template,
-                                         field = "n_removal", fun = "max"))
+  lake_removal_r <-fasterize::fasterize(lake_removal_sf,
+                                        input_data$raster_template,
+                                        field = "n_removal", fun = "max")
   comids <- select(input_data$streams, .data$stream_comid, .data$lake_comid)
   st_geometry(comids) <- NULL
   lake_removal_flowpath <- suppressMessages(left_join(lake_removal_flowpath,
@@ -714,9 +680,6 @@ nsink_calc_lake_removal <- function(input_data) {
 #' @return raster of landscape nitrogen removal
 #' @keywords internal
 nsink_merge_removal <- function(removal_rasters) {
-
-  # Supressing warnings from raster on proj
-  suppressWarnings({
   if(is.null(removal_rasters$lake_removal)){
     land_removal <- NULL
   } else {
@@ -740,10 +703,9 @@ nsink_merge_removal <- function(removal_rasters) {
   removal <- raster::mask(removal, as(removal_rasters$huc, "Spatial"))
   removal[is.na(removal)] <- 0
   removal <- raster::focal(removal, matrix(1, nrow = 3, ncol = 3), max)
-  removal <- raster::projectRaster(removal, removal_rasters$raster_template,
-                                   method = "ngb")
+  #removal <- raster::projectRaster(removal, removal_rasters$raster_template,
+  #                                 method = "ngb")
   removal <- raster::merge(removal_rasters$stream_removal, removal)
-  })
   removal
 }
 
@@ -773,10 +735,7 @@ nsink_calc_removal_type <- function(removal_rasters) {
         val <- raster::getValues(removal_rast)
         val[!is.na(val)] <- 4
       }
-      # Suppress warnings from raster on proj
-      suppressWarnings({
       raster::setValues(removal_rast, val)
-      })
     } else {
       NULL
     }
@@ -785,8 +744,8 @@ nsink_calc_removal_type <- function(removal_rasters) {
   hydric_type <- type_it(removal_rasters$land_removal, "hydric")
   stream_type <- type_it(removal_rasters$stream_removal, "stream")
   lake_type <- type_it(removal_rasters$lake_removal, "lake")
-  off_network_type <- type_it(removal_rasters$off_network_removal, "off_network")
-  suppressWarnings({
+  off_network_type <- type_it(removal_rasters$off_network_removal,
+                              "off_network")
   if(!is.null(lake_type)){
     types <- raster::merge(lake_type, off_network_type, hydric_type)
   } else {
@@ -795,9 +754,8 @@ nsink_calc_removal_type <- function(removal_rasters) {
   types <- raster::mask(types, removal_rasters$huc)
   types[is.na(types)] <- 0
   types <- raster::focal(types, matrix(1, nrow = 3, ncol = 3), max)
-  types <- raster::projectRaster(types, removal_rasters$raster_template,
-                                 method = "ngb")
+  #types <- raster::projectRaster(types, removal_rasters$raster_template,
+  #                               method = "ngb")
   types <- raster::merge(stream_type, types)
-  })
   types
 }
