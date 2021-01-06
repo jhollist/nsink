@@ -8,7 +8,7 @@
 #'
 #' @param huc A character string of the HUC12 ID.  Use
 #'            \code{\link{nsink_get_huc_id}} to look up ID by name.
-#' @param projection EPSG code as an numeric or proj4 string as a character.
+#' @param projection EPSG code as an numeric or WKT as a character.
 #'                   This much be a projected CRS and not geographic as many of
 #'                   the measurements required for the nsink analysis require
 #'                   reliable length and area measurments.
@@ -23,8 +23,7 @@
 #' @examples
 #' \dontrun{
 #' library(nsink)
-#' aea <- "+proj=aea +lat_0=23 +lon_0=-96 +lat_1=29.5 +lat_2=45.5 +x_0=0 +y_0=0
-#' +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
+#' aea <- 5072
 #' niantic_huc <- nsink_get_huc_id("Niantic River")$huc_12
 #' niantic_nsink_data <- nsink_prep_data(huc = niantic_huc, projection = aea,
 #' data_dir = "nsink_data")
