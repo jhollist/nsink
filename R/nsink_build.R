@@ -11,8 +11,8 @@
 #'
 #' @param huc A character with the 12 digit HUC ID.  Maybe searched with
 #'            \code{\link{nsink_get_huc_id}}
-#' @param projection Projection to use for all spatial data, passed as a PROJ
-#'                   string
+#' @param projection Projection to use for all spatial data, passed as either an
+#'                   EPSG code (as numeric) or WKT as string.
 #' @param output_folder Folder to store downloaded data (if not in a separate
 #'                      data folder) and write out processed nsink files.
 #'                      Currently, the processed files will be overwritten if
@@ -37,8 +37,7 @@
 #' @examples
 #' \dontrun{
 #' library(nsink)
-#' aea <- "+proj=aea +lat_0=23 +lon_0=-96 +lat_1=29.5 +lat_2=45.5 +x_0=0 +y_0=0
-#' +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
+#' aea <- 5072
 #' nsink_build(nsink_get_huc_id("Niantic River")$huc_12, aea,
 #'             output_folder = "nsink_output", data_dir = "nsink_data",
 #'              samp_dens = 600)
@@ -91,21 +90,15 @@ nsink_build <- function(huc, projection,
 
   # Generate the static maps
   message("Creating static maps...")
-  # Raster/proj warning coming from somewhere, but could not locate, so
-  # suppressing here.
-  nsink_static_maps <- suppressWarnings(nsink_generate_static_maps(
-    input_data = nsink_prepped_data, removal = nsink_removal, samp_dens = samp_dens
-  ))
+  nsink_static_maps <- nsink_generate_static_maps(input_data = nsink_prepped_data,
+                                                  removal = nsink_removal,
+                                                  samp_dens = samp_dens)
 
   # Write everything out to a folder
   message("Writing files...")
-  # More raster/proj warning suppression...
-  suppressWarnings({
-    nsink_write_prepped_data(nsink_prepped_data, output_folder)
-    save(nsink_removal, file=paste0(output_folder, "removal.rda"), compress = "xz")
-    nsink_write_static_maps(nsink_static_maps, output_folder)
-  })
-
+  nsink_write_prepped_data(nsink_prepped_data, output_folder)
+  save(nsink_removal, file=paste0(output_folder, "removal.rda"), compress = "xz")
+  nsink_write_static_maps(nsink_static_maps, output_folder)
 }
 
 #' Write prepped data to files

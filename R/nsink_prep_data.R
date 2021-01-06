@@ -8,7 +8,7 @@
 #'
 #' @param huc A character string of the HUC12 ID.  Use
 #'            \code{\link{nsink_get_huc_id}} to look up ID by name.
-#' @param projection EPSG code as an numeric or proj4 string as a character.
+#' @param projection EPSG code as an numeric or WKT as a character.
 #'                   This much be a projected CRS and not geographic as many of
 #'                   the measurements required for the nsink analysis require
 #'                   reliable length and area measurments.
@@ -23,8 +23,7 @@
 #' @examples
 #' \dontrun{
 #' library(nsink)
-#' aea <- "+proj=aea +lat_0=23 +lon_0=-96 +lat_1=29.5 +lat_2=45.5 +x_0=0 +y_0=0
-#' +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
+#' aea <- 5072
 #' niantic_huc <- nsink_get_huc_id("Niantic River")$huc_12
 #' niantic_nsink_data <- nsink_prep_data(huc = niantic_huc, projection = aea,
 #' data_dir = "nsink_data")
@@ -50,19 +49,14 @@ nsink_prep_data <- function(huc, projection,
     huc_sf <- summarize(huc_sf, selected_huc = unique(.data$selected_huc))
     huc_sf <- ungroup(huc_sf)
     huc_sf <- st_transform(huc_sf, crs = projection)
-
-
     # Use SSURGO to pull out salt water ssurgo poly's
-    #browser()
-    #huc_no_open_water <- nsink_remove_openwater(huc_sf, data_dir)
     huc_sf <- nsink_remove_openwater(huc_sf, data_dir)
-
-        # Suppressing warnings from raster/fasterize use of proj4strings
     res <- units::set_units(30, "m")
-    res <- units::set_units(res, st_crs(huc_sf, parameters = TRUE)$ud_unit, mode = "standard")
-    huc_raster <- suppressWarnings(raster::raster(as(huc_sf, "Spatial"),
+    res <- units::set_units(res, st_crs(huc_sf, parameters = TRUE)$ud_unit,
+                            mode = "standard")
+    huc_raster <- raster::raster(as(huc_sf, "Spatial"),
                                                      resolution = as.numeric(res),
-                                                     crs = projection(huc_sf)))
+                                                     crs = projection(huc_sf))
 
     list(
       streams = nsink_prep_streams(huc_sf, data_dir),
@@ -108,9 +102,10 @@ nsink_prep_streams <- function(huc_sf, data_dir) {
       stream_comid = .data$comid,
       lake_comid = .data$wbareacomi
     )
+    streams <- select(streams, -.data$lengthkm, -.data$shape_leng)
     streams <- slice(streams, st_contains(huc_sf, streams)[[1]])
-    # Suppressing warning on spatially constant attributes
-    streams <- suppressWarnings(st_crop(streams, st_bbox(huc_sf)))
+    st_agr(streams) <- "constant"
+    streams <- st_crop(streams, st_bbox(huc_sf))
     streams <- mutate_if(streams, is.factor, as.character())
     # Remove coastline
     streams <- filter(streams, .data$ftype != "Coastline")
@@ -163,14 +158,10 @@ nsink_prep_fdr <- function(huc_sf, huc_raster, data_dir) {
 
   if (dir.exists(paste0(data_dir, "fdr"))) {
     message("Preparing flow direction...")
-    # Suppressing warnings from rasters use of proj 4
-    suppressWarnings({
     fdr <- raster::raster(paste0(data_dir, "fdr"))
-    #fdr <-raster::projectRaster(fdr, huc_raster, method = "ngb")
     huc_sf <- st_transform(huc_sf, st_crs(fdr))
     fdr <- raster::crop(fdr, as(huc_sf, "Spatial"))
     fdr <- raster::mask(fdr, as(huc_sf, "Spatial"))
-    })
   } else {
     stop("The required data file does not exist.  Run nsink_get_data().")
   }
@@ -188,8 +179,6 @@ nsink_prep_fdr <- function(huc_sf, huc_raster, data_dir) {
 #' @return returns a raster object of the impervious cover for the huc_sf
 #' @keywords  internal
 nsink_prep_impervious <- function(huc_sf, huc_raster, data_dir) {
-  # Suppressing warnings from raster's use of proj 4
-
   huc12 <- unique(as.character(huc_sf$selected_huc))
   file <- list.files(paste0(data_dir, "imperv/"), pattern = ".tif")
   if (any(grepl("NLCD_2016_Impervious_L48", file))){
@@ -198,9 +187,8 @@ nsink_prep_impervious <- function(huc_sf, huc_raster, data_dir) {
     if(length(file)>1){
       file <- file[grepl(paste0("^",huc12,"_"),file)]
     }
-    impervious <- suppressWarnings(raster::raster(paste0(data_dir, "imperv/", file)))
-
-    impervious <- suppressWarnings(raster::projectRaster(impervious, huc_raster))
+    impervious <- raster::raster(paste0(data_dir, "imperv/", file))
+    impervious <- raster::projectRaster(impervious, huc_raster)
   } else {
     stop("The required data file does not exist.  Run nsink_get_data().")
   }
@@ -225,10 +213,8 @@ nsink_prep_nlcd <- function(huc_sf, huc_raster, data_dir) {
     if(length(file)>1){
       file <- file[grepl(paste0("^",huc12,"_"),file)]
     }
-    nlcd <- suppressWarnings(raster::raster(paste0(data_dir, "nlcd/", file)))
-    # Suppressing warnings from raster's use of proj 4
-    nlcd <- suppressWarnings(raster::projectRaster(nlcd, huc_raster,
-                                                   method = "ngb"))
+    nlcd <- raster::raster(paste0(data_dir, "nlcd/", file))
+    nlcd <- raster::projectRaster(nlcd, huc_raster,method = "ngb")
   } else {
     stop("The required data file does not exist.  Run nsink_get_data().")
   }
@@ -263,14 +249,10 @@ nsink_prep_ssurgo <- function(huc_sf, data_dir) {
     ))
   } else if(file.exists(paste0(data_dir, "ssurgo/", huc12, "_ssurgo.gpkg"))){
     message("Preparing SSURGO...")
-    suppressWarnings({
     ssurgo <- st_read(paste0(data_dir, "ssurgo/", huc12, "_ssurgo.gpkg"),
                       layer = "geometry", quiet = TRUE)
-    ssurgo_tbl <-
-      st_read(paste0(data_dir, "ssurgo/", huc12, "_ssurgo.gpkg"),
-              layer = "component", quiet = TRUE)
-    })
-
+    ssurgo_tbl <- st_read(paste0(data_dir, "ssurgo/", huc12, "_ssurgo.gpkg"),
+                          layer = "component", quiet = TRUE)
   } else {
     stop("The required data file does not exist.  Run nsink_get_data().")
   }
@@ -410,15 +392,11 @@ nsink_remove_openwater <- function(huc_sf, data_dir){
       "_SSURGO_mapunit.csv"
     ))
   } else if(file.exists(paste0(data_dir, "ssurgo/", huc12, "_ssurgo.gpkg"))){
-
-    suppressWarnings({
       ssurgo <- st_read(paste0(data_dir, "ssurgo/", huc12, "_ssurgo.gpkg"),
                         layer = "geometry", quiet = TRUE)
       ssurgo_tbl <-
         st_read(paste0(data_dir, "ssurgo/", huc12, "_ssurgo.gpkg"),
                 layer = "component", quiet = TRUE)
-    })
-
   } else {
     stop("The required data file does not exist.  Run nsink_get_data().")
   }
@@ -430,7 +408,18 @@ nsink_remove_openwater <- function(huc_sf, data_dir){
   ssurgo <- full_join(ssurgo, ssurgo_tbl, by = "mukey")
   saltwater <- filter(ssurgo, .data$musym == "Ws")
   if(nrow(saltwater) > 0){
-    huc_ow_remove <- st_difference(st_union(huc_sf), st_union(saltwater))
+    huc_unit <- st_crs(huc_sf, parameters = TRUE)$ud_unit
+    tol1 <- units::set_units(2, "m")
+    tol1 <- units::set_units(tol1, huc_unit,
+                             mode = "standard")
+    pixel_area <- units::set_units(900, "m2")
+    pixel_area <- units::set_units(pixel_area,
+                                   huc_unit*huc_unit,
+                                   mode = "standard")
+    saltwater_buff <- st_buffer(saltwater, tol1)
+    huc_ow_remove <- st_difference(st_union(huc_sf), st_union(saltwater_buff))
+    huc_ow_remove <- st_cast(huc_ow_remove, "POLYGON")
+    huc_ow_remove <- huc_ow_remove[st_area(huc_ow_remove) > pixel_area,]
   } else {
     huc_ow_remove <- huc_sf
   }

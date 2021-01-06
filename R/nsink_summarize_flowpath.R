@@ -23,8 +23,7 @@
 #' library(nsink)
 #' niantic_huc <- nsink_get_huc_id("Niantic River")$huc_12
 #' niantic_data <- nsink_get_data(niantic_huc, data_dir = "nsink_data")
-#' aea <- "+proj=aea +lat_0=23 +lon_0=-96 +lat_1=29.5 +lat_2=45.5 +x_0=0 +y_0=0
-#' +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
+#' aea <- 5072
 #' niantic_nsink_data <- nsink_prep_data(niantic_huc, projection = aea,
 #'                                       data_dir = "nsink_data")
 #' removal <- nsink_calc_removal(niantic_nsink_data)
@@ -38,22 +37,24 @@ nsink_summarize_flowpath <- function(flowpath, removal) {
 
 
   # Off Network based removal in flowpath ends
-
-  # Suppressing sf warnings
-  suppressWarnings({
   type_poly <- st_cast(removal$land_off_network_removal_type, "POLYGON")
   type_poly <- mutate(type_poly, type_id = paste0("type_", seq_along(.data$layer)))
+  st_agr(type_poly) <- "constant"
   removal_poly <- st_cast(removal$land_off_network_removal, "POLYGON")
   removal_poly <- mutate(removal_poly, remove_id = paste0("remove_",
                                                            seq_along(.data$layer)))
+  st_agr(removal_poly) <- "constant"
   land_off_network_removal <- st_intersection(flowpath$flowpath_ends[1,],
                                               type_poly)
+  st_agr(land_off_network_removal) <- "constant"
   land_off_network_removal <- st_intersection(removal_poly,
                                               land_off_network_removal)
-  land_off_network_removal <- st_collection_extract(land_off_network_removal,
-                                                    "LINESTRING")
+  if(!all(st_is(land_off_network_removal, "LINESTRING"))){
+    land_off_network_removal <- st_collection_extract(land_off_network_removal,
+                                                      "LINESTRING")
+  }
+  st_agr(land_off_network_removal) <- "constant"
   land_off_network_removal <- st_cast(land_off_network_removal, "LINESTRING")
-  })
   land_off_network_removal <- mutate(land_off_network_removal,
                                      edge_id = c(1:n()))
 
