@@ -18,7 +18,7 @@ index: 1
 - name: Institution 2
 index: 2
 date: 13 August 2017
-bibliography: joss_paper.bib
+bibliography: paper.bib
 ---
   
   # Summary
