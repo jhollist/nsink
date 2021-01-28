@@ -12,7 +12,8 @@ nsink_load(input_folder, base_name = "nsink_", projection = NULL, ...)
 
 \item{base_name}{a base name used to assign objects to the global environment.}
 
-\item{projection}{An optional crs specified as a proj4string or EPSG code.
+\item{projection}{An optional crs specified as a either an
+EPSG code (as numeric) or WKT as string.
 Useful if projection is returned as unknown.}
 
 \item{...}{Passes to \code{\link{nsink_calc_removal}} for the off network
@@ -33,8 +34,7 @@ Load an existing N-Sink analysis folder
 \dontrun{
 library(nsink)
 
-aea <- "+proj=aea +lat_0=23 +lon_0=-96 +lat_1=29.5 +lat_2=45.5 +x_0=0 +y_0=0
-+ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
+aea <- 5072
 nsink_build(nsink_get_huc_id("Niantic River")$huc_12, aea,
             output_folder = "nsink_output", samp_dens = 300)
 nsink_load(input_folder = "nsink_output",
