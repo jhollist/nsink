@@ -4,13 +4,13 @@
 \alias{nsink_write_static_maps}
 \title{Write static maps to files}
 \usage{
-nsink_write_static_maps(static_maps, output_folder)
+nsink_write_static_maps(static_maps, output_dir)
 }
 \arguments{
 \item{static_maps}{A list of static maps, as output by
 \code{\link{nsink_generate_static_maps}}}
 
-\item{output_folder}{Output folder in which to save static maps as .tif}
+\item{output_dir}{Output folder in which to save static maps as .tif}
 }
 \description{
 Writes out static mapps as tiffs

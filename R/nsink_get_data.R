@@ -2,8 +2,15 @@
 #'
 #' The required datasets for the N-sink analysis are available from multiple,
 #' online resources.  This function takes a HUC as input and downloads local
-#' copies of those datasets.
-#' @param huc A character string of a HUC12 identifier.  Currently can run only a single HUC at a time.
+#' copies of those datasets.  It will place these in a local directory and
+#' inside that directory a new folder for each NHD Plus raster processing unit
+#' will be created.  If you use the same folder for the data directory, it will
+#' act as a cache (imperfect, though) and only download any new datasets that
+#' have not already been downloaded.
+#' @param huc A character string of a HUC identifier.  Currently can run only
+#'            a single HUC at a time.  This package was developed using 12-digit
+#'            HUCS, but has been (lightly) tested with larger HUCs and appears
+#'            to work, but YMMV.
 #' @param data_dir A directory to store N-Sink data downloads.  Defaults to
 #'                 "nsink_data" inside of the current working directory.
 #'                 Created if it doesn't exist.  May be used for multiple HUCs
@@ -29,13 +36,21 @@ nsink_get_data <- function(huc, data_dir = normalizePath("nsink_data", winslash 
     stop("The supplied huc does not appear to have an even number of digits.  If HUC has a leading 0, pass as character")
   }
 
-  # Check for/create/clean data directory
-  data_dir <- nsink_fix_data_directory(data_dir)
-
-  # Get vpu
+  # Get rpu
   rpu <- unique(wbd_lookup[grepl(paste0("^", huc), wbd_lookup$HUC_12),]$RPU)
   if(length(rpu) > 1){stop("More than 1 rpu selected.  This is not yet supported")}
   rpu <- rpu[!is.na(rpu)]
+
+  #Add RPU to data_dir
+  data_dir_orig <- data_dir
+  while(grepl(rpu, basename(data_dir))){
+    data_dir <- dirname(data_dir)
+    message("The RPU should not be included in the data directory as it is handled internally by nsink.")
+  }
+  data_dir <- paste(basename(data_dir), rpu, sep = "/")
+
+  # Check for/create/clean data directory
+  data_dir <- nsink_fix_data_directory(data_dir)
 
   # urls
   attr_url <- nsink_get_plus_remotepath(rpu, "NHDPlusAttributes")
@@ -98,6 +113,7 @@ nsink_get_data <- function(huc, data_dir = normalizePath("nsink_data", winslash 
   # works or it tries it 10 times.  THis is an ugly hack but works and doesn't
   # end in an infinite loop.
   # FedData::get_ssurgo will throw parsing warnings if data already downloaded.
+
   sdm <- httr::GET("https://sdmdataaccess.sc.egov.usda.gov")
   wss <- httr::GET("https://websoilsurvey.sc.egov.usda.gov/App/HomePage.htm")
   if(sdm$status_code != 200 | wss$status_code != 200){
@@ -134,7 +150,7 @@ nsink_get_data <- function(huc, data_dir = normalizePath("nsink_data", winslash 
   }
 
   # Return a list with the huc and the data_dir
-  list(huc = huc, data_dir = data_dir)
+  list(huc = huc, data_dir = data_dir_orig)
 }
 
 #' Look up HUC 12 ID from a HUC name

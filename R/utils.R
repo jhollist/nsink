@@ -138,7 +138,7 @@ nsink_fix_data_directory <- function(data_dir) {
 
   data_dir <- normalizePath(data_dir, winslash = "/", mustWork = FALSE)
   if (!dir.exists(data_dir)) {
-    dir.create(data_dir)
+    dir.create(data_dir, recursive = TRUE)
   }
   if (!grepl("/$", data_dir)) {
     data_dir <- paste0(data_dir, "/")

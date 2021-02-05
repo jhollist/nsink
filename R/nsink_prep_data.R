@@ -35,9 +35,25 @@
 nsink_prep_data <- function(huc, projection,
                             data_dir = normalizePath("nsink_data/", winslash = "/")) {
 
+  # Get vpu
+  rpu <- unique(wbd_lookup[grepl(paste0("^", huc), wbd_lookup$HUC_12),]$RPU)
+  if(length(rpu) > 1){stop("More than 1 rpu selected.  This is not yet supported")}
+  rpu <- rpu[!is.na(rpu)]
+
+  #Add RPU to data_dir
+  data_dir_orig <- data_dir
+  while(grepl(rpu, basename(data_dir))){
+    data_dir <- dirname(data_dir)
+    message("The RPU should not be included in the data directory as it is handled internally by nsink.")
+  }
+  data_dir <- paste(basename(data_dir), rpu, sep = "/")
+
+  # Check for/create/clean data directory
+  data_dir <- nsink_fix_data_directory(data_dir)
+
   # Check for/create/clean data directory
   message("Preparing data for nsink analysis...")
-  data_dir <- nsink_fix_data_directory(data_dir)
+
   dirs <- list.dirs(data_dir, full.names = FALSE, recursive = FALSE)
   if (all(c("attr", "erom", "fdr", "imperv", "nhd", "ssurgo", "wbd", "nlcd") %in% dirs)) {
     huc_sf <- st_read(paste0(data_dir, "wbd/WBD_Subwatershed.shp"),

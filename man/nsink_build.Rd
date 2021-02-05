@@ -7,8 +7,8 @@
 nsink_build(
   huc,
   projection,
-  output_folder = normalizePath("nsink_output", winslash = "/"),
-  data_dir = NULL,
+  output_dir = normalizePath("nsink_output", winslash = "/"),
+  data_dir = normalizePath("nsink_data", winslash = "/"),
   force = FALSE,
   samp_dens = 300,
   ...
@@ -21,13 +21,12 @@ nsink_build(
 \item{projection}{Projection to use for all spatial data, passed as either an
 EPSG code (as numeric) or WKT as string.}
 
-\item{output_folder}{Folder to store downloaded data (if not in a separate
-data folder) and write out processed nsink files.
+\item{output_dir}{Folder to write out processed nsink files.
 Currently, the processed files will be overwritten if
 the same output folder is used.  To run different
 HUC12's specify separate output folders.}
 
-\item{data_dir}{An optional folder to hold downloaded data.  The same data
+\item{data_dir}{A folder to hold downloaded data.  The same data
 directory can be used to hold data for multiple HUCs.  Data
 will not be downloaded again if it already exists in this
 folder.}
@@ -63,7 +62,7 @@ and then creating output files.
 library(nsink)
 aea <- 5072
 nsink_build(nsink_get_huc_id("Niantic River")$huc_12, aea,
-            output_folder = "nsink_output", data_dir = "nsink_data",
+            output_dir = "nsink_output", data_dir = "nsink_data",
              samp_dens = 600)
 }
 }

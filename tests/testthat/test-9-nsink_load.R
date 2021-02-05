@@ -5,7 +5,7 @@ test_that("load runs as expected", {
   library(nsink)
   library(sf)
   aea <- 5072
-  nsink_load("nsink_test_data", "tested_", aea)
+  nsink_load("test_output", "tested_", aea)
   expect_setequal(names(tested_data), c("streams", "lakes", "fdr", "impervious",
                                         "nlcd", "ssurgo","q", "tot",
                                         "lakemorpho", "huc", "raster_template"))
@@ -19,4 +19,4 @@ test_that("load runs as expected", {
 
 })
 
-unlink("nsink_test_data", recursive = TRUE, force = TRUE)
+unlink("test_output", recursive = TRUE, force = TRUE)
