@@ -70,6 +70,7 @@ nsink_get_data <- function(huc, data_dir = normalizePath("nsink_data", winslash 
   huc_12 <- summarize(huc_12, selected_huc = unique(.data$selected_huc))
   huc_12 <- ungroup(huc_12)
 
+
   # Get impervious
   mrlc <- httr::GET("https://www.mrlc.gov")
   if(mrlc$status_code != 200){
@@ -126,8 +127,7 @@ nsink_get_data <- function(huc, data_dir = normalizePath("nsink_data", winslash 
                                   label = huc,
                                   extraction.dir = paste0(data_dir, "ssurgo"),
                                   raw.dir = paste0(data_dir, "ssurgo"),
-                                  force.redo = force
-    )
+                                  force.redo = force)
     stop("SSURGO did not download correctly.  Try again or check package FedData
          for possible clues as to why FedData::get_ssurgo is not able to
          download the soils data.")
