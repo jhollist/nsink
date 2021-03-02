@@ -11,7 +11,10 @@ nsink_get_data(
 )
 }
 \arguments{
-\item{huc}{A character string of a HUC12 identifier.  Currently can run only a single HUC at a time.}
+\item{huc}{A character string of a HUC identifier.  Currently can run only
+a single HUC at a time.  This package was developed using 12-digit
+HUCS, but has been (lightly) tested with larger HUCs and appears
+to work, but YMMV.}
 
 \item{data_dir}{A directory to store N-Sink data downloads.  Defaults to
 "nsink_data" inside of the current working directory.
@@ -29,7 +32,11 @@ Returns a list with the huc used and the directory where the data is
 \description{
 The required datasets for the N-sink analysis are available from multiple,
 online resources.  This function takes a HUC as input and downloads local
-copies of those datasets.
+copies of those datasets.  It will place these in a local directory and
+inside that directory a new folder for each NHD Plus raster processing unit
+will be created.  If you use the same folder for the data directory, it will
+act as a cache (imperfect, though) and only download any new datasets that
+have not already been downloaded.
 }
 \examples{
 \dontrun{

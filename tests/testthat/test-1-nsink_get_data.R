@@ -18,8 +18,10 @@ test_that("bad huc doesn't work", {
 
 test_that("dowloaded all data that is expected",{
   skip_on_ci()
-  folders <- list.dirs("nsink_test_data/", full.names = FALSE, recursive = FALSE)
-  zips <- list.files("nsink_test_data/", pattern = "*.7z")
+  rpu <- unique(nsink:::wbd_lookup[grepl(paste0("^", niantic_huc), nsink:::wbd_lookup$HUC_12),]$RPU)
+  rpu <- rpu[!is.na(rpu)]
+  folders <- list.dirs(paste0("nsink_test_data/", rpu), full.names = FALSE, recursive = FALSE)
+  zips <- list.files(paste0("nsink_test_data/", rpu), pattern = "*.7z")
   files <- c(folders, zips)
   expect_setequal(files,
                   c("attr", "erom", "fdr","imperv", "nhd",

@@ -370,10 +370,12 @@ nsink_calc_off_network_removal <- function(input_data, off_network_lakes,
     # Off network lakes
     if(nrow(removal_stats_lakes) == 0 & is.null(off_network_lakes)){
       stop("There are no on network lakes available to estimate removal for off network lakes.  Please specify a removal value with the off_network_lakes argument.")
-    } else if(removal_stats_lakes$num_lakes > 0 &
-              removal_stats_lakes$num_lakes <= 3 &
-              is.null(off_network_lakes)){
+    } else if(!is.null(removal_stats_lakes$num_lakes)){
+      if(removal_stats_lakes$num_lakes > 0 &
+         removal_stats_lakes$num_lakes <= 3 &
+         is.null(off_network_lakes)){
       warning("There are three or fewer on network lakes available to estimate removal for the off network lakes.  It may be advisable to manually set an N removal values via the off_network_lakes argument.")
+      }
     }
 
     if(any(!input_data$lakes$lake_comid %in% input_data$network_removal$lake_comid)){
