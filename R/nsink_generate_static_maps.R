@@ -103,7 +103,14 @@ nsink_generate_n_removal_heatmap <- function(input_data, removal, samp_dens,
   set.seed(seed)
   num_pts <- as.numeric(round(st_area(input_data$huc) / (samp_dens * samp_dens)))
   num_pts <- sum(num_pts)
-  sample_pts <- st_sample(input_data$huc, num_pts, type = "regular")
+  # While loop to make sure small number of points always pass something.
+  sample_pts <- st_sample(input_data$huc, 0, type = "regular")
+  cnt <- 1
+  while(length(sample_pts) == 0 & cnt < 11){
+    sample_pts <- st_sample(input_data$huc, num_pts, type = "regular")
+    cnt <- cnt + 1
+  }
+  if(length(sample_pts) == 0 & cnt == 11){stop("Choose a smaller samp_dens.")}
   fdr_check <- extract(input_data$fdr, as(sample_pts, "Spatial"))
 
   if(any(is.na(fdr_check))){

@@ -109,6 +109,7 @@ nsink_prep_data <- function(huc, projection,
 nsink_prep_streams <- function(huc_sf, data_dir) {
 
   if (file.exists(paste0(data_dir, "nhd/NHDFlowline.shp"))) {
+
     message("Preparing streams...")
     streams <- st_read(paste0(data_dir, "nhd/NHDFlowline.shp"), quiet = TRUE)
     streams <- st_transform(streams, st_crs(huc_sf))
@@ -118,13 +119,19 @@ nsink_prep_streams <- function(huc_sf, data_dir) {
       stream_comid = .data$comid,
       lake_comid = .data$wbareacomi
     )
-    streams <- select(streams, -.data$lengthkm, -.data$shape_leng)
-    streams <- slice(streams, st_contains(huc_sf, streams)[[1]])
+    # Remove coastline
+    streams <- filter(streams, .data$ftype != "Coastline")
+    streams <- mutate(streams,
+                      percent_length =
+                        units::set_units(st_length(.data$geometry), "km")/
+                        units::set_units(.data$lengthkm, "km"))
+    suppressWarnings(streams <- st_intersection(huc_sf, streams))
+    streams <- filter(streams, percent_length >= units::as_units(0.75))
+    streams <- select(streams, -.data$lengthkm, -.data$shape_leng, -.data$percent_length)
     st_agr(streams) <- "constant"
     streams <- st_crop(streams, st_bbox(huc_sf))
     streams <- mutate_if(streams, is.factor, as.character())
-    # Remove coastline
-    streams <- filter(streams, .data$ftype != "Coastline")
+
   } else {
     stop("The required data file does not exist.  Run nsink_get_data().")
   }
