@@ -156,7 +156,7 @@ nsink_generate_n_removal_heatmap <- function(input_data, removal, samp_dens,
       }
     }
 
-    future::plan(future::multiprocess, workers = ncpu)
+    future::plan(future::multisession, workers = ncpu)
 
     sample_pts_removal <- st_sf(sample_pts,
       data = furrr::future_map_dfr(
@@ -168,6 +168,8 @@ nsink_generate_n_removal_heatmap <- function(input_data, removal, samp_dens,
           )
         }, .progress = TRUE, .options = furrr_options(seed = TRUE))
     )
+
+    future:::ClusterRegistry("stop")
   }
   sample_pts_removal <- dplyr::filter(sample_pts_removal, !is.na(.data$fp_removal))
   message("\n Interpolating sampled flowpaths...")
