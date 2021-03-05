@@ -129,6 +129,8 @@ nsink_generate_n_removal_heatmap <- function(input_data, removal, samp_dens,
     xdf <- data.frame(fp_removal = vector("numeric", length(sample_pts)))
     for(i in seq_along(st_geometry(sample_pts))){
       setTxtProgressBar(pb, i)
+
+
       pt <- sample_pts[i,]
       pt <- st_sf(st_sfc(pt, crs = st_crs(input_data$huc)))
       fp <- nsink_generate_flowpath(pt, input_data)

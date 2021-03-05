@@ -35,7 +35,6 @@
 #' }
 nsink_summarize_flowpath <- function(flowpath, removal) {
 
-
   # Off Network based removal in flowpath ends
   type_poly <- st_cast(removal$land_off_network_removal_type, "POLYGON")
   type_poly <- mutate(type_poly, type_id = paste0("type_", seq_along(.data$layer)))
@@ -75,7 +74,6 @@ nsink_summarize_flowpath <- function(flowpath, removal) {
   idx <- shortest_paths(lonr_g, from_nd, to_nd, output = "epath",
                         mode = "out")$epath[[1]]
   lonr_ids <- edge_attr(lonr_g, "edge_id", idx)
-
   land_off_network_removal <- slice(land_off_network_removal,
                                     match(lonr_ids,.data$edge_id))
   land_off_network_removal <- mutate(land_off_network_removal,
@@ -289,13 +287,16 @@ nsink_create_summary <- function(land_removal, network_removal) {
 #' @keywords internal
 nsink_generate_from_to_nodes <- function(land_off_network){
 
-  nodes <- as_tibble(st_coordinates(land_off_network))
+  # Transforming to standardize units and then rounding helps with very small
+  # differences that occassionally pop up with the same node.
+  land_off_network_geo <- sf::st_transform(land_off_network, crs = 4326)
+  nodes <- as_tibble(st_coordinates(land_off_network_geo))
+  nodes <- mutate(nodes, X = round(.data$X, 8), Y = round(.data$Y, 8))
   nodes <- rename(nodes, edge_id = .data$L1)
   nodes <- group_by(nodes, .data$edge_id)
   nodes <- slice(nodes, c(1, n()))
   nodes <- ungroup(nodes)
   nodes <- mutate(nodes, start_end = rep(c('start', 'end'), times = n()/2))
-  nodes <- mutate(nodes, X = round(.data$X, 12), Y = round(.data$Y, 12))
   nodes <- mutate(nodes, xy = paste(.data$X, .data$Y))
   nodes <- mutate(nodes, grouping = as.character(
     factor(.data$xy, levels = unique(.data$xy))))
