@@ -110,6 +110,8 @@ nsink_generate_n_removal_heatmap <- function(input_data, removal, samp_dens,
     sample_pts <- st_sample(input_data$huc, num_pts, type = "regular")
     cnt <- cnt + 1
   }
+
+
   if(length(sample_pts) == 0 & cnt == 11){stop("Choose a smaller samp_dens.")}
   fdr_check <- extract(input_data$fdr, as(sample_pts, "Spatial"))
 
@@ -124,23 +126,22 @@ nsink_generate_n_removal_heatmap <- function(input_data, removal, samp_dens,
 
 
   if(length(sample_pts) < 50){
-
     pb <- txtProgressBar(max = length(sample_pts), style = 3)
     xdf <- data.frame(fp_removal = vector("numeric", length(sample_pts)))
+    suppressPackageStartupMessages({
     for(i in seq_along(st_geometry(sample_pts))){
       setTxtProgressBar(pb, i)
-
-
       pt <- sample_pts[i,]
       pt <- st_sf(st_sfc(pt, crs = st_crs(input_data$huc)))
       fp <- nsink_generate_flowpath(pt, input_data)
       if(any(st_within(fp$flowpath_ends, input_data$huc, sparse = FALSE))){
         fp_summary <- nsink_summarize_flowpath(fp, removal)
-        xdf <- rbind(xdf, data.frame(fp_removal = 100 - min(fp_summary$n_out)))
+        xdf[i,] <- data.frame(fp_removal = 100 - min(fp_summary$n_out))
       } else {
         xdf <- rbind(xdf, data.frame(fp_removal = NA))
       }
     }
+    })
     close(pb)
 
     sample_pts_removal <- st_sf(sample_pts, data = xdf,
@@ -161,14 +162,14 @@ nsink_generate_n_removal_heatmap <- function(input_data, removal, samp_dens,
     future::plan(future::multisession, workers = ncpu)
 
     sample_pts_removal <- st_sf(sample_pts,
-      data = furrr::future_map_dfr(
+      data = suppressPackageStartupMessages(furrr::future_map_dfr(
         sample_pts,
         function(x) {
           fp_removal(
             x, input_data,
             removal
           )
-        }, .progress = TRUE, .options = furrr_options(seed = TRUE))
+        }, .progress = TRUE, .options = furrr_options(seed = TRUE)))
     )
 
     future:::ClusterRegistry("stop")
@@ -207,6 +208,8 @@ nsink_generate_n_removal_heatmap <- function(input_data, removal, samp_dens,
   }
   idw_n_removal_heat_map_agg <- raster::aggregate(idw_n_removal_heat_map,
                                                   fun = max, fact = 3)
+  idw_n_removal_heat_map_agg <- raster::mask(
+    raster::crop(idw_n_removal_heat_map_agg, input_data$huc),input_data$huc)
   idw_n_removal_heat_map_agg
 
 }
