@@ -38,117 +38,123 @@ nsink_get_data <- function(huc, data_dir = normalizePath("nsink_data", winslash 
 
   # Get rpu
   rpu <- unique(wbd_lookup[grepl(paste0("^", huc), wbd_lookup$HUC_12),]$RPU)
-  if(length(rpu) > 1){stop("More than 1 rpu selected.  This is not yet supported")}
   rpu <- rpu[!is.na(rpu)]
-
-  #Add RPU to data_dir
   data_dir_orig <- data_dir
-  while(grepl(rpu, basename(data_dir))){
-    data_dir <- dirname(data_dir)
-    message("The RPU should not be included in the data directory as it is handled internally by nsink.")
-  }
-  data_dir <- paste(basename(data_dir), rpu, sep = "/")
+  for(i in seq_along(rpu)){
 
-  # Check for/create/clean data directory
-  data_dir <- nsink_fix_data_directory(data_dir)
+    #Add RPU to data_dir
+    data_dir <- data_dir_orig
+    while(grepl(rpu[i], basename(data_dir))){
+      data_dir <- dirname(data_dir)
+      message("Do not include the RPU in the data directory.")
+    }
+    data_dir <- paste(basename(data_dir), rpu[i], sep = "/")
 
-  # urls
-  attr_url <- nsink_get_plus_remotepath(rpu, "NHDPlusAttributes")
-  erom_url <- nsink_get_plus_remotepath(rpu, "EROMExtension")
-  nhd_url <- nsink_get_plus_remotepath(rpu, "NHDSnapshot")
-  fdr_url <- nsink_get_plus_remotepath(rpu, "FdrFac")
-  wbd_url <- nsink_get_plus_remotepath(rpu, "WBDSnapshot")
+    # Check for/create/clean data directory
+    data_dir <- nsink_fix_data_directory(data_dir)
 
-  # get nhdplus data
-  message("Getting NHDPlus files...")
-  attr <- get_nhd_plus(attr_url, data_dir, force)
-  erom <- get_nhd_plus(erom_url, data_dir, force)
-  nhd <- get_nhd_plus(nhd_url, data_dir, force)
-  fdr <- get_nhd_plus(fdr_url, data_dir, force)
-  wbd <- get_nhd_plus(wbd_url, data_dir, force)
+    # urls
+    attr_url <- nsink_get_plus_remotepath(rpu[i], "NHDPlusAttributes")
+    erom_url <- nsink_get_plus_remotepath(rpu[i], "EROMExtension")
+    nhd_url <- nsink_get_plus_remotepath(rpu[i], "NHDSnapshot")
+    fdr_url <- nsink_get_plus_remotepath(rpu[i], "FdrFac")
+    wbd_url <- nsink_get_plus_remotepath(rpu[i], "WBDSnapshot")
 
-  # unzip nhdplus data
-  message("Unzipping NHDPlus files ...")
-  attr_z <- nsink_run_7z(paste0(data_dir, basename(attr_url)), paste0(data_dir, "attr"), force)
-  erom_z <- nsink_run_7z(paste0(data_dir, basename(erom_url)), paste0(data_dir, "erom"), force)
-  nhd_z <- nsink_run_7z(paste0(data_dir, basename(nhd_url)), paste0(data_dir, "nhd"), force)
-  fdr_z <- nsink_run_7z(paste0(data_dir, basename(fdr_url)), paste0(data_dir, "fdr"), force)
-  wbd_z <- nsink_run_7z(paste0(data_dir, basename(wbd_url)), paste0(data_dir, "wbd"), force)
+    # get nhdplus data
+    message("Getting NHDPlus files...")
+    attr <- get_nhd_plus(attr_url, data_dir, force)
+    erom <- get_nhd_plus(erom_url, data_dir, force)
+    nhd <- get_nhd_plus(nhd_url, data_dir, force)
+    fdr <- get_nhd_plus(fdr_url, data_dir, force)
+    wbd <- get_nhd_plus(wbd_url, data_dir, force)
 
-
-  # Use actual huc to limit downloads on impervious and ssurgo
-  huc_sf <- sf::st_read(paste0(data_dir, "wbd/WBD_Subwatershed.shp"),
-                        quiet = TRUE)
-  huc_12 <- huc_sf[grepl(paste0("^", huc), huc_sf$HUC_12), ]
-  huc_12 <- mutate(huc_12, selected_huc = huc)
-  huc_12 <- group_by(huc_12, .data$selected_huc)
-  huc_12 <- summarize(huc_12, selected_huc = unique(.data$selected_huc))
-  huc_12 <- ungroup(huc_12)
+    # unzip nhdplus data
+    message("Unzipping NHDPlus files ...")
+    attr_z <- nsink_run_7z(paste0(data_dir, basename(attr_url)),
+                           paste0(data_dir, "attr"), force)
+    erom_z <- nsink_run_7z(paste0(data_dir, basename(erom_url)),
+                           paste0(data_dir, "erom"), force)
+    nhd_z <- nsink_run_7z(paste0(data_dir, basename(nhd_url)),
+                          paste0(data_dir, "nhd"), force)
+    fdr_z <- nsink_run_7z(paste0(data_dir, basename(fdr_url)),
+                          paste0(data_dir, "fdr"), force)
+    wbd_z <- nsink_run_7z(paste0(data_dir, basename(wbd_url)),
+                          paste0(data_dir, "wbd"), force)
 
 
-  # Get impervious
-  mrlc <- httr::GET("https://www.mrlc.gov")
-  if(mrlc$status_code != 200){
-    warning("The MRLC site does not appear to be available and the impervious surface and NLCD are not downloaded.  Try again later.")
-  } else if(mrlc$status_code == 200){
-    message("Getting Impervious Surface ...")
+    # Use actual huc to limit downloads on impervious and ssurgo
+    huc_sf <- sf::st_read(paste0(data_dir, "wbd/WBD_Subwatershed.shp"),
+                          quiet = TRUE)
+    huc_12 <- huc_sf[grepl(paste0("^", huc), huc_sf$HUC_12), ]
+    huc_12 <- mutate(huc_12, selected_huc = huc)
+    huc_12 <- group_by(huc_12, .data$selected_huc)
+    huc_12 <- summarize(huc_12, selected_huc = unique(.data$selected_huc))
+    huc_12 <- ungroup(huc_12)
 
-    imp <- FedData::get_nlcd(
-      template = as(huc_12, "Spatial"), dataset = "Impervious",
-      label = huc, extraction.dir = paste0(data_dir, "imperv"),
-      force.redo = force)
 
-    # Get 2011 NLCD
-    message("Getting NLCD ...")
+    # Get impervious
+    mrlc <- httr::GET("https://www.mrlc.gov")
+    if(mrlc$status_code != 200){
+      warning("The MRLC site does not appear to be available and the impervious surface and NLCD are not downloaded.  Try again later.")
+    } else if(mrlc$status_code == 200){
+      message("Getting Impervious Surface ...")
 
-    nlcd <- FedData::get_nlcd(
-      template = as(huc_12, "Spatial"), dataset = "Land_Cover",
-      label = huc, extraction.dir = paste0(data_dir, "nlcd"),
-      force.redo = force)
+      imp <- FedData::get_nlcd(
+        template = as(huc_12, "Spatial"), dataset = "Impervious",
+        label = huc, extraction.dir = paste0(data_dir, "imperv"),
+        force.redo = force)
 
-  }
+      # Get 2011 NLCD
+      message("Getting NLCD ...")
 
-  # Get SSURGO
-  # This would occasional have connection reset and FedData would throw
-  # an error.  Connection would eventually work.  This code repeats it until it
-  # works or it tries it 10 times.  THis is an ugly hack but works and doesn't
-  # end in an infinite loop.
-  # FedData::get_ssurgo will throw parsing warnings if data already downloaded.
+      nlcd <- FedData::get_nlcd(
+        template = as(huc_12, "Spatial"), dataset = "Land_Cover",
+        label = huc, extraction.dir = paste0(data_dir, "nlcd"),
+        force.redo = force)
 
-  sdm <- httr::GET("https://sdmdataaccess.sc.egov.usda.gov")
-  wss <- httr::GET("https://websoilsurvey.sc.egov.usda.gov/App/HomePage.htm")
-  if(sdm$status_code != 200 | wss$status_code != 200){
-    warning("The required SSURGO sites do not appear to be available and the SSURGO data are not downloaded.  Try again later.")
-  } else if(sdm$status_code == 200 & wss$status_code == 200){
-    message("Getting SSURGO...")
-    repeat_it <- TRUE
-    count <- 0
-    while(is.logical(repeat_it) & count <= 9) {
-      count <- count + 1
-      repeat_it <- tryCatch(
-          suppressMessages(
-          ssurgo <- FedData::get_ssurgo(as(huc_12, "Spatial"),
-          label = huc,
-          extraction.dir = paste0(data_dir, "ssurgo"),
-          raw.dir = paste0(data_dir, "ssurgo"),
-          force.redo = force
-        ))
-      ,
-        error = function(e) TRUE
-      )
+    }
+
+    # Get SSURGO
+    # This would occasional have connection reset and FedData would throw
+    # an error.  Connection would eventually work.  This code repeats it until it
+    # works or it tries it 10 times.  THis is an ugly hack but works and doesn't
+    # end in an infinite loop.
+    # FedData::get_ssurgo will throw parsing warnings if data already downloaded.
+
+    sdm <- httr::GET("https://sdmdataaccess.sc.egov.usda.gov")
+    wss <- httr::GET("https://websoilsurvey.sc.egov.usda.gov/App/HomePage.htm")
+    if(sdm$status_code != 200 | wss$status_code != 200){
+      warning("The required SSURGO sites do not appear to be available and the SSURGO data are not downloaded.  Try again later.")
+    } else if(sdm$status_code == 200 & wss$status_code == 200){
+      message("Getting SSURGO...")
+      repeat_it <- TRUE
+      count <- 0
+      while(is.logical(repeat_it) & count <= 9) {
+        count <- count + 1
+        repeat_it <- tryCatch(
+            suppressMessages(
+            ssurgo <- FedData::get_ssurgo(as(huc_12, "Spatial"),
+            label = huc,
+            extraction.dir = paste0(data_dir, "ssurgo"),
+            raw.dir = paste0(data_dir, "ssurgo"),
+            force.redo = force
+          ))
+        ,
+          error = function(e) TRUE
+        )
+      }
+    }
+    if(is.logical(repeat_it) & count > 9){
+      ssurgo <- FedData::get_ssurgo(as(huc_12, "Spatial"),
+                                    label = huc,
+                                    extraction.dir = paste0(data_dir, "ssurgo"),
+                                    raw.dir = paste0(data_dir, "ssurgo"),
+                                    force.redo = force)
+      stop("SSURGO did not download correctly.  Try again or check package FedData
+           for possible clues as to why FedData::get_ssurgo is not able to
+           download the soils data.")
     }
   }
-  if(is.logical(repeat_it) & count > 9){
-    ssurgo <- FedData::get_ssurgo(as(huc_12, "Spatial"),
-                                  label = huc,
-                                  extraction.dir = paste0(data_dir, "ssurgo"),
-                                  raw.dir = paste0(data_dir, "ssurgo"),
-                                  force.redo = force)
-    stop("SSURGO did not download correctly.  Try again or check package FedData
-         for possible clues as to why FedData::get_ssurgo is not able to
-         download the soils data.")
-  }
-
   # Return a list with the huc and the data_dir
   list(huc = huc, data_dir = data_dir_orig)
 }

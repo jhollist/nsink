@@ -115,7 +115,7 @@ nsink_run_7z <- function(zipfile, destdir, extract_again = FALSE) {
          MacOS: Instll p7zip via homebrew \n
          Linux: Install p7zip for your distribution.")
   }
-  #browser()
+
   path_7z <- paths_7z[nchar(Sys.which(paths_7z)) > 0][1]
   if (!dir.exists(destdir) | extract_again) {
     system(paste0(path_7z, " e ", shQuote(zipfile), " -bso0 -bsp0 -aos -o", shQuote(destdir)))
