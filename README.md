@@ -23,7 +23,7 @@ run times vary, but range from minutes up to 5 hours depending on
 options selected. Previous versions took weeks of manual data
 manipulation.
 
-As of 2020-07-09 user functions for the `nsink` package are:
+As of 2021-03-10 user functions for the `nsink` package are:
 
   - `nsink_get_data()` - Pass HUC, get data, use cache to avoid repeat
     downloads
@@ -87,3 +87,14 @@ vignette:
 library(nsink)
 vignette("intro", package = "nsink")
 ```
+
+## Note on 7-zip
+
+7-zip is needed to extract NHD+ files. It can been installed in normal
+ways and if not installed, `nsink` will provide suggestions. On linux
+systems without sudo rights you can attempt to build from source and
+copy the bin folder.
+
+\`\`\` cd git clone <https://github.com/btolab/p7zip> cd p7zip cp
+makefile.linux\_any\_cpu makefile.linux make all\_test cd \# if No user
+folder create it mkdir usr cp -r p7zip/bin usr/.
