@@ -37,61 +37,93 @@ nsink_prep_data <- function(huc, projection,
 
   # Get vpu
   rpu <- unique(wbd_lookup[grepl(paste0("^", huc), wbd_lookup$HUC_12),]$RPU)
-  if(length(rpu) > 1){stop("More than 1 rpu selected.  This is not yet supported")}
+
+  #if(length(rpu) > 1){stop("More than 1 rpu selected.  This is not yet supported")}
   rpu <- rpu[!is.na(rpu)]
 
   #Add RPU to data_dir
   data_dir_orig <- data_dir
-  while(grepl(rpu, basename(data_dir))){
-    data_dir <- dirname(data_dir)
-    message("The RPU should not be included in the data directory as it is handled internally by nsink.")
+  for(i in seq_along(rpu)){
+    data_dir <- data_dir_orig
+    while(grepl(rpu[i], basename(data_dir))){
+      data_dir <- dirname(data_dir)
+      message("Do not include the RPU in the data directory.")
+    }
+    data_dir <- paste(basename(data_dir), rpu[i], sep = "/")
+
+    # Check for/create/clean data directory
+    data_dir <- nsink_fix_data_directory(data_dir)
+
+    # Check for/create/clean data directory
+    message("Preparing data for nsink analysis...")
+
+    dirs <- list.dirs(data_dir, full.names = FALSE, recursive = FALSE)
+    if (all(c("attr", "erom", "fdr", "imperv", "nhd", "ssurgo", "wbd", "nlcd") %in% dirs)) {
+      huc_sf <- st_read(paste0(data_dir, "wbd/WBD_Subwatershed.shp"),
+                        quiet = TRUE)
+
+      huc_sf <- huc_sf[grepl(paste0("^", huc), huc_sf$HUC_12), ]
+      huc_sf <- mutate(huc_sf, selected_huc = huc)
+      huc_sf <- group_by(huc_sf, .data$selected_huc)
+      huc_sf <- summarize(huc_sf, selected_huc = unique(.data$selected_huc))
+      huc_sf <- ungroup(huc_sf)
+      huc_sf <- st_transform(huc_sf, crs = projection)
+      # Use SSURGO to pull out salt water ssurgo poly's
+      huc_sf <- suppressMessages(nsink_remove_openwater(huc_sf, data_dir))
+      res <- units::set_units(30, "m")
+      res <- units::set_units(res, st_crs(huc_sf, parameters = TRUE)$ud_unit,
+                              mode = "standard")
+      huc_raster <- raster::raster(as(huc_sf, "Spatial"),
+                                                       resolution = as.numeric(res),
+                                                       crs = projection(huc_sf))
+
+      assign(paste0("rpu_",rpu[i]), list(
+        streams = nsink_prep_streams(huc_sf, data_dir),
+        lakes = nsink_prep_lakes(huc_sf, data_dir),
+        fdr = nsink_prep_fdr(huc_sf, huc_raster, data_dir),
+        impervious = nsink_prep_impervious(huc_sf, huc_raster, data_dir),
+        nlcd = nsink_prep_nlcd(huc_sf, huc_raster, data_dir),
+        ssurgo = nsink_prep_ssurgo(huc_sf, data_dir),
+        q = nsink_prep_q(data_dir),
+        tot = nsink_prep_tot(data_dir),
+        lakemorpho = nsink_prep_lakemorpho(data_dir),
+        huc = huc_sf,
+        raster_template = huc_raster
+      ))
+    } else {
+      stop(paste0(
+        "The required data does not appear to be available in ",
+        data_dir, ". Run nsink_get_data()."
+      ))
+    }
   }
-  data_dir <- paste(basename(data_dir), rpu, sep = "/")
 
-  # Check for/create/clean data directory
-  data_dir <- nsink_fix_data_directory(data_dir)
-
-  # Check for/create/clean data directory
-  message("Preparing data for nsink analysis...")
-
-  dirs <- list.dirs(data_dir, full.names = FALSE, recursive = FALSE)
-  if (all(c("attr", "erom", "fdr", "imperv", "nhd", "ssurgo", "wbd", "nlcd") %in% dirs)) {
-    huc_sf <- st_read(paste0(data_dir, "wbd/WBD_Subwatershed.shp"),
-                      quiet = TRUE)
-
-    huc_sf <- huc_sf[grepl(paste0("^", huc), huc_sf$HUC_12), ]
-    huc_sf <- mutate(huc_sf, selected_huc = huc)
-    huc_sf <- group_by(huc_sf, .data$selected_huc)
-    huc_sf <- summarize(huc_sf, selected_huc = unique(.data$selected_huc))
-    huc_sf <- ungroup(huc_sf)
-    huc_sf <- st_transform(huc_sf, crs = projection)
-    # Use SSURGO to pull out salt water ssurgo poly's
-    huc_sf <- nsink_remove_openwater(huc_sf, data_dir)
-    res <- units::set_units(30, "m")
-    res <- units::set_units(res, st_crs(huc_sf, parameters = TRUE)$ud_unit,
-                            mode = "standard")
-    huc_raster <- raster::raster(as(huc_sf, "Spatial"),
-                                                     resolution = as.numeric(res),
-                                                     crs = projection(huc_sf))
-
+  rpus <- ls(pattern = "rpu_")
+  if(length(rpus)==1){
+    get(rpus[1])
+  } else if(length(rpus) == 2) {
+    huc <- rbind(get(rpus[1])$huc, get(rpus[2])$huc)
+    huc_raster <- raster::raster(as(huc, "Spatial"),
+                                 resolution = as.numeric(res),
+                                 crs = projection(huc))
     list(
-      streams = nsink_prep_streams(huc_sf, data_dir),
-      lakes = nsink_prep_lakes(huc_sf, data_dir),
-      fdr = nsink_prep_fdr(huc_sf, huc_raster, data_dir),
-      impervious = nsink_prep_impervious(huc_sf, huc_raster, data_dir),
-      nlcd = nsink_prep_nlcd(huc_sf, huc_raster, data_dir),
-      ssurgo = nsink_prep_ssurgo(huc_sf, data_dir),
-      q = nsink_prep_q(data_dir),
-      tot = nsink_prep_tot(data_dir),
-      lakemorpho = nsink_prep_lakemorpho(data_dir),
-      huc = huc_sf,
-      raster_template = huc_raster
-    )
-  } else {
-    stop(paste0(
-      "The required data does not appear to be available in ",
-      data_dir, ". Run nsink_get_data()."
-    ))
+      streams = rbind(get(rpus[1])$streams, get(rpus[2])$streams),
+      lakes = rbind(get(rpus[1])$lakes, get(rpus[2])$lakes),
+      fdr = suppressWarnings(raster::merge(
+        raster::projectRaster(get(rpus[1])$fdr, huc_raster),
+        raster::projectRaster(get(rpus[2])$fdr, huc_raster))),
+      impervious = suppressWarnings(raster::merge(
+        raster::projectRaster(get(rpus[1])$impervious, huc_raster),
+        raster::projectRaster(get(rpus[2])$impervious, huc_raster))),
+      nlcd = suppressWarnings(raster::merge(
+        raster::projectRaster(get(rpus[1])$nlcd, huc_raster),
+        raster::projectRaster(get(rpus[2])$nlcd, huc_raster))),
+      ssurgo = rbind(get(rpus[1])$ssurgo, get(rpus[2])$ssurgo),
+      q = rbind(get(rpus[1])$q, get(rpus[2])$q),
+      tot = rbind(get(rpus[1])$tot, get(rpus[2])$tot),
+      lakemorpho = rbind(get(rpus[1])$lakemorpho, get(rpus[2])$lakemorpho),
+      huc = huc,
+      raster_template = huc_raster)
   }
 }
 
@@ -381,6 +413,9 @@ nsink_prep_lakemorpho <- function(data_dir) {
     lakemorpho <- rename_all(lakemorpho, tolower)
     lakemorpho <- rename(lakemorpho, lake_comid = .data$comid)
     lakemorpho <- mutate_if(lakemorpho, is.factor, as.character())
+    lakemorpho <- select(lakemorpho, .data$lake_comid, .data$meandepth,
+                         .data$lakevolume, .data$maxdepth, .data$meandused,
+                         .data$meandcode, .data$lakearea)
   } else {
     stop("The required data file does not exist.  Run nsink_get_data().")
   }
