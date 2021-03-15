@@ -141,7 +141,6 @@ nsink_prep_data <- function(huc, projection,
 nsink_prep_streams <- function(huc_sf, data_dir) {
 
   if (file.exists(paste0(data_dir, "nhd/NHDFlowline.shp"))) {
-
     message("Preparing streams...")
     streams <- st_read(paste0(data_dir, "nhd/NHDFlowline.shp"), quiet = TRUE)
     streams <- st_transform(streams, st_crs(huc_sf))
@@ -157,7 +156,7 @@ nsink_prep_streams <- function(huc_sf, data_dir) {
                       percent_length =
                         units::set_units(st_length(.data$geometry), "km")/
                         units::set_units(.data$lengthkm, "km"))
-    suppressWarnings(streams <- st_intersection(huc_sf, streams))
+    streams <- streams[st_intersects(huc_sf, streams, sparse = FALSE),]
     streams <- filter(streams, percent_length >= units::as_units(0.75))
     streams <- select(streams, -.data$lengthkm, -.data$shape_leng, -.data$percent_length)
     st_agr(streams) <- "constant"
