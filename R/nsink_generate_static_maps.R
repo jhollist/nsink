@@ -176,6 +176,7 @@ nsink_generate_n_removal_heatmap <- function(input_data, removal, samp_dens,
   }
   sample_pts_removal <- dplyr::filter(sample_pts_removal, !is.na(.data$fp_removal))
   message("\n Interpolating sampled flowpaths...")
+
   # Interp each poly separately
   st_agr(input_data$huc) <- "constant"
   huc_polygon <- st_cast(input_data$huc, "POLYGON")
@@ -186,8 +187,8 @@ nsink_generate_n_removal_heatmap <- function(input_data, removal, samp_dens,
                                type = "regular")
 
     #subset sample_pts_removal
-    sample_pts_removal_huc_poly <- sample_pts_removal[st_intersects(sample_pts_removal,
-                                                 huc_polygon[i,], sparse = FALSE),]
+    sample_pts_removal_huc_poly <- sample_pts_removal[
+      st_intersects(sample_pts_removal,huc_polygon[i,], sparse = FALSE),]
 
     if(nrow(sample_pts_removal_huc_poly)>= 2){
       interpolated_pts <- gstat::idw(fp_removal ~ 1,

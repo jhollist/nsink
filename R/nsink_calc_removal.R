@@ -623,7 +623,7 @@ nsink_calc_lake_removal <- function(input_data) {
     lake_removal_afp_missing <- filter(lake_removal_afp_missing,
                                        !.data$tonode %in% .data$fromnode)
     lake_removal_afp_missing <- ungroup(lake_removal_afp_missing)
-    # If terminal node happens to have two input aritfical flowpaths (e.g like a
+    # If terminal node happens to have two input artifical flowpaths (e.g like a
     # "V") then pull one with highest flow
 
     if(nrow(lake_removal_afp_missing)> 0){
@@ -662,6 +662,7 @@ nsink_calc_lake_removal <- function(input_data) {
 
   st_geometry(lake_removal) <- NULL
   lake_removal_flowpath <- suppressMessages(left_join(residence_time_sf, lake_removal))
+  #here
   lake_removal_r <-fasterize::fasterize(lake_removal_sf,
                                         input_data$raster_template,
                                         field = "n_removal", fun = "max")

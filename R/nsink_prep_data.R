@@ -156,7 +156,7 @@ nsink_prep_streams <- function(huc_sf, data_dir) {
                       percent_length =
                         units::set_units(st_length(.data$geometry), "km")/
                         units::set_units(.data$lengthkm, "km"))
-    streams <- streams[st_intersects(huc_sf, streams, sparse = FALSE),]
+    streams <- streams[st_intersects(huc_sf, streams)[[1]],]
     streams <- filter(streams, percent_length >= units::as_units(0.75))
     streams <- select(streams, -.data$lengthkm, -.data$shape_leng, -.data$percent_length)
     st_agr(streams) <- "constant"

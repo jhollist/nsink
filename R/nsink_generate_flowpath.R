@@ -84,17 +84,16 @@ nsink_generate_flowpath <- function(starting_location, input_data){
 nsink_get_flowpath_ends <- function(flowpath, streams, tot){
   #drops streams without traced network from and to nodes
   #Removal from these is dealt with via off_network removal
-
-  streams <- suppressMessages(left_join(streams, tot))
-  streams <- filter(streams, !is.na(.data$fromnode))
-  streams <- filter(streams, !is.na(.data$tonode))
-  streams <- st_difference(st_combine(streams), st_combine(flowpath))
-
-  splits <- lwgeom::st_split(flowpath, st_combine(streams))
-  splits <- st_collection_extract(splits, "LINESTRING")
-  ends <- splits[c(1,length(splits))]
+  if(nrow(streams) > 0){
+    streams <- suppressMessages(left_join(streams, tot))
+    streams <- filter(streams, !is.na(.data$fromnode))
+    streams <- filter(streams, !is.na(.data$tonode))
+    streams <- st_difference(st_combine(streams), st_combine(flowpath))
+    splits <- lwgeom::st_split(flowpath, st_combine(streams))
+    splits <- st_collection_extract(splits, "LINESTRING")
+    ends <- splits[c(1,length(splits))]
+  } else {ends <- flowpath}
   ends
-
 }
 
 #' Get flowlines that intersect with a flowpath
