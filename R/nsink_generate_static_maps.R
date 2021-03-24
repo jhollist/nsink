@@ -138,7 +138,7 @@ nsink_generate_n_removal_heatmap <- function(input_data, removal, samp_dens,
         fp_summary <- nsink_summarize_flowpath(fp, removal)
         xdf[i,] <- data.frame(fp_removal = 100 - min(fp_summary$n_out))
       } else {
-        xdf <- rbind(xdf, data.frame(fp_removal = NA))
+        xdf[i,] <- data.frame(fp_removal = NA)
       }
     }
     })
@@ -172,7 +172,8 @@ nsink_generate_n_removal_heatmap <- function(input_data, removal, samp_dens,
         }, .progress = TRUE, .options = furrr_options(seed = TRUE)))
     )
 
-    future:::ClusterRegistry("stop")
+    future::plan(future::sequential)
+    #future:::ClusterRegistry("stop")
   }
   sample_pts_removal <- dplyr::filter(sample_pts_removal, !is.na(.data$fp_removal))
   message("\n Interpolating sampled flowpaths...")
@@ -201,7 +202,11 @@ nsink_generate_n_removal_heatmap <- function(input_data, removal, samp_dens,
     }
   }
 
-  idw_list <- lapply(ls(pattern = "idw"), function(x) get(x))
+  if(length(ls(pattern = "idw")) > 0){
+    idw_list <- lapply(ls(pattern = "idw"), function(x) get(x))
+  } else {
+    stop("Too few sample points.  Decrease the samp_dens value.")
+  }
   if(length(idw_list) > 1){
     idw_n_removal_heat_map <- do.call(raster::merge, idw_list)
   } else {
