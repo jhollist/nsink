@@ -68,7 +68,7 @@ Imports:
   units
 Remotes: 
   ropensci/FedData
-License: GPL-3
+License: MIT + file LICENSE
 Encoding: UTF-8
 Language: es
 LazyData: true
