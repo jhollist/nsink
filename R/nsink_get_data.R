@@ -37,6 +37,7 @@ nsink_get_data <- function(huc, data_dir = normalizePath("nsink_data", winslash 
   }
 
   # Get rpu
+
   rpu <- unique(wbd_lookup[grepl(paste0("^", huc), wbd_lookup$HUC_12),]$RPU)
   rpu <- rpu[!is.na(rpu)]
   data_dir_orig <- data_dir
@@ -48,7 +49,7 @@ nsink_get_data <- function(huc, data_dir = normalizePath("nsink_data", winslash 
       data_dir <- dirname(data_dir)
       message("Do not include the RPU in the data directory.")
     }
-    data_dir <- paste(basename(data_dir), rpu[i], sep = "/")
+    data_dir <- paste(data_dir, rpu[i], sep = "/")
 
     # Check for/create/clean data directory
     data_dir <- nsink_fix_data_directory(data_dir)

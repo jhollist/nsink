@@ -50,6 +50,7 @@ nsink_build <- function(huc, projection,
   # Check for/create/clean output directory
   output_dir <- nsink_fix_data_directory(output_dir)
   data_dir <- nsink_fix_data_directory(data_dir)
+
   # Get raw data
   message("Getting data...")
   nsink_raw_data <- nsink_get_data(
