@@ -72,7 +72,7 @@ As of 2021-03-30 user functions for the `nsink` package are:
     to work in R on an `nsink` analysis if build for a given watershed
     has already occurred.
 
-## Installation instructions
+# Installation instructions
 
 At this time we plan on maintaining the `nsink` package as a GitHub only
 package and thus it won’t be available directly from CRAN. You may use
@@ -82,7 +82,7 @@ it. The code below will take care of installing `remotes` and installing
 
 ``` r
 install.packages("remotes")
-remotes::install_github("jhollist/nsink", build_vignettes = TRUE, ref = "main")
+remotes::install_github("jhollist/nsink", build_vignettes = TRUE)
 ```
 
 And then to load up the package:
