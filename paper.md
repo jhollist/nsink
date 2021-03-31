@@ -1,5 +1,5 @@
 ---
-title: 'N_sink: An R package for mapping and evaluating landscape N sinks'
+title: 'nsink: An R package for flow path based nitrogen removal estimation'
 tags:
   - R
   - nitrogen

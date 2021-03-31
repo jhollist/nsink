@@ -192,13 +192,16 @@ nsink_generate_n_removal_heatmap <- function(input_data, removal, samp_dens,
       st_intersects(sample_pts_removal,huc_polygon[i,], sparse = FALSE),]
 
     if(nrow(sample_pts_removal_huc_poly)>= 2){
-      interpolated_pts <- gstat::idw(fp_removal ~ 1,
-                                     sample_pts_removal_huc_poly, interp_points,
-                                     nmin = 2, nmax = 10,
-                                     idp = 0.5, debug.level = 0)
-      assign(paste0("idw", i),
-             raster::resample(as(st_rasterize(interpolated_pts), "Raster"),
-                              input_data$raster_template))
+      interpolated_pts <- gstat::gstat(formula = fp_removal ~ 1,
+                                data = sample_pts_removal_huc_poly,
+                                locations = interp_points,
+                                nmin = 2, nmax = 10,
+                                set = list(idp = 0.5))
+      output <- capture.output(assign(paste0("idw", i),
+             raster::interpolate(as(stars::st_rasterize(
+               huc_polygon[i,], template =
+                 stars::st_as_stars(input_data$raster_template)), "Raster"),
+               interpolated_pts)))
     }
   }
 
