@@ -92,7 +92,7 @@ nsink_generate_n_loading_index <- function(input_data) {
 #'             across runs.  Default set to 23.
 #' @import future furrr
 #' @importFrom sf st_area st_sample st_sf st_sfc st_crs
-#' @importFrom utils txtProgressBar setTxtProgressBar
+#' @importFrom utils txtProgressBar setTxtProgressBar capture.output
 #' @importFrom methods as
 #'
 #' @keywords internal
@@ -186,22 +186,26 @@ nsink_generate_n_removal_heatmap <- function(input_data, removal, samp_dens,
     num_pts <- round(units::set_units(st_area(huc_polygon[i,]), "m^2") / (30 * 30))
     interp_points <- st_sample(huc_polygon[i,], as.numeric(num_pts),
                                type = "regular")
+    raster_huc <- as(stars::st_rasterize(
+      huc_polygon[i,], template =
+        stars::st_as_stars(input_data$raster_template)), "Raster")
 
     #subset sample_pts_removal
     sample_pts_removal_huc_poly <- sample_pts_removal[
       st_intersects(sample_pts_removal,huc_polygon[i,], sparse = FALSE),]
 
+    interp_points <- st_transform(interp_points, st_crs(raster_huc))
+    sample_pts_removal_huc_poly <- st_transform(sample_pts_removal_huc_poly,
+                                                st_crs(raster_huc))
     if(nrow(sample_pts_removal_huc_poly)>= 2){
       interpolated_pts <- gstat::gstat(formula = fp_removal ~ 1,
                                 data = sample_pts_removal_huc_poly,
                                 locations = interp_points,
                                 nmin = 2, nmax = 10,
                                 set = list(idp = 0.5))
+
       output <- capture.output(assign(paste0("idw", i),
-             raster::interpolate(as(stars::st_rasterize(
-               huc_polygon[i,], template =
-                 stars::st_as_stars(input_data$raster_template)), "Raster"),
-               interpolated_pts)))
+             raster::interpolate(raster_huc, interpolated_pts)))
     }
   }
 
