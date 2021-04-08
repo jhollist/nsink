@@ -29,6 +29,10 @@ bibliography: paper.bib
   
 # Summary
 
+The `nsink` package was written to simplify the acquisition and management of the spatial data necessary to estimate nitrogen (N) removal within landscape sinks, estimate cumulative N removal along a specified flowpath, and create a set of static watershed maps that summarize flowpath based nitrogen removal. 
+
+# Statement of need
+
 Excess nitrogen (N) delivery via surface water to coastal estuaries 
 contributes to impaired water quality evidenced by excess algal blooms 
 and hypoxia [@Rabalais:2002]. Identifying landscape N sinks (areas where 
@@ -40,21 +44,25 @@ are explained in @Kellogg:2009. The landscape nitrogen sinks considered in the
 NSink approach include wetlands, streams and ponds, which are all areas were 
 water flow is slowed and N transformations have time to occur.
 
-The N-Sink package was written to simplify the acquisition and management of the 
-spatial data necessary to estimate N removal within each identified landscape sink, estimate cumulative N removal 
-along a specified flowpath, and create a set of static watershed maps. 
-These static maps include 1) a color-coded map of the estimated N removal 
-capacity of the different landscape sinks; 2) a heat map with the 
-cumulative N removal along flowpaths originating from a grid of points 
-across a watershed, highlighting “leaky” areas with less downstream 
-N retention vs. those with higher downstream retention; c) N sources 
-based on NLCD categories and expressed as an N index ranging from 0 to 1; 
-and d) the result of combining b) and c) showing potential N delivery 
-(again, as an index) from different sources, taking into account 
-the potential N removal as water moves downstream.
+# Package overview
 
-# Statement of need
-    
+The `nsink` package currently provides 10 exported functions that facilitates a flowpath based analysis of relative nitrogen removal
+
+- `nsink_get_huc_id()`
+- `nsink_get_data()`
+- `nsink_prep_data()`
+- `nsink_calc_removal()`
+- `nsink_generate_flowpath()`
+- `nsink_summarize_flowpath()`
+- `nsink_generate_static_maps()`
+- `nsink_plot()`
+- `nsink_build()`
+- `nsink_load()`
+
+
+These static maps include 1) a color-coded map of the estimated N removal capacity of the different landscape sinks; 2) a heat map with the cumulative N removal along flowpaths originating from a grid of points across a watershed, highlighting “leaky” areas with less downstream N retention vs. those with higher downstream retention; c) N sources based on NLCD categories and expressed as an N index ranging from 0 to 1; and d) the result of combining b) and c) showing potential N delivery (again, as an index) from different sources, taking into account the potential N removal as water moves downstream.  As of 
+
+
 # Acknowledgements
     
 We acknowledge contributions from...

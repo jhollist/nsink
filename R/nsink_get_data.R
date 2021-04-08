@@ -28,7 +28,8 @@
 #' niantic_huc <- nsink_get_huc_id("Niantic River")$huc_12
 #' nsink_get_data(huc = niantic_huc, data_dir = "nsink_data", force = TRUE)
 #' }
-nsink_get_data <- function(huc, data_dir = normalizePath("nsink_data", winslash = "/"),
+nsink_get_data <- function(huc, data_dir = normalizePath("nsink_data",
+                                                         winslash = "/"),
                            force = FALSE) {
 
   huc <- as.character(huc)

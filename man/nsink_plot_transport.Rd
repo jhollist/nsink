@@ -26,3 +26,4 @@ This function creates a simple plot with a pre-selected color palette,
 although different breaks and colors can be provided by the user.  This is
 meant as a quick means to visualize removal efficiency.
 }
+\keyword{internal}

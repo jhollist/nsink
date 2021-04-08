@@ -46,7 +46,7 @@ nsink_plot <- function(static_maps, map = c("removal", "transport",
 #'               colors.
 #' @param colors A vector of hexcodes for the colors
 #' @importFrom raster plot
-#' @export
+#' @keywords internal
 nsink_plot_delivery <- function(delivery_idx, breaks = c(20, 40, 60, 80, 100),
                                 colors = c("#FFBEBE", "#F57A7A","#A80405",
                                            "#652600")){
@@ -70,7 +70,7 @@ nsink_plot_delivery <- function(delivery_idx, breaks = c(20, 40, 60, 80, 100),
 #'               colors.
 #' @param colors A vector of hexcodes for the colors
 #' @importFrom raster plot
-#' @export
+#' @keywords internal
 nsink_plot_removal <- function(removal_effic, breaks = c(0.2, 0.4, 0.6, 0.8),
                                colors = c("#D3FFBE", "#70A800", "#267300")){
   suppressWarnings({
@@ -93,7 +93,7 @@ nsink_plot_removal <- function(removal_effic, breaks = c(0.2, 0.4, 0.6, 0.8),
 #'               colors.
 #' @param colors A vector of hexcodes for the colors
 #' @importFrom raster plot
-#' @export
+#' @keywords internal
 nsink_plot_transport <- function(transport_idx, breaks = c(0, 10, 20, 30, 40, 50,
                                                            60, 70, 80, 90, 100),
                                  colors = c("#38A1D0", "#7AB4C0", "#A2C8B0",

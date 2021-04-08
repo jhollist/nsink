@@ -76,7 +76,7 @@ vignette("intro", package = "nsink")
 
 ## Note on 7-zip
 
-7-zip is needed to extract NHD+ files.  It can been installed in normal ways and if not installed, `nsink` will provide suggestions.  On linux systems without sudo rights you can attempt to build from source and copy the bin folder.
+7-zip is needed to extract NHD+ files.  It can been installed in normal ways for your OS and if not installed, `nsink` will provide suggestions.  On linux systems without sudo rights you can attempt to build from source and copy the bin folder.
 
 ```
 cd

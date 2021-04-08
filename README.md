@@ -28,7 +28,7 @@ al (2010)](https://doi.org/10.1016/j.ecoleng.2010.02.006).
 
 # `nsink` functionality
 
-As of 2021-03-30 user functions for the `nsink` package are:
+As of 2021-04-01 user functions for the `nsink` package are:
 
 -   `nsink_get_data()` - Pass HUC, get data, use cache to avoid repeat
     downloads
@@ -112,9 +112,9 @@ vignette("intro", package = "nsink")
 ## Note on 7-zip
 
 7-zip is needed to extract NHD+ files. It can been installed in normal
-ways and if not installed, `nsink` will provide suggestions. On linux
-systems without sudo rights you can attempt to build from source and
-copy the bin folder.
+ways for your OS and if not installed, `nsink` will provide suggestions.
+On linux systems without sudo rights you can attempt to build from
+source and copy the bin folder.
 
     cd
     git clone https://github.com/btolab/p7zip

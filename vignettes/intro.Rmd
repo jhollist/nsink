@@ -239,15 +239,16 @@ niantic_static_maps <- nsink_generate_static_maps(niantic_data, niantic_removal,
 ```
 
 And with these static maps made, you can plot them quickly with 
-`nsink_plot_removal()`, `nsink_plot_delivery()`, or `nsink_plot_transport()`.  
-An example of `nsink_plot_transport()` is below.
+`nsink_plot()` and sepcifying which plot you would like to see with the `map` 
+argument which can be "removal", "transport", or "delivery".  
+An example of `nsink_plot()` is below.
 
 ```{r plots_fake, eval=FALSE}
-nsink_plot_transport(niantic_static_maps$transport_idx)
+nsink_plot(niantic_static_maps, "transport")
 ```
 
-```{r plots, echo=FALSE}
-suppressWarnings(nsink_plot_transport(niantic_static_maps$transport_idx))
+```{r plots, echo=FALSE, warning=FALSE}
+nsink_plot(niantic_static_maps, "transport")
 ```
 
 # Convenience function: Build it all!
