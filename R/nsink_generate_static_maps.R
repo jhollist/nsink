@@ -133,6 +133,7 @@ nsink_generate_n_removal_heatmap <- function(input_data, removal, samp_dens,
       setTxtProgressBar(pb, i)
       pt <- sample_pts[i,]
       pt <- st_sf(st_sfc(pt, crs = st_crs(input_data$huc)))
+      #browser()
       fp <- nsink_generate_flowpath(pt, input_data)
       if(any(st_within(fp$flowpath_ends, input_data$huc, sparse = FALSE))){
         fp_summary <- nsink_summarize_flowpath(fp, removal)
@@ -175,6 +176,7 @@ nsink_generate_n_removal_heatmap <- function(input_data, removal, samp_dens,
     future::plan(future::sequential)
     #future:::ClusterRegistry("stop")
   }
+
   sample_pts_removal <- dplyr::filter(sample_pts_removal, !is.na(.data$fp_removal))
   message("\n Interpolating sampled flowpaths...")
 
@@ -183,6 +185,7 @@ nsink_generate_n_removal_heatmap <- function(input_data, removal, samp_dens,
   huc_polygon <- st_cast(input_data$huc, "POLYGON")
 
   for(i in 1:nrow(huc_polygon)){
+
     num_pts <- round(units::set_units(st_area(huc_polygon[i,]), "m^2") / (30 * 30))
     interp_points <- st_sample(huc_polygon[i,], as.numeric(num_pts),
                                type = "regular")
@@ -190,7 +193,10 @@ nsink_generate_n_removal_heatmap <- function(input_data, removal, samp_dens,
       huc_polygon[i,], template =
         stars::st_as_stars(input_data$raster_template)), "Raster")
 
+    #raster_huc <- raster::mask(raster::crop(raster_huc, huc_polygon[i,]), huc_polygon[i,])
+
     #subset sample_pts_removal
+    # THis might be my problem
     sample_pts_removal_huc_poly <- sample_pts_removal[
       st_intersects(sample_pts_removal,huc_polygon[i,], sparse = FALSE),]
 
@@ -205,7 +211,8 @@ nsink_generate_n_removal_heatmap <- function(input_data, removal, samp_dens,
                                 set = list(idp = 0.5))
 
       output <- capture.output(assign(paste0("idw", i),
-             raster::interpolate(raster_huc, interpolated_pts)))
+             raster::mask(raster::interpolate(raster_huc, interpolated_pts,
+                                 ext = huc_polygon[i,]), huc_polygon[i,])))
     }
   }
 

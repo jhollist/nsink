@@ -46,6 +46,7 @@ nsink_generate_flowpath <- function(starting_location, input_data){
   }
   fp <- st_sfc(st_linestring(fp), crs = st_crs(input_data$fdr))
   fp <- st_transform(fp, st_crs(input_data$streams))
+
   fp_ends <- nsink_get_flowpath_ends(fp, input_data$streams, input_data$tot)
 
   # This is for cases where flowpath doesn't intersect existing flowlines
@@ -53,14 +54,15 @@ nsink_generate_flowpath <- function(starting_location, input_data){
   dist <- units::set_units(dist, st_crs(input_data$streams,
                                         parameters = TRUE)$ud_unit,
                            mode = "standard")
-  if(any(st_is_within_distance(fp_ends, input_data$streams, as.numeric(dist),
-                               sparse = FALSE)) & fp_ends[1,] != fp_ends[2,]){
+  if(length(unlist(st_is_within_distance(fp_ends, input_data$streams,
+                                         as.numeric(dist)))) > 0 &
+         any(fp_ends[1,] != fp_ends[2,])){
     fp_flowlines <- nsink_get_flowline(fp_ends, input_data$streams, input_data$tot)
   } else {
     fp_flowlines <- NULL
   }
 
-  fp_ends <- st_sfc(fp_ends)
+  fp_ends <- st_sfc(st_geometry(fp_ends))
   fp_ends <- st_sf(fp_ends, crs = st_crs(input_data$streams))
   list(flowpath_ends = fp_ends, flowpath_network = fp_flowlines)
 }
@@ -82,6 +84,7 @@ nsink_generate_flowpath <- function(starting_location, input_data){
 #' @importFrom dplyr filter
 #' @keywords internal
 nsink_get_flowpath_ends <- function(flowpath, streams, tot){
+
   #drops streams without traced network from and to nodes
   #Removal from these is dealt with via off_network removal
   if(nrow(streams) > 0){
@@ -90,8 +93,12 @@ nsink_get_flowpath_ends <- function(flowpath, streams, tot){
     streams <- filter(streams, !is.na(.data$tonode))
     streams <- st_difference(st_combine(streams), st_combine(flowpath))
     splits <- lwgeom::st_split(flowpath, st_combine(streams))
-    splits <- st_collection_extract(splits, "LINESTRING")
-    ends <- splits[c(1,length(splits))]
+    splits <- suppressWarnings(st_collection_extract(splits, "LINESTRING"))
+    splits <- nsink_generate_from_to_nodes(
+      st_sf(splits, data = data.frame(id = seq_along(splits))))
+    first <- which(!splits$fromnode %in% splits$tonode)
+    last <- which(!splits$tonode %in% splits$fromnode)
+    ends <- splits[c(first, last),]
   } else {ends <- flowpath}
   ends
 }
@@ -129,8 +136,8 @@ nsink_get_flowline <- function(flowpath_ends, streams, tot){
   dist <- units::set_units(0.001, "m")
   dist <- units::set_units(dist, st_crs(streams, parameters = TRUE)$ud_unit,
                            mode = "standard")
-  from_nd_idx <- st_is_within_distance(flowpath_ends[1,], streams_tot, dist)[[1]]
-  to_nd_idx <- st_is_within_distance(flowpath_ends[2,], streams_tot, dist)[[1]]
+  from_nd_idx <- unlist(st_is_within_distance(flowpath_ends[1,], streams_tot, dist))
+  to_nd_idx <- unlist(st_is_within_distance(flowpath_ends[2,], streams_tot, dist))
   from_nd <- streams_df[from_nd_idx,]$fromnode
   to_nd <- streams_df[to_nd_idx,]$tonode
   #to_nd <- filter(streams_df, !.data$tonode %in% .data$fromnode)
@@ -146,15 +153,19 @@ nsink_get_flowline <- function(flowpath_ends, streams, tot){
                           mode = "out")$epath[[idx_idx]]
   }
   fl_comids <- edge_attr(streams_g, "stream_comid", idx)
+  st_agr(flowpath_ends) <- "constant"
   fp_end_pt <- tail(st_cast(flowpath_ends[1], "POINT"), 1)
   tol1 <- units::set_units(1, "m")
-  tol1 <- units::set_units(tol1, st_crs(streams, parameters = TRUE)$ud_unit, mode = "standard")
+  tol1 <- units::set_units(tol1, st_crs(streams, parameters = TRUE)$ud_unit,
+                           mode = "standard")
   tol01 <- units::set_units(0.1, "m")
-  tol01 <- units::set_units(tol01, st_crs(streams, parameters = TRUE)$ud_unit, mode = "standard")
+  tol01 <- units::set_units(tol01, st_crs(streams, parameters = TRUE)$ud_unit,
+                            mode = "standard")
   fp_flowlines <- slice(streams_tot, match(fl_comids, streams_tot$stream_comid))
   fp_flowlines <- st_snap(fp_flowlines, fp_end_pt, tolerance = tol1)
   fp_flowlines <- lwgeom::st_split(fp_flowlines, st_combine(fp_end_pt))
-  fp_flowlines <- st_collection_extract(fp_flowlines, "LINESTRING")
+  fp_flowlines <- suppressWarnings(st_collection_extract(fp_flowlines,
+                                                         "LINESTRING"))
   fp_flowlines <- filter(fp_flowlines, !st_overlaps(st_snap(fp_flowlines,
                                                             flowpath_ends[1,],
                                                             tol01),

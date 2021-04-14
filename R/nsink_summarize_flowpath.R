@@ -17,6 +17,7 @@
 #' @importFrom raster rasterize extract
 #' @importFrom rlang .data
 #' @importFrom stats median quantile
+#' @importFrom dplyr near
 #' @export
 #' @examples
 #' \dontrun{
@@ -42,18 +43,50 @@ nsink_summarize_flowpath <- function(flowpath, removal) {
   removal_poly <- mutate(removal_poly,
                          remove_id = paste0("remove_", seq_along(.data$layer)))
   st_agr(removal_poly) <- "constant"
-  land_off_network_removal <- st_intersection(flowpath$flowpath_ends[1,],
-                                              type_poly)
-  st_agr(land_off_network_removal) <- "constant"
-  land_off_network_removal <- st_intersection(removal_poly,
-                                              land_off_network_removal)
-  if(!all(st_is(land_off_network_removal, "LINESTRING"))){
-    land_off_network_removal <- st_collection_extract(land_off_network_removal,
-                                                      "LINESTRING")
-  }
-  st_agr(land_off_network_removal) <- "constant"
-  land_off_network_removal <- st_cast(land_off_network_removal, "LINESTRING")
 
+  # Change from 2021-04-12
+  # old method
+  land_off_network_type <- st_intersection(flowpath$flowpath_ends[1,],
+                                           type_poly)
+  st_agr(land_off_network_type) <- "constant"
+  land_off_network_remove <- st_intersection(removal_poly,
+                                             land_off_network_type)
+  if(!all(st_is(land_off_network_remove, "LINESTRING"))){
+    land_off_network_removal <- suppressWarnings(st_collection_extract(land_off_network_remove,
+                                                      "LINESTRING"))
+  } else {
+    land_off_network_removal <- land_off_network_remove
+  }
+
+  st_agr(land_off_network_removal) <- "constant"
+  land_off_network_removal <- suppressWarnings(
+    st_cast(land_off_network_removal, "LINESTRING"))
+
+  type_length <- as.numeric(sum(st_length(land_off_network_type), na.rm = TRUE))
+  remove_length <- as.numeric(sum(st_length(land_off_network_remove),
+                                  na.rm = TRUE))
+  removal_length <- as.numeric(sum(st_length(land_off_network_removal),
+                                   na.rm = TRUE))
+  # Bug fix method #1 if the above are not the same length
+  if(!dplyr::near(type_length, removal_length) |
+     !dplyr::near(remove_length, removal_length)) {
+    land_off_network_type <- st_intersection(flowpath$flowpath_ends[1,],
+                                             type_poly)
+    st_agr(land_off_network_type) <- "constant"
+    land_off_network_remove <- st_intersection(flowpath$flowpath_ends[1,],
+                                               removal_poly)
+    st_agr(land_off_network_remove) <- "constant"
+    land_off_network_removal <- st_intersection(land_off_network_remove,
+                                                land_off_network_type)
+    st_agr(land_off_network_removal) <- "constant"
+
+    if(!all(st_is(land_off_network_removal, "LINESTRING"))){
+      land_off_network_removal <- suppressWarnings(
+        st_collection_extract(land_off_network_removal,"LINESTRING"))
+    }
+    st_agr(land_off_network_removal) <- "constant"
+    land_off_network_removal <- st_cast(land_off_network_removal, "LINESTRING")
+  }
   if(nrow(land_off_network_removal) > 0){
     land_off_network_removal <- mutate(land_off_network_removal,
                                        edge_id = c(1:n()))

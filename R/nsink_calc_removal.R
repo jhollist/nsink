@@ -662,10 +662,14 @@ nsink_calc_lake_removal <- function(input_data) {
 
   st_geometry(lake_removal) <- NULL
   lake_removal_flowpath <- suppressMessages(left_join(residence_time_sf, lake_removal))
-  #here
-  lake_removal_r <-fasterize::fasterize(lake_removal_sf,
-                                        input_data$raster_template,
-                                        field = "n_removal", fun = "max")
+  if(nrow(lake_removal_sf) > 0){
+    lake_removal_r <-fasterize::fasterize(lake_removal_sf,
+                                          input_data$raster_template,
+                                          field = "n_removal", fun = "max")
+  } else {
+    lake_removal_r <- input_data$raster_template
+  }
+
   comids <- select(input_data$streams, .data$stream_comid, .data$lake_comid)
   st_geometry(comids) <- NULL
   lake_removal_flowpath <- suppressMessages(left_join(lake_removal_flowpath,

@@ -156,7 +156,7 @@ nsink_prep_streams <- function(huc_sf, data_dir) {
                       percent_length =
                         units::set_units(st_length(.data$geometry), "km")/
                         units::set_units(.data$lengthkm, "km"))
-    streams <- streams[st_intersects(huc_sf, streams)[[1]],]
+    streams <- streams[unlist(st_intersects(huc_sf, streams)),]
     streams <- filter(streams, .data$percent_length >= units::as_units(0.75))
     streams <- select(streams, -.data$lengthkm, -.data$shape_leng, -.data$percent_length)
     st_agr(streams) <- "constant"
@@ -185,11 +185,12 @@ nsink_prep_lakes <- function(huc_sf, data_dir) {
   if (file.exists(paste0(data_dir, "nhd/NHDWaterbody.shp"))) {
     message("Preparing lakes...")
     lakes <- st_read(paste0(data_dir, "nhd/NHDWaterbody.shp"), quiet = TRUE)
+    lakes <- st_zm(lakes)
     lakes <- st_transform(lakes, st_crs(huc_sf))
     lakes <- rename_all(lakes, tolower)
     lakes <- rename(lakes, lake_comid = .data$comid)
     lakes <- filter(lakes, .data$ftype == "LakePond")
-    lakes <- slice(lakes, st_contains(huc_sf, lakes)[[1]])
+    lakes <- slice(lakes, unlist(st_contains(huc_sf, lakes)))
   } else {
     stop("The required data file does not exist.  Run nsink_get_data().")
   }
