@@ -1,6 +1,6 @@
 Package: nsink
 Title: Flow path based nitrogen removal estimation
-Version: 1.0.16
+Version: 1.0.18
 Authors@R: c(person(given = "Jeffrey",
            family = "Hollister",
            role = c("aut", "cre"),
@@ -78,6 +78,7 @@ RoxygenNote: 7.1.1
 Suggests: 
     knitr,
     rmarkdown,
+    markdown,
     testthat,
     covr
 VignetteBuilder: knitr

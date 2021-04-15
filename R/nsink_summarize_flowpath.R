@@ -95,15 +95,26 @@ nsink_summarize_flowpath <- function(flowpath, removal) {
   # Bug fix method #2 if the above are still not the same length
   if(!dplyr::near(type_length, removal_length) |
      !dplyr::near(remove_length, removal_length)) {
-    browser()
+
+    # Deals with the very rare case when we drop sections...
+    snap_dist <- units::set_units(1, "m")
+    snap_dist <- units::set_units(snap_dist, st_crs(land_off_network_removal,
+                                                    parameters = TRUE)$ud_unit,
+                                  mode = "standard")
     land_off_network_type <- st_intersection(flowpath$flowpath_ends[1,],
                                              type_poly)
     st_agr(land_off_network_type) <- "constant"
     land_off_network_remove <- st_intersection(flowpath$flowpath_ends[1,],
                                                removal_poly)
+    land_off_network_type <- st_snap(land_off_network_type,
+                                        land_off_network_remove,
+                                        tolerance = snap_dist)
+    land_off_network_remove <- st_snap(land_off_network_remove,
+                                        land_off_network_type,
+                                        tolerance = snap_dist)
     st_agr(land_off_network_remove) <- "constant"
     land_off_network_removal <- st_intersection(land_off_network_remove,
-                                                land_off_network_type, tolerance = 0.1)
+                                                land_off_network_type)
     st_agr(land_off_network_removal) <- "constant"
 
     if(!all(st_is(land_off_network_removal, "LINESTRING"))){
@@ -112,7 +123,38 @@ nsink_summarize_flowpath <- function(flowpath, removal) {
     }
     st_agr(land_off_network_removal) <- "constant"
     land_off_network_removal <- st_cast(land_off_network_removal, "LINESTRING")
+  }
+  # Bug fix method #3 if the above are still not the same length
+  if(!dplyr::near(type_length, removal_length) |
+     !dplyr::near(remove_length, removal_length)) {
 
+    # Deals with the very rare case when we drop sections...
+    snap_dist <- units::set_units(60, "m")
+    snap_dist <- units::set_units(snap_dist, st_crs(land_off_network_removal,
+                                                    parameters = TRUE)$ud_unit,
+                                  mode = "standard")
+    land_off_network_type <- st_intersection(flowpath$flowpath_ends[1,],
+                                             type_poly)
+    st_agr(land_off_network_type) <- "constant"
+    land_off_network_remove <- st_intersection(flowpath$flowpath_ends[1,],
+                                               removal_poly)
+    land_off_network_type <- st_snap(land_off_network_type,
+                                     land_off_network_remove,
+                                     tolerance = snap_dist)
+    land_off_network_remove <- st_snap(land_off_network_remove,
+                                       land_off_network_type,
+                                       tolerance = snap_dist)
+    st_agr(land_off_network_remove) <- "constant"
+    land_off_network_removal <- st_intersection(land_off_network_remove,
+                                                land_off_network_type)
+    st_agr(land_off_network_removal) <- "constant"
+
+    if(!all(st_is(land_off_network_removal, "LINESTRING"))){
+      land_off_network_removal <- suppressWarnings(
+        st_collection_extract(land_off_network_removal,"LINESTRING"))
+    }
+    st_agr(land_off_network_removal) <- "constant"
+    land_off_network_removal <- st_cast(land_off_network_removal, "LINESTRING")
   }
   if(nrow(land_off_network_removal) > 0){
     land_off_network_removal <- mutate(land_off_network_removal,
@@ -133,8 +175,9 @@ nsink_summarize_flowpath <- function(flowpath, removal) {
                                        dist = 0.000001, sparse = FALSE)
     from_nd <- as.character(lonr_g_df[from_nd_idx,]$fromnode)
     to_nd <- as.character(lonr_g_df[to_nd_idx,]$tonode)
-    idx <- shortest_paths(lonr_g, from_nd, to_nd, output = "epath",
-                          mode = "out")$epath[[1]]
+    idx <- suppressWarnings(shortest_paths(lonr_g, from_nd, to_nd,
+                                           output = "epath",
+                                           mode = "out")$epath[[1]])
     lonr_ids <- edge_attr(lonr_g, "edge_id", idx)
     land_off_network_removal <- slice(land_off_network_removal,
                                       match(lonr_ids,.data$edge_id))
