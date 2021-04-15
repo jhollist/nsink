@@ -87,6 +87,33 @@ nsink_summarize_flowpath <- function(flowpath, removal) {
     st_agr(land_off_network_removal) <- "constant"
     land_off_network_removal <- st_cast(land_off_network_removal, "LINESTRING")
   }
+  type_length <- as.numeric(sum(st_length(land_off_network_type), na.rm = TRUE))
+  remove_length <- as.numeric(sum(st_length(land_off_network_remove),
+                                  na.rm = TRUE))
+  removal_length <- as.numeric(sum(st_length(land_off_network_removal),
+                                   na.rm = TRUE))
+  # Bug fix method #2 if the above are still not the same length
+  if(!dplyr::near(type_length, removal_length) |
+     !dplyr::near(remove_length, removal_length)) {
+    browser()
+    land_off_network_type <- st_intersection(flowpath$flowpath_ends[1,],
+                                             type_poly)
+    st_agr(land_off_network_type) <- "constant"
+    land_off_network_remove <- st_intersection(flowpath$flowpath_ends[1,],
+                                               removal_poly)
+    st_agr(land_off_network_remove) <- "constant"
+    land_off_network_removal <- st_intersection(land_off_network_remove,
+                                                land_off_network_type, tolerance = 0.1)
+    st_agr(land_off_network_removal) <- "constant"
+
+    if(!all(st_is(land_off_network_removal, "LINESTRING"))){
+      land_off_network_removal <- suppressWarnings(
+        st_collection_extract(land_off_network_removal,"LINESTRING"))
+    }
+    st_agr(land_off_network_removal) <- "constant"
+    land_off_network_removal <- st_cast(land_off_network_removal, "LINESTRING")
+
+  }
   if(nrow(land_off_network_removal) > 0){
     land_off_network_removal <- mutate(land_off_network_removal,
                                        edge_id = c(1:n()))

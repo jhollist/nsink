@@ -125,7 +125,7 @@ nsink_generate_n_removal_heatmap <- function(input_data, removal, samp_dens,
   message(paste0(" Running ", length(sample_pts), " sampled flowpaths..."))
 
 
-  if(length(sample_pts) < 50){
+  if(length(sample_pts) < 1050){
     pb <- txtProgressBar(max = length(sample_pts), style = 3)
     xdf <- data.frame(fp_removal = vector("numeric", length(sample_pts)))
     suppressPackageStartupMessages({

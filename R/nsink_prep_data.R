@@ -142,6 +142,7 @@ nsink_prep_streams <- function(huc_sf, data_dir) {
 
   if (file.exists(paste0(data_dir, "nhd/NHDFlowline.shp"))) {
     message("Preparing streams...")
+
     streams <- st_read(paste0(data_dir, "nhd/NHDFlowline.shp"), quiet = TRUE)
     streams <- st_transform(streams, st_crs(huc_sf))
     streams <- st_zm(streams)
@@ -184,13 +185,14 @@ nsink_prep_streams <- function(huc_sf, data_dir) {
 nsink_prep_lakes <- function(huc_sf, data_dir) {
   if (file.exists(paste0(data_dir, "nhd/NHDWaterbody.shp"))) {
     message("Preparing lakes...")
+
     lakes <- st_read(paste0(data_dir, "nhd/NHDWaterbody.shp"), quiet = TRUE)
     lakes <- st_zm(lakes)
     lakes <- st_transform(lakes, st_crs(huc_sf))
     lakes <- rename_all(lakes, tolower)
     lakes <- rename(lakes, lake_comid = .data$comid)
     lakes <- filter(lakes, .data$ftype == "LakePond")
-    lakes <- slice(lakes, unlist(st_contains(huc_sf, lakes)))
+    lakes <- slice(lakes, unlist(st_intersects(huc_sf, lakes)))
   } else {
     stop("The required data file does not exist.  Run nsink_get_data().")
   }
@@ -475,7 +477,8 @@ nsink_remove_openwater <- function(huc_sf, data_dir){
                                    huc_unit*huc_unit,
                                    mode = "standard")
     saltwater_buff <- st_buffer(saltwater, tol1)
-    huc_ow_remove <- st_difference(st_union(huc_sf), st_union(saltwater_buff))
+    huc_ow_remove <- suppressMessages(st_difference(st_union(huc_sf),
+                                                    st_union(saltwater_buff)))
     huc_ow_remove <- st_cast(huc_ow_remove, "POLYGON")
     huc_ow_remove <- huc_ow_remove[st_area(huc_ow_remove) > pixel_area,]
   } else {
