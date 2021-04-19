@@ -56,7 +56,6 @@ nsink_prep_data <- function(huc, projection,
 
     # Check for/create/clean data directory
     message("Preparing data for nsink analysis...")
-
     dirs <- list.dirs(data_dir, full.names = FALSE, recursive = FALSE)
     if (all(c("attr", "erom", "fdr", "imperv", "nhd", "ssurgo", "wbd", "nlcd") %in% dirs)) {
       huc_sf <- st_read(paste0(data_dir, "wbd/WBD_Subwatershed.shp"),
@@ -98,26 +97,34 @@ nsink_prep_data <- function(huc, projection,
     }
   }
 
+  #browser()
+
   rpus <- ls(pattern = "rpu_")
   if(length(rpus)==1){
     get(rpus[1])
   } else if(length(rpus) == 2) {
     huc <- rbind(get(rpus[1])$huc, get(rpus[2])$huc)
+    st_agr(huc) <- "constant"
+    huc <- st_cast(huc, "POLYGON")
     huc_raster <- raster::raster(as(huc, "Spatial"),
                                  resolution = as.numeric(res),
                                  crs = projection(huc))
     list(
       streams = rbind(get(rpus[1])$streams, get(rpus[2])$streams),
       lakes = rbind(get(rpus[1])$lakes, get(rpus[2])$lakes),
-      fdr = suppressWarnings(raster::merge(
-        raster::projectRaster(get(rpus[1])$fdr, huc_raster),
-        raster::projectRaster(get(rpus[2])$fdr, huc_raster))),
-      impervious = suppressWarnings(raster::merge(
-        raster::projectRaster(get(rpus[1])$impervious, huc_raster),
-        raster::projectRaster(get(rpus[2])$impervious, huc_raster))),
-      nlcd = suppressWarnings(raster::merge(
-        raster::projectRaster(get(rpus[1])$nlcd, huc_raster),
-        raster::projectRaster(get(rpus[2])$nlcd, huc_raster))),
+      fdr = suppressWarnings(raster::mosaic(
+        raster::projectRaster(get(rpus[1])$fdr, huc_raster, method = "ngb"),
+        raster::projectRaster(get(rpus[2])$fdr, huc_raster, method = "ngb"),
+        fun = max)),
+      impervious = suppressWarnings(raster::mosaic(
+        raster::projectRaster(get(rpus[1])$impervious, huc_raster,
+                              method = "ngb"),
+        raster::projectRaster(get(rpus[2])$impervious, huc_raster,
+                              method = "ngb"), fun = max)),
+      nlcd = suppressWarnings(raster::mosaic(
+        raster::projectRaster(get(rpus[1])$nlcd, huc_raster, method = "ngb"),
+        raster::projectRaster(get(rpus[2])$nlcd, huc_raster, method = "ngb"),
+        fun = max)),
       ssurgo = rbind(get(rpus[1])$ssurgo, get(rpus[2])$ssurgo),
       q = rbind(get(rpus[1])$q, get(rpus[2])$q),
       tot = rbind(get(rpus[1])$tot, get(rpus[2])$tot),

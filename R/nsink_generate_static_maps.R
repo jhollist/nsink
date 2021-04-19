@@ -62,6 +62,7 @@ nsink_generate_static_maps <- function(input_data, removal, samp_dens,
 #' @param input_data list of input data
 #' @keywords internal
 nsink_generate_n_loading_index <- function(input_data) {
+
   nlcd <- input_data$nlcd
   rcl_m <- matrix(cbind(
     n_load_idx_lookup$codes,
