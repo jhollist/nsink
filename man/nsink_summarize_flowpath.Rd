@@ -13,7 +13,7 @@ nsink_summarize_flowpath(flowpath, removal)
 \code{\link{nsink_calc_removal}}}
 }
 \value{
-A data frame is returned that with a summary of nitrogen removal.  The
+A data frame is returned with a summary of nitrogen removal.  The
 }
 \description{
 Nitrogen removal varies along a flowpath as they include different land cover

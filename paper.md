@@ -35,14 +35,14 @@ The `nsink` package was written to estimate cumulative nitrogen (N) removal alon
 
 # Statement of need
 
-Excess nitrogen (N) delivery via surface water to downstream aquatic resources such as coastal estuaries contributes to impaired water quality evidenced by several ecosystem impacts including harmful algal blooms (HABs) and hypoxia [@rabalais2002beyond]. Identifying landscape N sinks (areas where dissolved N is transformed to gaseous N and effectively removed from the aquatic system) and their effect on N delivery at the watershed scale is helpful to watershed managers, land use planners and conservation organizations.  The theoretical underpinnings rely on decades of research and are explained in Kellogg et al. [ -@kellogg2010geospatial]. The landscape nitrogen sinks considered in the approach implemented in `nsink` include wetlands (as hydric soils), lakes, and streams, which are all areas were water flow is slowed and N transformations have time to occur.
+Excess nitrogen (N) delivery via surface water to downstream aquatic resources such as coastal estuaries contributes to impaired water quality and leads to several ecosystem impacts including harmful algal blooms (HABs) and hypoxia [@rabalais2002beyond]. Identifying landscape N sinks (areas where dissolved N is transformed to gaseous N and effectively removed from the aquatic system) and their effect on N delivery at the watershed scale is helpful to watershed managers, land use planners and conservation organizations.  The theoretical underpinnings for identifying N sinks rely on decades of research and are explained in Kellogg et al. [ -@kellogg2010geospatial]. The landscape nitrogen sinks considered in the approach implemented in `nsink` include wetlands (as hydric soils), lakes, and streams, as these are all areas were water flow is slowed and N transformations have time to occur.
 
-The first implementation of this type of approach was done on a case by case basis.  Data acquisition and manipulation were mostly manual processes and the end result could take weeks to months for a single small watershed to be completed (C. Damon, pers. comm.).  Thus, the effort required for the analysis limited it's application and scaling beyond a few pilot studies was not feasible.  The goal of `nsink` was to address this limitation and provide an open source solution that could be run on a single small watershed in minutes to hours without significant manual input.
+The first implementation of this type of approach was done on a case by case basis.  Data acquisition and manipulation were mostly manual processes and the end result could take weeks to months for a single small watershed to be completed (C. Damon, pers. comm.).  Thus, the effort required for the analysis limited it's application and scaling an flowpath based nitrogen sink analysis beyond a few pilot studies was not feasible.  The goal of `nsink` was to address this limitation and provide an open source solution that could be run on a single small watershed in minutes to hours without significant manual input.
 
 # The `nsink` package
 
 ## Package Installation
-The `nsink` package is available for install from <https://github.com/usepa/nsink> and may be installed in R with the following:
+The `nsink` package is available from <https://github.com/usepa/nsink> and may be installed in R with the following:
 
 ```r
 # If not installed, install remotes
@@ -53,9 +53,46 @@ remotes::install_github("USEPA/nsink")
 
 ## Package Details
 
-`nsink` relies on several national scale dataset for the United States.  By limiting our approach to these national  datasets we are ensuring scalability of the application of `nsink` because the datasets will be available for nearly all locations in the United States, the datasets are all available via either an Application Programming Interface (API) or via direct download, and lastly will be consistently formatted across locations. The four datasets that `nsink` uses are the National Hydrography Dataset Plus (NHDPlus), Soil Survey Geographic Database (SSURGO), the National Land Cover Dataset (NLCD) land cover, and the National Land Cover Dataset (NLCD) impervious surface.  
+The `nsink` package is designed around the major steps in running a flowpath based analysis with the following major steps:
 
-We use all these packages (list em)
+1. Prepare for analysis
+    - Get required data
+    - Prepare that data for analysis
+    - Calculate nitrogen removal layer
+2. Run an interactive analysis
+    - Calculate a flowpath 
+    - Summarize nitrogen removal along a flowpath
+3. Run a watershed based analysis
+    - Develop static maps
+    - Generate output datasets
+
+The ability to run an `nsink` analysis relies on several national scale dataset for the United States.  By limiting our approach to these national datasets we are ensuring scalability of the application of `nsink` because the datasets will be available for nearly all locations in the United States.  The four datasets that `nsink` uses are the National Hydrography Dataset Plus (NHDPlus), Soil Survey Geographic Database (SSURGO), the National Land Cover Dataset (NLCD) land cover, and the National Land Cover Dataset (NLCD) impervious surface [ADD CITATION FOR DATASETS]. These datasets are all available via either an Application Programming Interface (API) or via direct download (e.g. FTP).   
+
+To acquire the datasets and run the analysis, `nsink` depends on several existing R packages to facilitate spatial data handling, data acquisition, data management, data analysis and data processing.  These are detailed in Table 1.  In particular, for spatial data handling and analysis we use `sf`, `raster`, `stars`, `fasterize`, `lwgeom`, `gstat`, `sp`, `units`.  For data acquisition we use `FedData`, `httr`.  For data management, analysis and processing we use `dplyr`, `zoo`, `igraph`, `readr`,  `foreign`,  `methods`, `rlang`, `furrr`, `future`. (Maybe do these as a table). 
+
+|Package|Task|Citation|
+|-------|----|--------|
+|`sf`|Spatial Data Handling and Analysis|
+|`raster`|Spatial Data Handling and Analysis|
+|`stars`|Spatial Data Handling and Analysis|
+|`fasterize`|Spatial Data Handling and Analysis|
+|`lwgeom`|Spatial Data Handling and Analysis|
+|`gstat`|Spatial Data Handling and Analysis|
+|`sp`|Spatial Data Handling and Analysis|
+|`units`|Unit Transformations|
+|`FedData`|Data Acquisition|
+|`httr`|Data Acquisition|
+|`dplyr`|Data Management and Analysis|
+|`zoo`|Data Management and Analysis|
+|`igraph`|Data Management and Analysis|
+|`readr`|Data Management and Analysis|
+|`foreign`|Data Management and Analysis|
+|`methods`|Data Management and Analysis|
+|`rlang`|Data Management and Analysis|
+|`furrr`|Parallel Processing|
+|`future`|Parallel Processing|
+
+Table 1. R Package Dependencies for the `nsink` package
 
 Currently, `nink` provides 10 exported functions to facilitate a flowpath based analysis of relative nitrogen removal. 
 
@@ -65,12 +102,10 @@ Currently, `nink` provides 10 exported functions to facilitate a flowpath based 
 - `nsink_calc_removal()`
 - `nsink_generate_flowpath()`
 - `nsink_summarize_flowpath()`
-- `nsink_generate_static_maps()`
+- `nsink_generate_static_maps()`: These static maps include 1) a color-coded map of the estimated N removal capacity of the different landscape sinks; 2) a heat map with the cumulative N removal along flowpaths originating from a grid of points across a watershed, highlighting “leaky” areas with less downstream N retention vs. those with higher downstream retention; c) N sources based on NLCD categories and expressed as an N index ranging from 0 to 1; and d) the result of combining b) and c) showing potential N delivery (again, as an index) from different sources, taking into account the potential N removal as water moves downstream. 
 - `nsink_plot()`
 - `nsink_build()`
 - `nsink_load()`
-
-These static maps include 1) a color-coded map of the estimated N removal capacity of the different landscape sinks; 2) a heat map with the cumulative N removal along flowpaths originating from a grid of points across a watershed, highlighting “leaky” areas with less downstream N retention vs. those with higher downstream retention; c) N sources based on NLCD categories and expressed as an N index ranging from 0 to 1; and d) the result of combining b) and c) showing potential N delivery (again, as an index) from different sources, taking into account the potential N removal as water moves downstream.  As of 
 
 ## Example workflow
 

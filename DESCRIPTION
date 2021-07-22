@@ -73,7 +73,7 @@ Encoding: UTF-8
 Language: es
 LazyData: true
 URL: https://github.com/USEPA/nsink
-BugReports: https://github.com/USEPA/nsink/issues
+BugReports: https://github.com/  USEPA/nsink/issues
 RoxygenNote: 7.1.1
 Suggests: 
     knitr,
