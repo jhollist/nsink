@@ -11,6 +11,7 @@ nsink_build(
   data_dir = normalizePath("nsink_data", winslash = "/"),
   force = FALSE,
   samp_dens = 300,
+  year = "2016",
   ...
 )
 }
@@ -38,6 +39,9 @@ exists on file system}
 creating the nitrogen removal heat map.  The area of the
 watershed is sampled with points that are separated by the
 \code{samp_dens} value.  The larger the value, the fewer the points.}
+
+\item{year}{An argument to be passed to FedData's \code{\link{get_nlcd}}
+function. Defaults to 2016.}
 
 \item{...}{Passes to \code{\link{nsink_calc_removal}} for the off network
 arguments: \code{off_network_lakes}, \code{off_network_streams},

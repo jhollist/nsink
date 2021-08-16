@@ -18,6 +18,8 @@
 #'                 downloaded.
 #' @param force Logical to determine if files should be downloaded
 #'                       again if they already exist locally.
+#' @param year An argument to be passed to FedData's \code{\link{get_nlcd}}
+#'             function. Defaults to 2016.
 #' @export
 #' @importFrom methods as
 #' @return Returns a list with the huc used and the directory where the data is
@@ -30,8 +32,8 @@
 #' }
 nsink_get_data <- function(huc, data_dir = normalizePath("nsink_data",
                                                          winslash = "/"),
-                           force = FALSE) {
-
+                           force = FALSE, year = "2016") {
+  year <- as.character(year)
   huc <- as.character(huc)
   if (nchar(gsub("[[:alpha:]]+", "", huc)) %% 2 != 0) {
     stop("The supplied huc does not appear to have an even number of digits.  If HUC has a leading 0, pass as character")
@@ -102,17 +104,17 @@ nsink_get_data <- function(huc, data_dir = normalizePath("nsink_data",
       message("Getting Impervious Surface ...")
 
       imp <- FedData::get_nlcd(
-        template = as(huc_12, "Spatial"), dataset = "Impervious",
+        template = as(huc_12, "Spatial"), dataset = "impervious",
         label = huc, extraction.dir = paste0(data_dir, "imperv"),
-        force.redo = force)
+        force.redo = force, year = year)
 
       # Get 2011 NLCD
       message("Getting NLCD ...")
 
       nlcd <- FedData::get_nlcd(
-        template = as(huc_12, "Spatial"), dataset = "Land_Cover",
+        template = as(huc_12, "Spatial"), dataset = "landcover",
         label = huc, extraction.dir = paste0(data_dir, "nlcd"),
-        force.redo = force)
+        force.redo = force, year = year)
 
     }
 
@@ -133,6 +135,7 @@ nsink_get_data <- function(huc, data_dir = normalizePath("nsink_data",
       count <- 0
       while(is.logical(repeat_it) & count <= 9) {
         count <- count + 1
+
         repeat_it <- tryCatch(
             suppressMessages(
             ssurgo <- FedData::get_ssurgo(as(huc_12, "Spatial"),

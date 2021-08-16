@@ -7,7 +7,8 @@
 nsink_get_data(
   huc,
   data_dir = normalizePath("nsink_data", winslash = "/"),
-  force = FALSE
+  force = FALSE,
+  year = "2016"
 )
 }
 \arguments{
@@ -24,6 +25,9 @@ downloaded.}
 
 \item{force}{Logical to determine if files should be downloaded
 again if they already exist locally.}
+
+\item{year}{An argument to be passed to FedData's \code{\link{get_nlcd}}
+function. Defaults to 2016.}
 }
 \value{
 Returns a list with the huc used and the directory where the data is

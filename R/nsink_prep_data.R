@@ -14,6 +14,8 @@
 #'                   reliable length and area measurments.
 #' @param data_dir Base directory that contains N-Sink data folders.  Data may
 #'                 be downloaded with the \code{\link{nsink_get_data}} function.
+#' @param year The year of the nlcd and impervious data that was retrieved with
+#'             FedData's, \code{\link{get_nlcd}} function.
 #' @return returns a list of sf, raster, or tabular objects for each of the
 #'         required datasets plus the huc.
 #' @importFrom methods as
@@ -33,8 +35,10 @@
 #'                 data_dir = "nsink_data")
 #' }
 nsink_prep_data <- function(huc, projection,
-                            data_dir = normalizePath("nsink_data/", winslash = "/")) {
-
+                            data_dir = normalizePath("nsink_data/",
+                                                     winslash = "/"),
+                            year = "2016") {
+  year <- as.character(year)
   # Get vpu
   rpu <- unique(wbd_lookup[grepl(paste0("^", huc), wbd_lookup$HUC_12),]$RPU)
 
@@ -80,8 +84,8 @@ nsink_prep_data <- function(huc, projection,
         streams = nsink_prep_streams(huc_sf, data_dir),
         lakes = nsink_prep_lakes(huc_sf, data_dir),
         fdr = nsink_prep_fdr(huc_sf, huc_raster, data_dir),
-        impervious = nsink_prep_impervious(huc_sf, huc_raster, data_dir),
-        nlcd = nsink_prep_nlcd(huc_sf, huc_raster, data_dir),
+        impervious = nsink_prep_impervious(huc_sf, huc_raster, data_dir, year),
+        nlcd = nsink_prep_nlcd(huc_sf, huc_raster, data_dir, year),
         ssurgo = nsink_prep_ssurgo(huc_sf, data_dir),
         q = nsink_prep_q(data_dir),
         tot = nsink_prep_tot(data_dir),
@@ -96,8 +100,6 @@ nsink_prep_data <- function(huc, projection,
       ))
     }
   }
-
-  #browser()
 
   rpus <- ls(pattern = "rpu_")
   if(length(rpus)==1){
@@ -240,16 +242,20 @@ nsink_prep_fdr <- function(huc_sf, huc_raster, data_dir) {
 #' @param huc_raster A raster object of the Watershed Boundaries Dataset HUC12
 #' @param data_dir Base directory that contains N-Sink data folders.  Data may
 #'                 be downloaded with the \code{\link{nsink_get_data}} function.
+#' @param year The year of the nlcd and impervious data that was retrieved with
+#'             FedData's, \code{\link{get_nlcd}} function.
 #' @return returns a raster object of the impervious cover for the huc_sf
 #' @keywords  internal
-nsink_prep_impervious <- function(huc_sf, huc_raster, data_dir) {
+nsink_prep_impervious <- function(huc_sf, huc_raster, data_dir, year) {
+
   huc12 <- unique(as.character(huc_sf$selected_huc))
   file <- list.files(paste0(data_dir, "imperv/"), pattern = ".tif")
-  if (any(grepl("NLCD_2016_Impervious_L48", file))){
+  if (any(grepl(paste0("^", huc12, ".*", year, ".*\\.tif$"), file))){
     message("Preparing impervious...")
 
     if(length(file)>1){
-      file <- file[grepl(paste0("^",huc12,"_"),file)]
+
+      file <- file[grepl(paste0("^", huc12, ".*", year, ".*\\.tif$"),file)]
     }
     impervious <- raster::raster(paste0(data_dir, "imperv/", file))
     impervious <- raster::projectRaster(impervious, huc_raster)
@@ -267,15 +273,17 @@ nsink_prep_impervious <- function(huc_sf, huc_raster, data_dir) {
 #' @param huc_raster A raster object of the Watershed Boundaries Dataset HUC12
 #' @param data_dir Base directory that contains N-Sink data folders.  Data may
 #'                 be downloaded with the \code{\link{nsink_get_data}} function.
+#' @param year The year of the nlcd and impervious data that was retrieved with
+#'             FedData's, \code{\link{get_nlcd}} function.
 #' @return returns a raster object of the NLCD for the huc_sf
 #' @keywords  internal
-nsink_prep_nlcd <- function(huc_sf, huc_raster, data_dir) {
+nsink_prep_nlcd <- function(huc_sf, huc_raster, data_dir, year) {
   huc12 <- unique(as.character(huc_sf$selected_huc))
   file <- list.files(paste0(data_dir, "nlcd/"), pattern = ".tif")
-  if (any(grepl("NLCD_2016_Land_Cover_L48", file))){
+  if (any(grepl(paste0("^", huc12, ".*", year, ".*\\.tif$"), file))){
     message("Preparing NLCD...")
     if(length(file)>1){
-      file <- file[grepl(paste0("^",huc12,"_"),file)]
+      file <- file[grepl(paste0("^", huc12, ".*", year, ".*\\.tif$"),file)]
     }
     nlcd <- raster::raster(paste0(data_dir, "nlcd/", file))
     nlcd <- raster::projectRaster(nlcd, huc_raster,method = "ngb")
@@ -487,7 +495,8 @@ nsink_remove_openwater <- function(huc_sf, data_dir){
     huc_ow_remove <- suppressMessages(st_difference(st_union(huc_sf),
                                                     st_union(saltwater_buff)))
     huc_ow_remove <- st_cast(huc_ow_remove, "POLYGON")
-    huc_ow_remove <- huc_ow_remove[st_area(huc_ow_remove) > pixel_area,]
+
+    huc_ow_remove <- huc_ow_remove[st_area(huc_ow_remove) > pixel_area]
   } else {
     huc_ow_remove <- huc_sf
   }

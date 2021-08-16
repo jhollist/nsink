@@ -7,7 +7,8 @@
 nsink_prep_data(
   huc,
   projection,
-  data_dir = normalizePath("nsink_data/", winslash = "/")
+  data_dir = normalizePath("nsink_data/", winslash = "/"),
+  year = "2016"
 )
 }
 \arguments{
@@ -21,6 +22,9 @@ reliable length and area measurments.}
 
 \item{data_dir}{Base directory that contains N-Sink data folders.  Data may
 be downloaded with the \code{\link{nsink_get_data}} function.}
+
+\item{year}{The year of the nlcd and impervious data that was retrieved with
+FedData's, \code{\link{get_nlcd}} function.}
 }
 \value{
 returns a list of sf, raster, or tabular objects for each of the

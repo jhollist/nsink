@@ -4,7 +4,7 @@
 \alias{nsink_prep_impervious}
 \title{Prepare impervious cover data for N-Sink}
 \usage{
-nsink_prep_impervious(huc_sf, huc_raster, data_dir)
+nsink_prep_impervious(huc_sf, huc_raster, data_dir, year)
 }
 \arguments{
 \item{huc_sf}{An sf object of the Watershed Boundaries Dataset HUC12}
@@ -13,6 +13,9 @@ nsink_prep_impervious(huc_sf, huc_raster, data_dir)
 
 \item{data_dir}{Base directory that contains N-Sink data folders.  Data may
 be downloaded with the \code{\link{nsink_get_data}} function.}
+
+\item{year}{The year of the nlcd and impervious data that was retrieved with
+FedData's, \code{\link{get_nlcd}} function.}
 }
 \value{
 returns a raster object of the impervious cover for the huc_sf

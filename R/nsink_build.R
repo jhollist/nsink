@@ -27,6 +27,8 @@
 #'             creating the nitrogen removal heat map.  The area of the
 #'             watershed is sampled with points that are separated by the
 #'             \code{samp_dens} value.  The larger the value, the fewer the points.
+#' @param year An argument to be passed to FedData's \code{\link{get_nlcd}}
+#'             function. Defaults to 2016.
 #' @param ... Passes to \code{\link{nsink_calc_removal}} for the off network
 #'            arguments: \code{off_network_lakes}, \code{off_network_streams},
 #'            and \code{off_network_canalsditches}.
@@ -45,8 +47,10 @@ nsink_build <- function(huc, projection,
                         output_dir = normalizePath("nsink_output", winslash = "/"),
                         data_dir = normalizePath("nsink_data", winslash = "/"),
                         force = FALSE,
-                        samp_dens = 300, ...) {
+                        samp_dens = 300,
+                        year = "2016", ...) {
 
+  year <- as.character(year)
   # Check for/create/clean output directory
   output_dir <- nsink_fix_data_directory(output_dir)
   data_dir <- nsink_fix_data_directory(data_dir)
@@ -55,13 +59,13 @@ nsink_build <- function(huc, projection,
   message("Getting data...")
   nsink_raw_data <- nsink_get_data(
     huc = huc, data_dir = data_dir,
-    force = force)
+    force = force, year = year)
 
   # Prep raw data
   message("Prepping data...")
   nsink_prepped_data <- nsink_prep_data(
     huc = huc, projection = projection,
-    data_dir = data_dir)
+    data_dir = data_dir, year = year)
 
   # Calculate nitrogen removal
   message("Calculating removal...")
@@ -89,19 +93,19 @@ nsink_build <- function(huc, projection,
 #' @param output_dir Folder to store downloaded data and process nsink files
 #' @keywords internal
 nsink_write_prepped_data <- function(prepped_data, output_dir) {
-  sf::st_write(prepped_data$streams, paste0(output_dir, "streams.shp"),
+  suppressWarnings(sf::st_write(prepped_data$streams, paste0(output_dir, "streams.shp"),
     delete_layer = TRUE, quiet = TRUE
-  )
+  ))
   prepped_data$lakes <- sf::st_zm(prepped_data$lakes, drop = TRUE)
   sf::st_write(prepped_data$lakes, paste0(output_dir, "lakes.shp"),
     delete_layer = TRUE, quiet = TRUE
   )
-  sf::st_write(prepped_data$ssurgo, paste0(output_dir, "ssurgo.shp"),
+  suppressWarnings(sf::st_write(prepped_data$ssurgo, paste0(output_dir, "ssurgo.shp"),
     delete_layer = TRUE, quiet = TRUE
-  )
-  sf::st_write(prepped_data$huc, paste0(output_dir, "huc.shp"),
+  ))
+  suppressWarnings(sf::st_write(prepped_data$huc, paste0(output_dir, "huc.shp"),
     delete_layer = TRUE, quiet = TRUE
-  )
+  ))
   raster::writeRaster(prepped_data$fdr, paste0(output_dir, "fdr.tif"),
     overwrite = TRUE
   )

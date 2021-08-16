@@ -117,7 +117,7 @@ nsink_generate_n_removal_heatmap <- function(input_data, removal, samp_dens,
   fdr_check <- extract(input_data$fdr, as(sample_pts, "Spatial"))
 
   if(any(is.na(fdr_check))){
-    sample_pts <- sample_pts[!is.na(fdr_check),]
+    sample_pts <- sample_pts[!is.na(fdr_check)]
     message("Note: NA values detected in flow direction grid.  Static maps still generated.")
   }
 
@@ -134,7 +134,7 @@ nsink_generate_n_removal_heatmap <- function(input_data, removal, samp_dens,
       setTxtProgressBar(pb, i)
       pt <- sample_pts[i,]
       pt <- st_sf(st_sfc(pt, crs = st_crs(input_data$huc)))
-      #browser()
+
       fp <- nsink_generate_flowpath(pt, input_data)
       if(any(st_within(fp$flowpath_ends, input_data$huc, sparse = FALSE))){
         fp_summary <- nsink_summarize_flowpath(fp, removal)
