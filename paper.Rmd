@@ -7,7 +7,7 @@ tags:
 - landscape
 - gis
 date: "`r lubridate::today()`"
-output: github_document
+output: pdf_document
 authors:
 - name: Jeff Hollister
   orcid: 0000-0002-9254-9740
