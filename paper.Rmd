@@ -6,7 +6,7 @@ tags:
 - nitrogen sinks
 - landscape
 - gis
-date: "28 May 2021"
+date: "`r lubridate::today()`"
 output: github_document
 authors:
 - name: Jeff Hollister
@@ -32,13 +32,13 @@ affiliations:
   
 # Summary
 
-The `nsink` package was written to estimate cumulative nitrogen (N) removal along a specified flowpath and is based of the methodologies outlined in Kellogg et al. [ -@kellogg2010geospatial].  `nsink` accesses and downloads all required datasets from public datasets in the United States, prepares that data for use, summarizes N removal along a flowpath and creates a set of static watershed maps that summarize flowpath based relative N removal.  Additionally, the results of an `nsink` analysis may be exported to standard geospatial files (e.g. shapefiles and tiff images) for use in a Geographic Information System or other application.  
+The `nsink` package estimates cumulative nitrogen (N) removal along a specified flowpath and is based on methodologies outlined in Kellogg et al. [ -@kellogg2010geospatial].  `nsink` downloads all required datasets from public datasets in the United States, prepares data for use, summarizes N removal along a flowpath and creates several static watershed maps.  The results of an `nsink` analysis may be exported to standard geospatial files for use in other applications.  
 
 # Statement of need
 
-Excess N delivery via surface water to downstream aquatic resources such as coastal estuaries contributes to impaired water quality and leads to several ecosystem impacts including harmful algal blooms (HABs) and hypoxia [@rabalais2002beyond]. Identifying landscape N sinks (areas where dissolved N is transformed to gaseous N and effectively removed from the aquatic system) and their effect on N delivery at the watershed scale is helpful to watershed managers, land use planners and conservation organizations.  The theoretical underpinnings for identifying N sinks rely on decades of research and are explained in Kellogg et al. [-@kellogg2010geospatial]. ADD IN A FEW SENTENCES ABOUT THE GIST OF RELATIVE NITROGEN REMOVAL.The landscape N sinks considered in the approach implemented in `nsink` include wetlands (as hydric soils), lakes, and streams, as these are all areas were water flow is slowed and N transformations have time to occur.
+Excess N delivery via surface water to downstream aquatic resources contributes to impaired water quality and leads to several ecosystem impacts including harmful algal blooms (HABs) and hypoxia [@rabalais2002beyond]. Identifying landscape N sinks (e.g., areas where N is effectively removed from the aquatic system) and analysing N delivery at the watershed scale is helpful to watershed managers, land use planners and conservation organizations.  The theoretical underpinnings for identifying N sinks rely on decades of research and are explained in Kellogg et al. [-@kellogg2010geospatial]. 
 
-The first implementation of this type of approach was done on a case by case basis.  Data acquisition and manipulation were mostly manual processes and the end result could take weeks to months for a single small watershed to be completed (C. Damon, pers. comm.).  Thus, the effort required for the analysis limited it's application and scaling an flowpath based N sink analysis beyond a few pilot studies was not feasible.  The goal of `nsink` was to address this limitation and provide an open source solution that could be run on a single small watershed in minutes to hours without significant manual input.
+The first implementation of this approach was done case-by-case.  Data acquisition and manipulation were mostly manual and took weeks to months to complete for a single watershed.  The effort required for the analysis limited it's application as scaling beyond a few pilot studies was not feasible.  The goal of `nsink` was to address this limitation and provide an open source solution that could be run on a single small watershed in minutes to hours with little manual input.
 
 # The `nsink` package
 
@@ -48,19 +48,20 @@ The `nsink` package is available from <https://github.com/usepa/nsink> and may b
 ```r
 # If not installed, install remotes
 install.packages("remotes")
+
 # Install nsink from GitHub
 remotes::install_github("USEPA/nsink", build_vignettes = TRUE)
 ```
 
 ## Package Details
 
-The `nsink` package is designed around the major steps in running a flowpath based analysis with the following major steps:
+The `nsink` package is designed around the major steps in running a N-Sink analysis and includes the following:
 
 1. Prepare for analysis
-    - Get required data
-    - Prepare that data for analysis
-    - Calculate relative N removal layer
-2. Run an interactive analysis
+    - Get data
+    - Prepare data for analysis
+    - Calculate relative N removal layer for hydric soils, lakes and streams.
+2. Run an interactive analysis 
     - Calculate a flowpath 
     - Summarize relative N removal along a flowpath
 3. Run a watershed based analysis
@@ -69,11 +70,11 @@ The `nsink` package is designed around the major steps in running a flowpath bas
 
 ### Required Data
 
-The ability to run an `nsink` analysis relies on several national scale dataset for the United States.  By limiting our approach to these national datasets we are ensuring scalability of the application of `nsink` because the datasets will be available for nearly all locations in the United States.  The four datasets that `nsink` uses are the National Hydrography Dataset Plus (NHDPlus), Soil Survey Geographic Database (SSURGO), the National Land Cover Dataset (NLCD) land cover, and the National Land Cover Dataset (NLCD) impervious surface [ADD CITATION FOR DATASETS]. These datasets are all available via either an Application Programming Interface (API) or via direct download (e.g. FTP).   
+The ability to run an `nsink` analysis relies on several national scale dataset for the United States.  By limiting our approach to these national datasets we are ensuring scalability of `nsink` because the datasets will be available for most locations in the United States.  The datasets that `nsink` uses are the National Hydrography Dataset Plus (NHDPlus), Soil Survey Geographic Database (SSURGO), the National Land Cover Dataset (NLCD) land cover, and the National Land Cover Dataset (NLCD) impervious surface [ADD CITATION FOR DATASETS]. These datasets are all available via either an Application Programming Interface (API) or via direct download.   
 
 ### Dependencies
 
-To acquire the datasets and run the analysis, `nsink` depends on several existing R packages to facilitate spatial data handling, data acquisition, data management, data analysis and data processing.  These are detailed in Table 1.  
+The `nsink` package depends on several existing R packages to facilitate spatial data handling, data acquisition, data management, data analysis and data processing.  These are detailed in Table 1.  
 
 |Package|Task|Citation|
 |-------|----|--------|
@@ -102,92 +103,18 @@ Table 1. R Package Dependencies for the `nsink` package
 
 Currently, `nsink` provides 10 exported functions to facilitate a flowpath based analysis of relative N removal. 
 
-- `nsink_get_huc_id()`: A function for searching the name of a USGS Watershed Boundary Dataset Hydrologic Unit (<https://www.usgs.gov/core-science-systems/ngp/national-hydrography/watershed-boundary-dataset>) and retrieving it's 12-digit Hydrologic Unit Code (HUC).  Partial and exact matching of names are enabled.
-- `nsink_get_data()`: Many data sources are required for an `nsink` analysis.  This function uses any acceptable (e.g. 2-digit to 12-digit) HUC ID to download the following datasets: NHDPlus, SSURGO, NLCD Land Cover, and the NLCD Impervious.   
-- `nsink_prep_data()`: An `nsink` analysis requires data to be in a standard coordinate reference system combined mutliple NHDPlus tables and merges information from different parts of SSURGO.  This function completes these data preparation steps and outputs all data, clipped to the HUC boundary and outputs a list containing all the required data for an `nsink` analysis.
-- `nsink_calc_removal()`: Quantifying relative N removal across a landscape is one of the key aspects of an `nsink` analysis and is the sole purpose of this function. The `nsink_calc_removal()` function takes the list object that is returned from `nsink_prep_data()` and calculates N removal for each landscape sink.  This includes relative N removal for hydric soils, lakes, ponds, and reservoirs, and streams.  See Kellogg et al [-@kellogg2010geospatial] for details on how relative N removal is estimated for each landscape sink.
-- `nsink_generate_flowpath()`: In addition to quantifying relative N removal, the other key aspect of an `nsink` analysis is the flowpath.  This function uses a combination of flow determined by topography (e.g. via a flow-direction raster) for portions of a flowpath that are on land and of downstream flow along the NHDPlus stream network.   
-- `nsink_summarize_flowpath()`: The `nsink_summarize_flowpath()` function uses the relative nitrogren removal layer and a generated flowpath to provide and sink-by-sink (e.g. hydric soils, lakes, streams, etc.) summary of relative N removal along a flowpath. 
-- `nsink_generate_static_maps()`: An `nsink` analysis can be run at the watershed scale by calculating and summarizing the results of multiple flowpaths.  The `nsink_generate_static_maps()` function does this. Four static maps are returned as a list of rasters that include 1) N removal efficiency; 2) N loading index; 3) N transport index; 4) N delivery index.  The N removal efficiciency is a raster version of what is created by `nsink_calc_removal()` and is the estimated relative N removal capacity of the different landscape sinks.  The N loading index is a heat map with the cumulative relative N removal along flowpaths originating from a grid of points (density set by the user) across a watershed, highlighting “leaky” areas with less downstream N retention vs. those with higher downstream retention.  The N loading indes is all N sources based on NLCD categories and expressed as an N index ranging from 0 to 1.  Lastly, the N delivery index is the result of multiplying the N loading index and the N transport index and shows potential N delivery (again, as an index) from different sources, taking into account the potential relative N removal as water moves downstream. 
-- `nsink_plot()`: A plot function that plot's each of the rasters in the list returned from `nsink_generate_static_maps()`.   
-- `nsink_build()`: One of the drivers behind the development of the `nsink` package was to provide `n-sink` analysis output that could be used more broadly (e.g. within a GIS or as part of a web application).  The `nsink_build()` function is a wrapper function for an `nsink` analysis that get and prepare data, calculate N removal, and then generate static maps.  In addition to the R objects output by each function, the resultant datasets are saved as shapefiles or TIFF's for use in an external GIS.
-- `nsink_load()`: This function is essentially the inverse of the `nsink_build()` function.  It takes a folder of files, likely created with `nsink_build()`, and reads them in to R.
+- `nsink_get_huc_id()`: A function for searching the name of a USGS Watershed Boundary Dataset Hydrologic Unit (<https://www.usgs.gov/core-science-systems/ngp/national-hydrography/watershed-boundary-dataset>) and retrieving it's 12-digit Hydrologic Unit Code (HUC).  
+- `nsink_get_data()`: Using any acceptable HUC ID (e.g. 2-digit to 12-digit), this function downloads the NHDPlus, SSURGO, NLCD Land Cover, and the NLCD Impervious for that HUC.   
+- `nsink_prep_data()`: `nsink` needs data in a common coordinate reference system, from mutliple NHDPlus tables, and from different portions of SSURGO.  This function completes these data preparation steps and outputs all data, clipped to the HUC boundary.
+- `nsink_calc_removal()`: Quantifying relative N removal across a landscape is a key aspects of an `nsink` analysis.  The `nsink_calc_removal()` function takes the object returned from `nsink_prep_data()` and calculates relative N removal for each landscape sink.  See Kellogg et al [-@kellogg2010geospatial] for details on relative N removal estimation for each sink.
+- `nsink_generate_flowpath()`: This function uses a combination of flow determined by topography (e.g. via a flow-direction raster) for the land-based portions of a flowpath and of downstream flow along the NHDPlus stream network.   
+- `nsink_summarize_flowpath()`: Summarizing removal along a flowpath requires relative N removal and a generated flowpath.  This function uses these and returns a  summary of relative N removal along a flowpath for each sink. 
+- `nsink_generate_static_maps()`: The `nsink_generate_static_maps()` function analyzes N removal at the watershed scale by summarizing the results of multiple flowpaths. Four static maps are returned: 1)removal efficiency; 2)loading index; 3)transport index; 4)delivery index.  Removal efficiency is a rasterized version of the `nsink_calc_removal()` output.  Loading index is N sources based on NLCD categories and ranges from 0 to 1.   Transport index is a heat map with the cumulative relative N removal along flowpaths originating from a grid of points, density set by the user, across a watershed, highlighting the gradient of downstream N retention. Delivery index is the result of multiplying the loading index and the transport index and shows potential N delivery from different sources, taking into account the relative N removal as water moves downstream. 
+- `nsink_plot()`: A function that plots each of raster in the list returned from `nsink_generate_static_maps()`.   
+- `nsink_build()`: One of the drivers behind the development of the `nsink` package was to provide `n-sink` analysis output that could be used more broadly (e.g. within a GIS).  The `nsink_build()` function is a wrapper for a complete `nsink` analysis and outputs R objects returned by each function and shapefiles or TIFF versions of those objects.
+- `nsink_load()`: Essentially the inverse of the `nsink_build()` function, this function takes a folder of files, likely created with `nsink_build()`, and reads them in to R.
 
-The R package documentation contains a detailed description of each of these functions.  Additionally, the package contains a vignette that outlines a typical workflow for running an N-Sink analysis with the `nsink` package.  Upon install, the vignette is accessed in R with `vignette("intro", package = "nsink")`.
-
-<!--
-## Example workflow
-
-The R package documentation contains a detailed description of each function as well as a detailed workflow, described in the R package vignette.  The following workflow is a simplified example. 
-
-- Step 1: Get HUC ID and use to aacquire datasets
-
-```{r get_data, eval=FALSE, message=FALSE, warning=FALSE, include=FALSE}
-library(nsink)
-library(sf)
-saugatucket_huc <- nsink_get_huc_id("saugatucket river")$huc_12
-saugatucket_dl <- nsink_get_data(huc = saugatucket_huc, data_dir = "saugatucket_nsink_data")
-```
-
-- Step 2: Prepare data
-
-```{r prepare_data, eval=FALSE, message=FALSE, warning=FALSE, include=FALSE}
-aea <- 5072
-saugatucket_data <- nsink_prep_data(huc = saugatucket_huc, projection = aea, 
-                data_dir = "saugatucket_nsink_data")
-```
-
-- Step 3: Calculate removal
-
-```{r calc_removal, eval=FALSE, message=FALSE, warning=FALSE, include=FALSE}
-saugatucket_removal <- nsink_calc_removal(input_data = saugatucket_data)
-```
-
-- Step 4: Flowpath N removal summary
-
-```{r flowpath_summary, eval=FALSE, message=FALSE, warning=FALSE, include=FALSE}
-pt <- st_point(c(-71.49542,41.51320))
-flowpath_start <- st_as_sf(st_sfc(pt), crs = 4326)
-flowpath_start <- st_transform(flowpath_start, crs = aea)
-saugatucket_flowpath <- nsink_generate_flowpath(starting_location = flowpath_start,
-                                             input_data = saugatucket_data)
-saugatucket_examp_summary <- nsink_summarize_flowpath(flowpath = saugatucket_flowpath, 
-                         removal = saugatucket_removal)
-saugatucket_examp_summary
-```
-
-```{r flowpath_plot, eval=FALSE, fig.height=6, fig.width=6, message=FALSE, warning=FALSE, include=FALSE}
-library(ggplot2)
-library(hrbrthemes)
-flowpath_gg <- ggplot(saugatucket_data$huc) +
-  geom_sf() +
-  geom_sf(data = saugatucket_data$streams, color = "blue", show.legend = TRUE) +
-  geom_sf(data = saugatucket_data$lakes, fill = "blue", color = "blue", 
-          show.legend = TRUE) + 
-  geom_sf(data = saugatucket_flowpath$flowpath_network, color = "darkblue", 
-          size = 2, show.legend = TRUE) +
-  theme_ipsum_rc(axis_text_size = 10) +
-  coord_sf(crs = st_crs(saugatucket_data$huc), 
-           xlim = c(st_bbox(saugatucket_data$huc)$xmin-3000, 
-                    st_bbox(saugatucket_data$huc)$xmax+3000))
-flowpath_gg
-```
-
-- Step 5: Build static maps
-
-```{r build_static, eval=FALSE, message=FALSE, warning=FALSE, cache=TRUE, include=FALSE}
-saugatucket_static <- nsink_generate_static_maps(input_data = saugatucket_data, 
-                                              removal = saugatucket_removal, 
-                                              samp_dens = 250)
-```
-
-- Step 6: Plot static maps
-
-```{r plot_static, eval=FALSE, fig.height=6, fig.width=6, message=FALSE, warning=FALSE, include=FALSE}
-nsink_plot(saugatucket_static, "transport")
-```
-
--->
+The R package documentation contains both a detailed description of each function and a vignette that outlines a typical workflow for running an N-Sink analysis with the `nsink` package.  Upon install, the vignette is accessed in R with `vignette("intro", package = "nsink")`. 
 
 # Acknowledgements
     
