@@ -14,7 +14,7 @@
 #'             minus the number of cores available.
 #' @param seed Random seed to ensure reproducibility of sample point creation
 #'             for transport maps. Default set to 23.
-#' @return This function returns a list or rasters: nitrogen removal efficiency,
+#' @return This function returns a list of rasters: nitrogen removal efficiency,
 #'         nitrogen loading index, nitrogen transport index, and the
 #'         nitrogen delivery index.
 #'
