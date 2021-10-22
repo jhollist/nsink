@@ -4,12 +4,12 @@ nsink
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 <!-- badges: start -->
 
-[![Lifecycle:
-maturing](https://img.shields.io/badge/lifecycle-maturing-blue.svg)](https://www.tidyverse.org/lifecycle/#maturing)
 [![R build
 status](https://github.com/jhollist/nsink/workflows/R-CMD-check/badge.svg)](https://github.com/jhollist/nsink/actions)
 [![Codecov test
 coverage](https://codecov.io/gh/jhollist/nsink/branch/master/graph/badge.svg)](https://codecov.io/gh/jhollist/nsink?branch=master)
+[![Lifecycle:
+stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
 <!-- badges: end -->
 
 # Statement of need
@@ -28,49 +28,56 @@ al (2010)](https://doi.org/10.1016/j.ecoleng.2010.02.006).
 
 # `nsink` functionality
 
-As of 2021-04-01 user functions for the `nsink` package are:
+As of 2021-10-22 user functions for the `nsink` package are:
 
--   `nsink_get_data()` - Pass HUC, get data, use cache to avoid repeat
-    downloads
--   `nsink_prep_data()` - Prepares data by clipping to specified HUC,
-    standardizing projections, standardizing raster extents. Outputs
-    will be HUC level for HUC, flow direction, streams, waterbodies,
-    impervious, and soils.
--   `nsink_calc_removal()` - implemented now as purely raster, might be
-    able to do hybrid approach (see lines 384+ in working\_nsink.Rmd).
-    Use a method argument for c(“raster”, “hybrid”). Maybe not here?  
--   `nsink_generate_flowpath()` - This generates a single flowpath for a
-    point selected on the landscape. The flowpath is contstructed of the
-    raster flow direction generated flowpath on land, and then uses the
-    NHDPlus flowpath once the raster flowpath intersects the NHDPlus
-    flowpath.
--   `nsink_summarize_flowpath()` - Summarizes flowpath removal and
-    returns a list with flowpath rasters for removal and type, the total
-    removal for the flowpath, and a summary data frame of removal per
-    segment along the flowpath.
--   `nsink_generate_static_maps()` - Function to create static maps for
-    a HUC. Four static maps are created:
-    -   Nitrogen Removal Efficiency
-    -   Nitrogen Loading Index
-    -   Nitrogen Transport Index
-    -   Nitrogen Delivery Index
--   `nsink_plot()` - Plot function to plot removal, transport or
-    delivery static maps.
--   `nsink_plot_removal()` - Plot function to quickly visualize the
-    Nitrogen Removal Efficiency rasters.
--   `nsink_plot_transport()` - Plot function to quickly visualize the
-    Nitrogen Transport Index rasters.
--   `nsink_plot_delivery()` - Plot function to quickly visualize the
-    Nitrogen Delivery Index rasters.
--   `nsink_build()` - Convenience function to run an N-Sink analysis on
-    a 12-digit HUC. All base datasets, prepared data, and derived static
-    maps are saved to an output folder. The expected use of this
-    function is to provide the basis for building an N-Sink application
-    outside of R (e.g. with ArcGIS)
--   `nsink_load()` - Another convenience function that will load the
-    results of `nsink_build()` into R. This makes it easier to continue
-    to work in R on an `nsink` analysis if build for a given watershed
-    has already occurred.
+-   `nsink_get_huc_id()`: A function for searching the name of a USGS
+    Watershed Boundary Dataset Hydrologic Unit
+    (<https://www.usgs.gov/core-science-systems/ngp/national-hydrography/watershed-boundary-dataset>)
+    and retrieving its 12-digit Hydrologic Unit Code (HUC).  
+-   `nsink_get_data()`: Using any acceptable HUC ID (e.g. 2-digit to
+    12-digit), this function downloads the NHDPlus, SSURGO, NLCD Land
+    Cover, and the NLCD Impervious for that HUC.  
+-   `nsink_prep_data()`: `nsink` needs data in a common coordinate
+    reference system, from mutliple NHDPlus tables, and from different
+    portions of SSURGO. This function completes these data preparation
+    steps and outputs all data, clipped to the HUC boundary.
+-   `nsink_calc_removal()`: Quantifying relative N removal across a
+    landscape is a key aspects of an `nsink` analysis. The
+    `nsink_calc_removal()` function takes the object returned from
+    `nsink_prep_data()` and calculates relative N removal for each
+    landscape sink. See Kellogg et al \[-@kellogg2010geospatial\] for
+    details on relative N removal estimation for each sink.
+-   `nsink_generate_flowpath()`: This function uses a combination of
+    flow determined by topography, via a flow-direction raster, for the
+    land-based portions of a flow path and of downstream flow along the
+    NHDPlus stream network.  
+-   `nsink_summarize_flowpath()`: Summarizing removal along a specified
+    flow path requires relative N removal and a generated flow path.
+    This function uses these and returns a summary of relative N removal
+    along a flow path for each sink.
+-   `nsink_generate_static_maps()`: This function analyzes N removal at
+    the watershed scale by summarizing the results of multiple flow
+    paths. Four static maps are returned: 1)removal efficiency;
+    2)loading index; 3)transport index; 4)delivery index. Removal
+    efficiency is a rasterized version of the `nsink_calc_removal()`
+    output. Loading index is N sources based on NLCD categories.
+    Transport index is a heat map with the cumulative relative N removal
+    along flow paths originating from a grid of points, density set by
+    the user, across a watershed, highlighting the gradient of
+    downstream N retention. Delivery index is the result of multiplying
+    the loading index and the transport index, and shows potential N
+    delivery from different sources, taking into account the relative N
+    removal as water moves downstream.
+-   `nsink_plot()`: A function that plots each raster in the list
+    returned from `nsink_generate_static_maps()`.  
+-   `nsink_build()`: One of the drivers behind the development of the
+    `nsink` package was to provide `n-sink` analysis output that could
+    be used more broadly (e.g. within a GIS). The `nsink_build()` runs a
+    complete `nsink` analysis and outputs R objects, shapefiles and/or
+    TIFFs.
+-   `nsink_load()`: Essentially the inverse of the `nsink_build()`
+    function, this function takes a folder of files, likely created by
+    `nsink_build()`, and reads them into R.
 
 # Installation instructions
 

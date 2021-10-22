@@ -7,7 +7,7 @@ tags:
 - landscape
 - gis
 date: "`r lubridate::today()`"
-output: pdf_document
+output: github_document
 authors:
 - name: Jeff Hollister
   orcid: 0000-0002-9254-9740
@@ -36,7 +36,7 @@ The `nsink` package estimates cumulative nitrogen (N) removal along a specified 
 
 # Statement of need
 
-Excess N delivery via surface water to downstream aquatic resources contributes to impaired water quality and leads to several ecosystem impacts including harmful algal blooms (HABs) and hypoxia [@rabalais2002beyond]. Identifying landscape N sinks (i.e., areas where N is effectively removed from the aquatic system) and analysing N delivery at the watershed scale is helpful to watershed managers, land use planners and conservation organizations.  The theoretical underpinnings for identifying N sinks rely on decades of research and are explained in Kellogg et al. [-@kellogg2010geospatial]. 
+Excess N delivery via surface water to downstream aquatic resources contributes to impaired water quality and leads to several ecosystem impacts including harmful algal blooms (HABs) and hypoxia [@rabalais2002beyond]. Identifying landscape N sinks (i.e., areas where N is effectively removed from the aquatic system) and analyzing N delivery at the watershed scale is helpful to watershed managers, land use planners and conservation organizations.  The theoretical underpinnings for identifying N sinks rely on decades of research and are explained in Kellogg et al. [-@kellogg2010geospatial]. 
 
 The first implementation of this approach was done case-by-case.  Data acquisition and manipulation were mostly manual and took weeks to months to complete for a single watershed.  The effort required for the analysis limited it's application as scaling beyond a few pilot studies was not feasible.  The goal of `nsink` was to address this limitation and provide an open source solution that could be run on a single small watershed in minutes to hours with minimal manual input.
 
@@ -100,23 +100,9 @@ Table 1. R Package Dependencies for the `nsink` package
 |`future`|Parallel Processing|@futurepaper; @future|
 
 
-
 ### Functionality
 
-Currently, `nsink` provides 10 exported functions to facilitate a flow path analysis of relative N removal. 
-
-- `nsink_get_huc_id()`: A function for searching the name of a USGS Watershed Boundary Dataset Hydrologic Unit (<https://www.usgs.gov/core-science-systems/ngp/national-hydrography/watershed-boundary-dataset>) and retrieving its 12-digit Hydrologic Unit Code (HUC).  
-- `nsink_get_data()`: Using any acceptable HUC ID (e.g. 2-digit to 12-digit), this function downloads the NHDPlus, SSURGO, NLCD Land Cover, and the NLCD Impervious for that HUC.   
-- `nsink_prep_data()`: `nsink` needs data in a common coordinate reference system, from mutliple NHDPlus tables, and from different portions of SSURGO.  This function completes these data preparation steps and outputs all data, clipped to the HUC boundary.
-- `nsink_calc_removal()`: Quantifying relative N removal across a landscape is a key aspects of an `nsink` analysis.  The `nsink_calc_removal()` function takes the object returned from `nsink_prep_data()` and calculates relative N removal for each landscape sink.  See Kellogg et al [-@kellogg2010geospatial] for details on relative N removal estimation for each sink.
-- `nsink_generate_flowpath()`: This function uses a combination of flow determined by topography, via a flow-direction raster, for the land-based portions of a flow path and of downstream flow along the NHDPlus stream network.   
-- `nsink_summarize_flowpath()`: Summarizing removal along a specified flow path requires relative N removal and a generated flow path.  This function uses these and returns a  summary of relative N removal along a flow path for each sink. 
-- `nsink_generate_static_maps()`: This function analyzes N removal at the watershed scale by summarizing the results of multiple flow paths. Four static maps are returned: 1)removal efficiency; 2)loading index; 3)transport index; 4)delivery index.  Removal efficiency is a rasterized version of the `nsink_calc_removal()` output.  Loading index is N sources based on NLCD categories.   Transport index is a heat map with the cumulative relative N removal along flow paths originating from a grid of points, density set by the user, across a watershed, highlighting the gradient of downstream N retention. Delivery index is the result of multiplying the loading index and the transport index, and shows potential N delivery from different sources, taking into account the relative N removal as water moves downstream. 
-- `nsink_plot()`: A function that plots each raster in the list returned from `nsink_generate_static_maps()`.   
-- `nsink_build()`: One of the drivers behind the development of the `nsink` package was to provide `n-sink` analysis output that could be used more broadly (e.g. within a GIS).  The `nsink_build()` runs a complete `nsink` analysis and outputs R objects, shapefiles and/or TIFFs.
-- `nsink_load()`: Essentially the inverse of the `nsink_build()` function, this function takes a folder of files, likely created by `nsink_build()`, and reads them into R.
-
-The R package documentation contains both a detailed description of each function and a vignette that outlines a typical workflow for running an N-Sink analysis with the `nsink` package.  Upon install, the vignette is accessed in R with `vignette("intro", package = "nsink")`. 
+Currently, `nsink` provides 10 exported functions to facilitate a flow path analysis of relative N removal. The `nsink` repository (<https://github.com/usepa/nsink>) and R package documentation contain detailed documentation of each function.  The pacakge also has a vignette that outlines a typical workflow for running an N-Sink analysis with the `nsink` package.  Upon install, the vignette is accessed in R with `vignette("intro", package = "nsink")`. 
 
 # Acknowledgements
     
