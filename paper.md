@@ -125,16 +125,18 @@ Connecticut’s Center for Land Use Education and Research as well as
 Peter August, Chris Damon, and Art Gold of the University of Rhode
 Island’s Department of Natural Resources Science. Both the UCONN and URI
 crews have contributed tremendously to the development of the N-Sink
-concept. Additionally, we are grateful to X X, X X, X X, Joe LiVolsi,
-Tim Gleason, and Wayne Munns from the US EPA, Atlantic Coastal
-Environmental Sciences Division for constructive reviews of this paper.
-The views expressed in this article are those of the authors and do not
+concept. Additionally, we are grateful to Stephen Shivers, Michael
+Dumelle, Joe LiVolsi, Tim Gleason, and Wayne Munns for constructive
+early reviews of this paper. Lastly, Ken Forshay from the US EPA’s
+Center for Environmental Solutions and Emergency Response deserves our
+thanks for shepherding the development of N-Sink for many years. The
+views expressed in this article are those of the authors and do not
 necessarily represent the views or policies of the U.S. Environmental
 Protection Agency. Any mention of trade names, products, or services
 does not imply an endorsement by the U.S. Government or the U.S.
 Environmental Protection Agency. The EPA does not endorse any commercial
 products, services, or enterprises. This contribution is identified by
-the tracking number ORD-XXXXX of the Atlantic Coastal Environmental
+the tracking number ORD-044618 of the Atlantic Coastal Environmental
 Sciences Division, Office of Research and Development, Center for
 Environmental Measurement and Modeling, US Environmental Protection
 Agency.
