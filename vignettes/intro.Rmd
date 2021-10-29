@@ -108,8 +108,8 @@ returns a list with all required data for subsequent N-Sink analyses.
 A quick note on the CRS.  In the near future, the preferred way to specify the CRS values will either be with Well-Known Text (WKT) or [EPSG Codes](http://spatialreference.org/ref/epsg/). Proj.4 strings will eventually be deprecated.  Currently the packages that `nsink` relies on are at different stages in implementing the changes to PROJ.  Proj.4 strings are currently preferred with `nsink` now as conversions between EPSG, WKT, and PROJ are not guaranteed to result in equivalent CRSs.  This will change in future versions.
 
 ```{r prep_data, eval=FALSE}
-# PROJ.4 string for Albers Equal Area
-aea <- "+proj=aea +lat_0=23 +lon_0=-96 +lat_1=29.5 +lat_2=45.5 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
+# EPSG for CONUS Albers Equal Area
+aea <- 5072
 
 # Prep data for selected HUC
 niantic_data <- nsink_prep_data(niantic_huc_id, projection = aea, 
@@ -267,8 +267,7 @@ written to into the output folder for use in other applications.
 
 ```{r build, eval=FALSE}
 niantic_huc_id <- nsink_get_huc_id("Niantic River")$huc_12
-aea <- "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=23 +lon_0=-96 +x_0=0 +y_0=0 
-+ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
+aea <- 5072
 nsink_build(niantic_huc_id, aea, samp_dens = 900)
 ```
 
