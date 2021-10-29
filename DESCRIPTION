@@ -67,7 +67,7 @@ Imports:
   stars,
   units
 Remotes: 
-  ropensci/FedData
+  jhollist/FedData
 License: MIT + file LICENSE
 Encoding: UTF-8
 Language: es
