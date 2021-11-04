@@ -67,7 +67,7 @@ Imports:
   stars,
   units
 Remotes: 
-  jhollist/FedData
+  ropensci/FedData
 License: MIT + file LICENSE
 Encoding: UTF-8
 Language: es
@@ -75,6 +75,7 @@ LazyData: true
 URL: https://github.com/USEPA/nsink
 BugReports: https://github.com/USEPA/nsink/issues
 RoxygenNote: 7.1.1
+SystemRequirements: 7-Zip
 Suggests: 
     knitr,
     rmarkdown,

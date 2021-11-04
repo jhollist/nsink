@@ -63,7 +63,7 @@ library(nsink)
 # Access package level help
 help(package = "nsink")
 
-# Access the Introduction to `nsink` vignette
+# Access the Introduction to nsink vignette
 vignette("intro", package = "nsink")
 ```
 
