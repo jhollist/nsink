@@ -33,6 +33,7 @@
 nsink_get_data <- function(huc, data_dir = normalizePath("nsink_data",
                                                          winslash = "/"),
                            force = FALSE, year = "2016") {
+
   year <- as.character(year)
   huc <- as.character(huc)
   if (nchar(gsub("[[:alpha:]]+", "", huc)) %% 2 != 0) {
@@ -137,13 +138,15 @@ nsink_get_data <- function(huc, data_dir = normalizePath("nsink_data",
         count <- count + 1
 
         repeat_it <- tryCatch(
-            suppressMessages(
-            ssurgo <- FedData::get_ssurgo(as(huc_12, "Spatial"),
-            label = huc,
-            extraction.dir = paste0(data_dir, "ssurgo"),
-            raw.dir = paste0(data_dir, "ssurgo"),
-            force.redo = force
-          ))
+            suppressMessages({
+              suppressWarnings({
+                ssurgo <- FedData::get_ssurgo(as(huc_12, "Spatial"),
+                  label = huc,
+                  extraction.dir = paste0(data_dir, "ssurgo"),
+                  raw.dir = paste0(data_dir, "ssurgo"),
+                  force.redo = force)
+              })
+            })
         ,
           error = function(e) TRUE
         )
@@ -160,6 +163,7 @@ nsink_get_data <- function(huc, data_dir = normalizePath("nsink_data",
            download the soils data.")
     }
   }
+
   # Return a list with the huc and the data_dir
   list(huc = huc, data_dir = data_dir_orig)
 }

@@ -35,14 +35,15 @@ path within a HUC12 basin. The `nsink` package implements this approach, using
 publicly available spatial data to identify flow paths and estimate N removal in
 landscape sinks. Removal rates depend on retention time, which is influenced by 
 physical characteristics identified using publicly available spatial data -- 
-National Hydrography Dataset (NHD), Watershed Boundary Dataset (WBD), National 
-Land Cover Dataset (NLCD), and Soil Survey Geographic Dataset (SSURGO). Static 
-maps of a specified HUC-12 basin are generated -- N Removal Efficiency, N 
-Loading Index, N Transport Index, and N Delivery Index. These maps may be used 
-to inform local decision-making by highlighting areas that are more prone to N 
-"leakiness" and areas that contribute to N removal.
+National Hydrography Dataset Plus (NHDPlus), Soil Survey Geographic Database 
+(SSURGO), the National Land Cover Dataset (NLCD) land cover, and the National 
+Land Cover Dataset (NLCD) impervious surface. Static maps of a specified HUC-12 
+basin are generated -- N Removal Efficiency, N Loading Index, N Transport Index, 
+and N Delivery Index. These maps may be used to inform local decision-making by 
+highlighting areas that are more prone to N "leakiness" and areas that 
+contribute to N removal.
 
-The `nsink` packages provides several functions to set up and run an N-Sink 
+The `nsink` package provides several functions to set up and run an N-Sink 
 analysis for a specified 12-digit HUC code.  All required data are downloaded, 
 prepared for the analysis, HUC-wide nitrogen removal calculated, and flow paths 
 summarized.  Additionally, a convenience function that will run all of the 
@@ -52,13 +53,13 @@ outlined in this vignette.
 # Get data
 The first step in the N-Sink process is to acquire data needed for the analysis.
 The `nsink` package utilizes openly available data from several U.S. Federal 
-Government sources.  Each datasets use a 12-digit HUC ID number to select the 
+Government sources.  Each dataset uses a 12-digit HUC ID number to select the 
 data for download.  The first step is to identify the HUC ID and then download 
 the data.
 
 To identify the HUC ID you can use the `nsink_get_huc_id()` function which will 
 use a 12-digit HUC name to search all HUCs.  Matches are returned as a data 
-frame and an option to return partial or exact matches.
+frame with an option to return partial or exact matches.
 
 ```{r get_huc}
 # Get HUC ID - Palmer showing multiple matches

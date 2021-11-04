@@ -74,7 +74,7 @@ Language: es
 LazyData: true
 URL: https://github.com/USEPA/nsink
 BugReports: https://github.com/USEPA/nsink/issues
-RoxygenNote: 7.1.1
+RoxygenNote: 7.1.2
 SystemRequirements: 7-Zip
 Suggests: 
     knitr,

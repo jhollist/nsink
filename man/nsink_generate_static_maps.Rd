@@ -33,7 +33,7 @@ minus the number of cores available.}
 for transport maps. Default set to 23.}
 }
 \value{
-This function returns a list or rasters: nitrogen removal efficiency,
+This function returns a list of rasters: nitrogen removal efficiency,
         nitrogen loading index, nitrogen transport index, and the
         nitrogen delivery index.
 }

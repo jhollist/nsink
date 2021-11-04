@@ -38,7 +38,7 @@ The `nsink` package estimates cumulative nitrogen (N) removal along a specified 
 
 Excess N delivery via surface water to downstream aquatic resources contributes to impaired water quality and leads to several ecosystem impacts including harmful algal blooms (HABs) and hypoxia [@rabalais2002beyond]. Identifying landscape N sinks (i.e., areas where N is effectively removed from the aquatic system) and analyzing N delivery at the watershed scale is helpful to watershed managers, land use planners and conservation organizations.  The theoretical underpinnings for identifying N sinks rely on decades of research and are explained in Kellogg et al. [-@kellogg2010geospatial]. 
 
-The first implementation of this approach was done case-by-case.  Data acquisition and manipulation were mostly manual and took weeks to months to complete for a single watershed.  The effort required for the analysis limited it's application as scaling beyond a few pilot studies was not feasible.  The goal of `nsink` was to address this limitation and provide an open source solution that could be run on a single small watershed in minutes to hours with minimal manual input.
+The first implementation of this approach was done case-by-case.  Data acquisition and manipulation were mostly manual and took weeks to months to complete for a single watershed.  The effort required for the analysis limited it's application as scaling beyond a few pilot studies was not feasible.  The goal of `nsink` was to address this limitation and provide an open source solution that could be run on a single small watershed (e.g. 12-digit Hydrologic Unit Code) in minutes to hours with minimal manual input.
 
 # The `nsink` package
 
@@ -50,12 +50,12 @@ The `nsink` package is available from <https://github.com/usepa/nsink> and may b
 install.packages("remotes")
 
 # Install nsink from GitHub
-remotes::install_github("USEPA/nsink", build_vignettes = TRUE)
+remotes::install_github("USEPA/nsink", dependencies = TRUE, build_vignettes = TRUE)
 ```
 
 ## Package Details
 
-The `nsink` package is designed around the major steps in running a N-Sink analysis and includes the following:
+The `nsink` package is designed around the major steps in running an N-Sink analysis and includes functions for the following tasks:
 
 1. Prepare for analysis
     - Get data
