@@ -3,13 +3,14 @@
 #' In addition to having local access to the required dataset, those datasets
 #' need to have some preparation.  This function standardizes projections and
 #' extents and clips all datasets to the boundary of the specified HUC.
-#' Additionally, any tabular datasets (e.g. flow, time of travel etc.) are
+#' Additionally, any tabular datasets (e.g. flow, time of travel, etc.) are
 #' included in the output as well.
 #'
 #' @param huc A character string of the HUC12 ID.  Use
 #'            \code{\link{nsink_get_huc_id}} to look up ID by name.
-#' @param projection EPSG code as an numeric or WKT as a character.
-#'                   This much be a projected CRS and not geographic as many of
+#' @param projection CRS to use, passed as ethier EPSG code (as numeric)
+#'                   or WKT (as character).
+#'                   This must be a projected CRS and not geographic as many of
 #'                   the measurements required for the nsink analysis require
 #'                   reliable length and area measurments.
 #' @param data_dir Base directory that contains N-Sink data folders.  Data may
@@ -182,12 +183,13 @@ nsink_prep_streams <- function(huc_sf, data_dir) {
 
 #' Prepare lakes data for N-Sink
 #'
-#' Standardizes lakes data by transforming data, clipping to HUC, ...
+#' Standardizes lakes data by transforming data, clipping to HUC, and
+#' renaming columns.
 #'
 #' @param huc_sf An sf object of the Watershed Boundaries Dataset HUC12
 #' @param data_dir Base directory that contains N-Sink data folders.  Data may be
 #'                 downloaded with the \code{\link{nsink_get_data}} function.
-#' @return returns an sf object of the NHDPlus lakes for the huc_sf
+#' @return An sf object of the NHDPlus lakes for the huc_sf
 #' @import dplyr sf
 #' @importFrom rlang .data
 #' @keywords  internal
@@ -210,13 +212,13 @@ nsink_prep_lakes <- function(huc_sf, data_dir) {
 
 #' Prepare flow direction data for N-Sink
 #'
-#' Standardizes flow direction data by transforming data, clipping to HUC, ...
+#' Standardizes flow direction data by transforming data, and clipping to HUC.
 #'
 #' @param huc_sf An sf object of the Watershed Boundaries Dataset HUC12
 #' @param huc_raster A raster object of the Watershed Boundaries Dataset HUC12
 #' @param data_dir Base directory that contains N-Sink data folders.  Data may be
 #'                 downloaded with the \code{\link{nsink_get_data}} function.
-#' @return returns a raster object of the flow direction for the huc_sf but in
+#' @return A raster object of the flow direction for the huc_sf but in
 #'         the original fdr projection
 #' @importFrom methods as
 #' @keywords  internal
@@ -236,7 +238,8 @@ nsink_prep_fdr <- function(huc_sf, huc_raster, data_dir) {
 
 #' Prepare impervious cover data for N-Sink
 #'
-#' Standardizes impervious data by transforming data, clipping to HUC, ...
+#' Standardizes impervious data by projecting to the coorect CRS,
+#' and standardizing file name.
 #'
 #' @param huc_sf An sf object of the Watershed Boundaries Dataset HUC12
 #' @param huc_raster A raster object of the Watershed Boundaries Dataset HUC12
@@ -244,7 +247,7 @@ nsink_prep_fdr <- function(huc_sf, huc_raster, data_dir) {
 #'                 be downloaded with the \code{\link{nsink_get_data}} function.
 #' @param year The year of the nlcd and impervious data that was retrieved with
 #'             FedData's, \code{\link{get_nlcd}} function.
-#' @return returns a raster object of the impervious cover for the huc_sf
+#' @return A raster object of the impervious cover for the huc_sf
 #' @keywords  internal
 nsink_prep_impervious <- function(huc_sf, huc_raster, data_dir, year) {
 
@@ -267,7 +270,8 @@ nsink_prep_impervious <- function(huc_sf, huc_raster, data_dir, year) {
 
 #' Prepare NLCD data for N-Sink
 #'
-#' Standardizes NLCD data by transforming data, clipping to HUC, ...
+#' Standardizes NLCD data by by projecting to the coorect CRS,
+#' and standardizing file name.
 #'
 #' @param huc_sf An sf object of the Watershed Boundaries Dataset HUC12
 #' @param huc_raster A raster object of the Watershed Boundaries Dataset HUC12
@@ -275,7 +279,7 @@ nsink_prep_impervious <- function(huc_sf, huc_raster, data_dir, year) {
 #'                 be downloaded with the \code{\link{nsink_get_data}} function.
 #' @param year The year of the nlcd and impervious data that was retrieved with
 #'             FedData's, \code{\link{get_nlcd}} function.
-#' @return returns a raster object of the NLCD for the huc_sf
+#' @return A raster object of the NLCD for the huc_sf
 #' @keywords  internal
 nsink_prep_nlcd <- function(huc_sf, huc_raster, data_dir, year) {
   huc12 <- unique(as.character(huc_sf$selected_huc))
@@ -295,13 +299,14 @@ nsink_prep_nlcd <- function(huc_sf, huc_raster, data_dir, year) {
 
 #' Prepare SSURGO data for N-Sink
 #'
-#' Standardizes impervious data by transforming data, clipping to HUC, ...
+#' Standardizes impervious data by transforming data, and reducing columns to
+#' what is needed.
 #'
 #' @param huc_sf An sf object of the Watershed Boundaries Dataset HUC12
 #' @param data_dir Base directory that contains N-Sink data folders.  Data may
 #'                 be downloaded with the \code{\link{nsink_get_data}} function.
-#' @return returns a sf object of the SSURGO data with hydric data added.
-#'         for the huc_sf
+#' @return An sf object of the SSURGO data for the huc_sf with hydric data added.
+#'         
 #' @import dplyr sf
 #' @importFrom methods as
 #' @importFrom utils read.csv
@@ -339,7 +344,6 @@ nsink_prep_ssurgo <- function(huc_sf, data_dir) {
   )
 
 
-
   # Limiting hydric removal to only land-based sources of removal
   # i.e. no removal from water polys in SSURGO and none from subaqueous soils
   ssurgo_tbl <- mutate(ssurgo_tbl, hydricrating =
@@ -366,7 +370,7 @@ nsink_prep_ssurgo <- function(huc_sf, data_dir) {
 #'
 #' @param data_dir Base directory that contains N-Sink data folders.  Data may
 #'                 be downloaded with the \code{\link{nsink_get_data}} function.
-#' @return returns a tibble of the flow data
+#' @return A tibble of the flow data
 #' @import dplyr
 #' @importFrom rlang .data
 #' @keywords  internal
@@ -388,11 +392,11 @@ nsink_prep_q <- function(data_dir) {
 
 #' Prepare time of travel data for N-Sink
 #'
-#' Standardizes time of travel from the VAA tables.
+#' Standardizes time of travel from the NHDPlus VAA tables.
 #'
 #' @param data_dir Base directory that contains N-Sink data folders.  Data may
 #'                 be downloaded with the \code{\link{nsink_get_data}} function.
-#' @return returns a tibble of the time of travel data
+#' @return A tibble of the time of travel data
 #' @import dplyr
 #' @importFrom rlang .data
 #' @keywords  internal
@@ -412,11 +416,11 @@ nsink_prep_tot <- function(data_dir) {
 
 #' Prepare lake morphology data for N-Sink
 #'
-#' Standardizes lake morphology  from the lake morphology tables.
+#' Standardizes lake morphology from the lake morphology tables.
 #'
 #' @param data_dir Base directory that contains N-Sink data folders.  Data may
 #'                 be downloaded with the \code{\link{nsink_get_data}} function.
-#' @return returns a tibble of the lake morphology data
+#' @return A tibble of the lake morphology data
 #' @import dplyr
 #' @importFrom rlang .data
 #' @keywords  internal
@@ -449,7 +453,7 @@ nsink_prep_lakemorpho <- function(data_dir) {
 #' @param huc_sf An sf object of the Watershed Boundaries Dataset HUC12
 #' @param data_dir Base directory that contains N-Sink data folders.  Data may
 #'                 be downloaded with the \code{\link{nsink_get_data}} function.
-#' @return returns a sf object of the HUC without salt water/open water area.
+#' @return An sf object of the HUC without salt water/open water area.
 #' @import dplyr sf
 #' @importFrom methods as
 #' @importFrom utils read.csv
