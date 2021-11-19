@@ -8,7 +8,7 @@
 #' @param starting_location An \code{\link{sf}} point location as a starting
 #'                          point for the flowpath.  Projection must match
 #'                          projection in input_data.
-#' @param input_data A list of input data with (at least) "fdr", "streams" and
+#' @param input_data A list of input data with (at least) "fdr", "streams",
 #'                  "tot", and "raster_template". These may be generated with
 #'                  \code{\link{nsink_prep_data}}.
 #' @return An \code{\link{sf}} LINESTRING object of the flowpath that starts at
