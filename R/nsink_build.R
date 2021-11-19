@@ -26,7 +26,8 @@
 #' @param samp_dens The \code{samp_dens} controls the density of points to use when
 #'             creating the nitrogen removal heat map.  The area of the
 #'             watershed is sampled with points that are separated by the
-#'             \code{samp_dens} value.  The larger the value, the fewer the points.
+#'             \code{samp_dens} value, in the units of the input data.
+#'             The larger the value, the fewer the points.
 #' @param year Year argument to be passed to FedData's \code{\link{get_nlcd}}
 #'             function. Defaults to 2016.
 #' @param ... Passes to \code{\link{nsink_calc_removal}} for the off network
