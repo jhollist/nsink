@@ -1,4 +1,4 @@
-#' function to download nhd files
+#' Function to download nhd files
 #' @param download_url url to download
 #' @param data_dir The data dir
 #' @param force Force new download
@@ -131,8 +131,8 @@ nsink_run_7z <- function(zipfile, destdir, extract_again = FALSE) {
 #' if it doesn't exist, then adds a trailing slash and normalizes the path for
 #' the operating system
 #'
-#' @param data_dir the data directory
-#' @return a string with the normalized path
+#' @param data_dir The data directory
+#' @return A string with the normalized path
 #' @keywords internal
 nsink_fix_data_directory <- function(data_dir) {
 
@@ -196,25 +196,5 @@ nsink_get_closest_lt <- function(v1, v2){
   }
   v2_idx
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
