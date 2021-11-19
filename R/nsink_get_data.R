@@ -1,4 +1,4 @@
-#' Get's N-Sink data for a given HUC
+#' Gets N-Sink data for a given HUC
 #'
 #' The required datasets for the N-sink analysis are available from multiple,
 #' online resources.  This function takes a HUC as input and downloads local
@@ -10,7 +10,7 @@
 #' @param huc A character string of a HUC identifier.  Currently can run only
 #'            a single HUC at a time.  This package was developed using 12-digit
 #'            HUCS, but has been (lightly) tested with larger HUCs and appears
-#'            to work, but YMMV.
+#'            to work, but is not certain for all cases.
 #' @param data_dir A directory to store N-Sink data downloads.  Defaults to
 #'                 "nsink_data" inside of the current working directory.
 #'                 Created if it doesn't exist.  May be used for multiple HUCs
@@ -19,7 +19,7 @@
 #' @param force Logical to determine if files should be downloaded
 #'                       again if they already exist locally.
 #' @param year An argument to be passed to FedData's \code{\link{get_nlcd}}
-#'             function. Defaults to 2016.
+#'             function. Default is 2016.
 #' @export
 #' @importFrom methods as
 #' @return Returns a list with the huc used and the directory where the data is
@@ -174,7 +174,7 @@ nsink_get_data <- function(huc, data_dir = normalizePath("nsink_data",
 #' behavior is to select all possible matching IDs without matching the case of
 #' the string.  If an exact match is required, use the  \code{exact} argument.
 #'
-#' @param huc_name character string of a HUC Name or partial HUC name
+#' @param huc_name Character string of a HUC Name or partial HUC name
 #' @param exact Logical indicating whether or not to do an exact match
 #' @return A data frame with HUC_12 and HU_12_NAME that match the huc_name
 #' @importFrom dplyr tibble
