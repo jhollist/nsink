@@ -11,7 +11,7 @@
 #'
 #' @param huc A character with the 12 digit HUC ID.  May be searched with
 #'            \code{\link{nsink_get_huc_id}}
-#' @param projection Projection to use for all spatial data, passed as either an
+#' @param projection Projection to use for all spatial data, specified as either an
 #'                   EPSG code (as numeric) or WKT (as string).
 #' @param output_dir Folder to write processed nsink files to.
 #'                      Currently, the processed files will be overwritten if
