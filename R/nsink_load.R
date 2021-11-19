@@ -1,11 +1,11 @@
 #' Load an existing N-Sink analysis folder
 #'
 #'
-#' @param input_folder Folder to that contains nsink files produced by
+#' @param input_folder Folder that contains nsink files produced by
 #'                     \code{\link{nsink_build}}
-#' @param base_name a base name used to assign objects to the global environment.
-#' @param projection An optional crs specified as a either an
-#'                   EPSG code (as numeric) or WKT as string.
+#' @param base_name A base name used to assign objects to the global environment.
+#' @param projection An optional CRS specified as a either an
+#'                   EPSG code (as numeric) or WKT (as string).
 #'                   Useful if projection is returned as unknown.
 #' @param ... Passes to \code{\link{nsink_calc_removal}} for the off network
 #'            arguments: \code{off_network_lakes}, \code{off_network_streams},
