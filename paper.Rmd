@@ -32,7 +32,7 @@ affiliations:
   
 # Summary
 
-The `nsink` package estimates cumulative nitrogen (N) removal along a specified flow path and is based on methodologies outlined in Kellogg et al. [ -@kellogg2010geospatial]. For a user-specified watershed (i.e. hydrologic unit code (HUC), `nsink` downloads all required datasets from public datasets in the United States, prepares data for use, summarizes N removal along a flow path and creates several static HUC maps.  The results of an `nsink` analysis may be exported to standard geospatial files for use in other applications.  
+The `nsink` package estimates cumulative nitrogen (N) removal along a specified flow path and is based on methodologies outlined in Kellogg et al. [ -@kellogg2010geospatial]. For a user-specified watershed (i.e. hydrologic unit code (HUC), `nsink` downloads all required datasets from public datasets in the United States, prepares data for use, summarizes N removal along a flow path and creates several static maps.  The results of an `nsink` analysis may be exported to standard geospatial files for use in other applications.  
 
 # Statement of need
 
