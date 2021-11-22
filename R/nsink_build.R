@@ -5,7 +5,7 @@
 #' static N-Sink maps: the nitrogen loading index, nitrogen removal effeciency,
 #' nitrogen transport index, and the nitrogen delivery index.  The primary
 #' purpose of this is to use the nsink package to develop the required datasets
-#' for an nsink application to be built in other software.  This will take some
+#' for an nsink application to be built outside of R (e.g. ArcGIS).  This will take some
 #' time to complete as it is downloading 500-600 Mb of data, processing that data
 #' and then creating output files.
 #'

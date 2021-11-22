@@ -32,13 +32,13 @@ affiliations:
   
 # Summary
 
-The `nsink` package estimates cumulative nitrogen (N) removal along a specified flow path and is based on methodologies outlined in Kellogg et al. [ -@kellogg2010geospatial]. For a user-specified watershed, `nsink` downloads all required datasets from public datasets in the United States, prepares data for use, summarizes N removal along a flow path and creates several static watershed maps.  The results of an `nsink` analysis may be exported to standard geospatial files for use in other applications.  
+The `nsink` package estimates cumulative nitrogen (N) removal along a specified flow path and is based on methodologies outlined in Kellogg et al. [ -@kellogg2010geospatial]. For a user-specified watershed (i.e. hydrologic unit code (HUC), `nsink` downloads all required datasets from public datasets in the United States, prepares data for use, summarizes N removal along a flow path and creates several static HUC maps.  The results of an `nsink` analysis may be exported to standard geospatial files for use in other applications.  
 
 # Statement of need
 
-Excess N delivery via surface water to downstream aquatic resources contributes to impaired water quality and leads to several ecosystem impacts including harmful algal blooms (HABs) and hypoxia [@rabalais2002beyond]. Identifying landscape N sinks (i.e., areas where N is effectively removed from the aquatic system) and analyzing N delivery at the watershed scale is helpful to watershed managers, land use planners and conservation organizations.  The theoretical underpinnings for identifying N sinks rely on decades of research and are explained in Kellogg et al. [-@kellogg2010geospatial]. 
+Excess N delivery via surface water to downstream aquatic resources contributes to impaired water quality and impacts ecosystem services including harmful algal blooms (HABs) and hypoxia [@rabalais2002beyond]. Identifying landscape N sinks (i.e., areas where N is effectively removed from the aquatic system) and analyzing N delivery at the watershed scale is helpful to watershed managers, land use planners and conservation organizations.  The theoretical underpinnings for identifying N sinks rely on decades of research and are explained in Kellogg et al. [-@kellogg2010geospatial]. 
 
-The first implementation of this approach was done case-by-case.  Data acquisition and manipulation were mostly manual and took weeks to months to complete for a single watershed.  The effort required for the analysis limited it's application as scaling beyond a few pilot studies was not feasible.  The goal of `nsink` was to address this limitation and provide an open source solution that could be run on a single small watershed (e.g. 12-digit Hydrologic Unit Code) in minutes to hours with minimal manual input.
+Prior N-sink implementations were done case-by-case.  Data acquisition and manipulation were mostly manual and took weeks to months to complete for a single 12-digit HUC.  The effort required for the analysis limited it's application as scaling beyond a few pilot studies was not feasible.  The goal of `nsink` was to address this limitation and provide an open source solution that could be run on a single small watershed (e.g. 12-digit HUC) in minutes to hours with minimal manual input.
 
 # The `nsink` package
 
@@ -61,16 +61,16 @@ The `nsink` package is designed around the major steps in running an N-Sink anal
     - Get data
     - Prepare data for analysis
     - Calculate relative N removal layer for hydric soils, lakes and streams.
-2. Run an point-based analysis 
+2. Run a point-based analysis 
     - Calculate a flow path 
     - Summarize relative N removal along a flow path
-3. Run a watershed-based analysis
+3. Run a HUC-based analysis
     - Develop static maps
     - Generate output datasets
 
 ### Required Data
 
-The ability to run an `nsink` analysis relies on several national scale datasets for the United States.  By limiting our approach to these national datasets we are ensuring scalability of `nsink` because the datasets will be available for most locations in the United States.  The datasets that `nsink` uses are the National Hydrography Dataset Plus (NHDPlus), Soil Survey Geographic Database (SSURGO), the National Land Cover Dataset (NLCD) land cover, and the National Land Cover Dataset (NLCD) impervious surface [ADD CITATION FOR DATASETS]. These datasets are all available via either an Application Programming Interface (API) or via direct download.   
+The ability to run an `nsink` analysis relies on several datasets for the conterminous United States.  By limiting our approach to these national datasets we are ensuring scalability of `nsink` because the datasets will be available for most locations in the United States.  The datasets that `nsink` uses are the National Hydrography Dataset Plus version 2 (NHDPlus), Soil Survey Geographic Database (SSURGO), the National Land Cover Dataset (NLCD) land cover, and the National Land Cover Dataset (NLCD) impervious surface [@moore2019user; @soil2017web; @jin2019overall]. These datasets are all available via an Application Programming Interface (API) or via direct download.   
 
 ### Dependencies
 

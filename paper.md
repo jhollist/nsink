@@ -1,36 +1,37 @@
 nsink: An R package for flow path nitrogen removal estimation
 ================
-2021-10-22
+2021-11-22
 
 # Summary
 
 The `nsink` package estimates cumulative nitrogen (N) removal along a
 specified flow path and is based on methodologies outlined in Kellogg et
-al. (2010). For a user-specified watershed, `nsink` downloads all
-required datasets from public datasets in the United States, prepares
-data for use, summarizes N removal along a flow path and creates several
-static watershed maps. The results of an `nsink` analysis may be
-exported to standard geospatial files for use in other applications.
+al. (2010). For a user-specified watershed (i.e. hydrologic unit code
+(HUC), `nsink` downloads all required datasets from public datasets in
+the United States, prepares data for use, summarizes N removal along a
+flow path and creates several static HUC maps. The results of an `nsink`
+analysis may be exported to standard geospatial files for use in other
+applications.
 
 # Statement of need
 
 Excess N delivery via surface water to downstream aquatic resources
-contributes to impaired water quality and leads to several ecosystem
-impacts including harmful algal blooms (HABs) and hypoxia (Rabalais,
-Turner, and Scavia 2002). Identifying landscape N sinks (i.e., areas
-where N is effectively removed from the aquatic system) and analyzing N
-delivery at the watershed scale is helpful to watershed managers, land
-use planners and conservation organizations. The theoretical
-underpinnings for identifying N sinks rely on decades of research and
-are explained in Kellogg et al. (2010).
+contributes to impaired water quality and impacts ecosystem services
+including harmful algal blooms (HABs) and hypoxia (Rabalais, Turner, and
+Scavia 2002). Identifying landscape N sinks (i.e., areas where N is
+effectively removed from the aquatic system) and analyzing N delivery at
+the watershed scale is helpful to watershed managers, land use planners
+and conservation organizations. The theoretical underpinnings for
+identifying N sinks rely on decades of research and are explained in
+Kellogg et al. (2010).
 
-The first implementation of this approach was done case-by-case. Data
-acquisition and manipulation were mostly manual and took weeks to months
-to complete for a single watershed. The effort required for the analysis
-limited it’s application as scaling beyond a few pilot studies was not
-feasible. The goal of `nsink` was to address this limitation and provide
-an open source solution that could be run on a single small watershed in
-minutes to hours with minimal manual input.
+Prior N-sink implementations were done case-by-case. Data acquisition
+and manipulation were mostly manual and took weeks to months to complete
+for a single 12-digit HUC. The effort required for the analysis limited
+it’s application as scaling beyond a few pilot studies was not feasible.
+The goal of `nsink` was to address this limitation and provide an open
+source solution that could be run on a single small watershed
+(e.g. 12-digit HUC) in minutes to hours with minimal manual input.
 
 # The `nsink` package
 
@@ -44,38 +45,38 @@ and may be installed in R with the following:
 install.packages("remotes")
 
 # Install nsink from GitHub
-remotes::install_github("USEPA/nsink", build_vignettes = TRUE)
+remotes::install_github("USEPA/nsink", dependencies = TRUE, build_vignettes = TRUE)
 ```
 
 ## Package Details
 
-The `nsink` package is designed around the major steps in running a
-N-Sink analysis and includes the following:
+The `nsink` package is designed around the major steps in running an
+N-Sink analysis and includes functions for the following tasks:
 
 1.  Prepare for analysis
     -   Get data
     -   Prepare data for analysis
     -   Calculate relative N removal layer for hydric soils, lakes and
         streams.
-2.  Run an point-based analysis
+2.  Run a point-based analysis
     -   Calculate a flow path
     -   Summarize relative N removal along a flow path
-3.  Run a watershed-based analysis
+3.  Run a HUC-based analysis
     -   Develop static maps
     -   Generate output datasets
 
 ### Required Data
 
-The ability to run an `nsink` analysis relies on several national scale
-datasets for the United States. By limiting our approach to these
+The ability to run an `nsink` analysis relies on several datasets for
+the conterminous United States. By limiting our approach to these
 national datasets we are ensuring scalability of `nsink` because the
 datasets will be available for most locations in the United States. The
 datasets that `nsink` uses are the National Hydrography Dataset Plus
-(NHDPlus), Soil Survey Geographic Database (SSURGO), the National Land
-Cover Dataset (NLCD) land cover, and the National Land Cover Dataset
-(NLCD) impervious surface \[ADD CITATION FOR DATASETS\]. These datasets
-are all available via either an Application Programming Interface (API)
-or via direct download.
+version 2 (NHDPlus), Soil Survey Geographic Database (SSURGO), the
+National Land Cover Dataset (NLCD) land cover, and the National Land
+Cover Dataset (NLCD) impervious surface (Moore et al. 2019; Soil Survey
+Staff 2017; Jin et al. 2019). These datasets are all available via an
+Application Programming Interface (API) or via direct download.
 
 ### Dependencies
 
@@ -126,20 +127,20 @@ Peter August, Chris Damon, and Art Gold of the University of Rhode
 Island’s Department of Natural Resources Science. Both the UCONN and URI
 crews have contributed tremendously to the development of the N-Sink
 concept. Additionally, we are grateful to Stephen Shivers, Michael
-Dumelle, Joe LiVolsi, Tim Gleason, and Wayne Munns for constructive
-early reviews of this paper. Lastly, Ken Forshay from the US EPA’s
-Center for Environmental Solutions and Emergency Response deserves our
-thanks for shepherding the development of N-Sink for many years. The
-views expressed in this article are those of the authors and do not
-necessarily represent the views or policies of the U.S. Environmental
-Protection Agency. Any mention of trade names, products, or services
-does not imply an endorsement by the U.S. Government or the U.S.
-Environmental Protection Agency. The EPA does not endorse any commercial
-products, services, or enterprises. This contribution is identified by
-the tracking number ORD-044618 of the Atlantic Coastal Environmental
-Sciences Division, Office of Research and Development, Center for
-Environmental Measurement and Modeling, US Environmental Protection
-Agency.
+Dumelle, Justin Bousquin, Joe LiVolsi, Tim Gleason, and Wayne Munns for
+constructive early reviews of this paper. Lastly, Ken Forshay from the
+US EPA’s Center for Environmental Solutions and Emergency Response
+deserves our thanks for shepherding the development of N-Sink for many
+years. The views expressed in this article are those of the authors and
+do not necessarily represent the views or policies of the U.S.
+Environmental Protection Agency. Any mention of trade names, products,
+or services does not imply an endorsement by the U.S. Government or the
+U.S. Environmental Protection Agency. The EPA does not endorse any
+commercial products, services, or enterprises. This contribution is
+identified by the tracking number ORD-044618 of the Atlantic Coastal
+Environmental Sciences Division, Office of Research and Development,
+Center for Environmental Measurement and Modeling, US Environmental
+Protection Agency.
 
 # References
 
@@ -216,12 +217,30 @@ Modeling*. <https://CRAN.R-project.org/package=raster>.
 
 </div>
 
+<div id="ref-jin2019overall" class="csl-entry">
+
+Jin, Suming, Collin Homer, Limin Yang, Patrick Danielson, Jon Dewitz,
+Congcong Li, Zhe Zhu, George Xian, and Danny Howard. 2019. “Overall
+Methodology Design for the United States National Land Cover Database
+2016 Products.” *Remote Sensing* 11 (24): 2971.
+
+</div>
+
 <div id="ref-kellogg2010geospatial" class="csl-entry">
 
 Kellogg, DQ, Arthur J Gold, Suzanne Cox, Kelly Addy, and Peter V August.
 2010. “A Geospatial Approach for Assessing Denitrification Sinks Within
 Lower-Order Catchments.” *Ecological Engineering* 36 (11): 1596–606.
 <https://doi.org/10.1016/j.ecoleng.2010.02.006>.
+
+</div>
+
+<div id="ref-moore2019user" class="csl-entry">
+
+Moore, Richard B, Lucinda D McKay, Alan H Rea, Timothy R Bondelid,
+Curtis V Price, Thomas G Dewald, Craig M Johnston, and others. 2019.
+“User’s Guide for the National Hydrography Dataset Plus (NHDPlus) High
+Resolution.” *Open-File Report-US Geological Survey*, no. 2019-1096.
 
 </div>
 
@@ -325,6 +344,12 @@ Northern Gulf of Mexico.” *BioScience* 52 (2): 129–42.
 
 Ross, Noam. 2020. *Fasterize: Fast Polygon to Raster Conversion*.
 <https://CRAN.R-project.org/package=fasterize>.
+
+</div>
+
+<div id="ref-soil2017web" class="csl-entry">
+
+Soil Survey Staff, USDA. 2017. “Web Soil Survey.”
 
 </div>
 
