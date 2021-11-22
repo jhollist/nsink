@@ -7,7 +7,7 @@
 nsink_group_land_off_network(land_removal_df)
 }
 \arguments{
-\item{land_removal_df}{land and off network summary df}
+\item{land_removal_df}{Land and off network summary df}
 }
 \description{
 nsink group land off network

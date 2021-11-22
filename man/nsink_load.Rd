@@ -7,13 +7,13 @@
 nsink_load(input_folder, base_name = "nsink_", projection = NULL, ...)
 }
 \arguments{
-\item{input_folder}{Folder to that contains nsink files produced by
+\item{input_folder}{Folder that contains nsink files produced by
 \code{\link{nsink_build}}}
 
-\item{base_name}{a base name used to assign objects to the global environment.}
+\item{base_name}{A base name used to assign objects to the global environment.}
 
-\item{projection}{An optional crs specified as a either an
-EPSG code (as numeric) or WKT as string.
+\item{projection}{An optional CRS specified as a either an
+EPSG code (as numeric) or WKT (as string).
 Useful if projection is returned as unknown.}
 
 \item{...}{Passes to \code{\link{nsink_calc_removal}} for the off network

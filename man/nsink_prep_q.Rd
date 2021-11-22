@@ -11,7 +11,7 @@ nsink_prep_q(data_dir)
 be downloaded with the \code{\link{nsink_get_data}} function.}
 }
 \value{
-returns a tibble of the flow data
+A tibble of the flow data
 }
 \description{
 Standardizes flow data from the EROM tables.

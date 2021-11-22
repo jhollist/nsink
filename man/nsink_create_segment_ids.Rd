@@ -7,10 +7,10 @@
 nsink_create_segment_ids(x)
 }
 \arguments{
-\item{x}{a vector of values to create unique ID's}
+\item{x}{A vector of values to create unique ID's}
 }
 \value{
-a vector of unique ID's
+A vector of unique ID's
 }
 \description{
 This functions takes a vector of values and creates a unique ID for adjacent

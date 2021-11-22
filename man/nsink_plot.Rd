@@ -7,12 +7,12 @@
 nsink_plot(static_maps, map = c("removal", "transport", "delivery"))
 }
 \arguments{
-\item{static_maps}{A list of \code{raster} objectsm ost likely created
+\item{static_maps}{A list of \code{raster} objects that can be created
 via \code{\link{nsink_generate_static_maps}}.  The list
 should have removal_effic, delivery_idx, and
 transport_idx.}
 
-\item{map}{A character of either, "removal","transport", or "delivery."}
+\item{map}{A character of either, "removal", "transport", or "delivery."}
 }
 \description{
 This function creates a simple plot with pre-selected color palettes from a

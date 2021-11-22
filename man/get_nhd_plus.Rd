@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils.R
 \name{get_nhd_plus}
 \alias{get_nhd_plus}
-\title{function to download nhd files}
+\title{Function to download nhd files}
 \usage{
 get_nhd_plus(
   download_url,
@@ -18,6 +18,6 @@ get_nhd_plus(
 \item{force}{Force new download}
 }
 \description{
-function to download nhd files
+Function to download nhd files
 }
 \keyword{internal}

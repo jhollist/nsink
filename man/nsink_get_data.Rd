@@ -2,7 +2,7 @@
 % Please edit documentation in R/nsink_get_data.R
 \name{nsink_get_data}
 \alias{nsink_get_data}
-\title{Get's N-Sink data for a given HUC}
+\title{Gets N-Sink data for a given HUC}
 \usage{
 nsink_get_data(
   huc,
@@ -15,7 +15,7 @@ nsink_get_data(
 \item{huc}{A character string of a HUC identifier.  Currently can run only
 a single HUC at a time.  This package was developed using 12-digit
 HUCS, but has been (lightly) tested with larger HUCs and appears
-to work, but YMMV.}
+to work, but is not certain for all cases.}
 
 \item{data_dir}{A directory to store N-Sink data downloads.  Defaults to
 "nsink_data" inside of the current working directory.
@@ -27,7 +27,7 @@ downloaded.}
 again if they already exist locally.}
 
 \item{year}{An argument to be passed to FedData's \code{\link{get_nlcd}}
-function. Defaults to 2016.}
+function. Default is 2016.}
 }
 \value{
 Returns a list with the huc used and the directory where the data is

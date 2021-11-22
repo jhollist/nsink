@@ -10,9 +10,9 @@ nsink_write_static_maps(static_maps, output_dir)
 \item{static_maps}{A list of static maps, as output by
 \code{\link{nsink_generate_static_maps}}}
 
-\item{output_dir}{Output folder in which to save static maps as .tif}
+\item{output_dir}{Output folder to save .tif static maps to}
 }
 \description{
-Writes out static mapps as tiffs
+Writes out static maps as tiffs
 }
 \keyword{internal}

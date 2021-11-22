@@ -15,10 +15,10 @@ nsink_prep_fdr(huc_sf, huc_raster, data_dir)
 downloaded with the \code{\link{nsink_get_data}} function.}
 }
 \value{
-returns a raster object of the flow direction for the huc_sf but in
+A raster object of the flow direction for the huc_sf but in
         the original fdr projection
 }
 \description{
-Standardizes flow direction data by transforming data, clipping to HUC, ...
+Standardizes flow direction data by transforming data, and clipping to HUC.
 }
 \keyword{internal}

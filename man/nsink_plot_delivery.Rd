@@ -11,7 +11,7 @@ nsink_plot_delivery(
 )
 }
 \arguments{
-\item{delivery_idx}{A delivery index \code{raster} most likely created
+\item{delivery_idx}{A delivery index \code{raster} that can be created
 via \code{\link{nsink_generate_static_maps}}.}
 
 \item{breaks}{A vector of values specifying breakpoints to break the

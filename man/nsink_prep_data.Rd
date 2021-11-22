@@ -15,8 +15,9 @@ nsink_prep_data(
 \item{huc}{A character string of the HUC12 ID.  Use
 \code{\link{nsink_get_huc_id}} to look up ID by name.}
 
-\item{projection}{EPSG code as an numeric or WKT as a character.
-This much be a projected CRS and not geographic as many of
+\item{projection}{CRS to use, passed as ethier EPSG code (as numeric)
+or WKT (as character).
+This must be a projected CRS and not geographic as many of
 the measurements required for the nsink analysis require
 reliable length and area measurments.}
 
@@ -34,7 +35,7 @@ returns a list of sf, raster, or tabular objects for each of the
 In addition to having local access to the required dataset, those datasets
 need to have some preparation.  This function standardizes projections and
 extents and clips all datasets to the boundary of the specified HUC.
-Additionally, any tabular datasets (e.g. flow, time of travel etc.) are
+Additionally, any tabular datasets (e.g. flow, time of travel, etc.) are
 included in the output as well.
 }
 \examples{

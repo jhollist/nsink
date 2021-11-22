@@ -11,9 +11,9 @@ nsink_prep_tot(data_dir)
 be downloaded with the \code{\link{nsink_get_data}} function.}
 }
 \value{
-returns a tibble of the time of travel data
+A tibble of the time of travel data
 }
 \description{
-Standardizes time of travel from the VAA tables.
+Standardizes time of travel from the NHDPlus VAA tables.
 }
 \keyword{internal}

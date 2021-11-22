@@ -9,9 +9,9 @@ nsink_generate_flowpath(starting_location, input_data)
 \arguments{
 \item{starting_location}{An \code{\link{sf}} point location as a starting
 point for the flowpath.  Projection must match
-projection in input_data}
+projection in input_data.}
 
-\item{input_data}{A list of input data with (at least) "fdr", "streams" and
+\item{input_data}{A list of input data with (at least) "fdr", "streams",
 "tot", and "raster_template". These may be generated with
 \code{\link{nsink_prep_data}}.}
 }
@@ -21,7 +21,7 @@ An \code{\link{sf}} LINESTRING object of the flowpath that starts at
 }
 \description{
 This function takes an XY location as a starting point and generates a
-flowpath for use in the N-Sink nitrogen removal analysis. The flopath is a
+flowpath for use in the N-Sink nitrogen removal analysis. The flowpath is a
 combination of a flow direction derived flowpath on land plus NHDPlus derived
 stream-reach flowpath.
 }

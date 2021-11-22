@@ -2,12 +2,12 @@
 % Please edit documentation in R/nsink_summarize_flowpath.R
 \name{nsink_generate_from_to_nodes}
 \alias{nsink_generate_from_to_nodes}
-\title{nsink generate from and to nodes}
+\title{nsink generate from land to nodes}
 \usage{
 nsink_generate_from_to_nodes(land_off_network)
 }
 \arguments{
-\item{land_off_network}{the land off network path}
+\item{land_off_network}{The land off the network path}
 }
 \description{
 Code borrowed from https://www.r-spatial.org/r/2019/09/26/spatial-networks.html

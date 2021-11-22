@@ -11,7 +11,7 @@ nsink_plot_removal(
 )
 }
 \arguments{
-\item{removal_effic}{A removal efficiency \code{raster} most likely created
+\item{removal_effic}{A removal efficiency \code{raster} that can be created
 via \code{\link{nsink_generate_static_maps}}.}
 
 \item{breaks}{A vector of values specifying breakpoints to break the

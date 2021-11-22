@@ -11,9 +11,9 @@ nsink_prep_lakemorpho(data_dir)
 be downloaded with the \code{\link{nsink_get_data}} function.}
 }
 \value{
-returns a tibble of the lake morphology data
+A tibble of the lake morphology data
 }
 \description{
-Standardizes lake morphology  from the lake morphology tables.
+Standardizes lake morphology from the lake morphology tables.
 }
 \keyword{internal}

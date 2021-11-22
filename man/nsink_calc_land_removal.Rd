@@ -11,7 +11,7 @@ nsink_calc_land_removal(input_data)
 "raster_template".}
 }
 \value{
-list with raster and vector versions of land based nitrogen removal
+List with raster and vector versions of land based nitrogen removal
 }
 \description{
 Calculates land-based nitrogen removal

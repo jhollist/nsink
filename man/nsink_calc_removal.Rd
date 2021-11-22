@@ -16,32 +16,32 @@ nsink_calc_removal(
 \code{\link{nsink_prep_data}}.}
 
 \item{off_network_lakes}{Optional argument to set removal for waterbodies
-that are not part of the hydrologic network in NHDPlus. Default value is to
+that are not part of the NHDPlus hydrologic network. Default value is to
 use the 75th percentile of removal from other lakes in the HUC.  If another
 value is desired provide a single numeric ranging from 0 to 1.}
 
 \item{off_network_streams}{Optional argument to set removal for streams that
-are not part of the hydrologic network in NHDPlus. Default value is to use
+are not part of the NHDPlus hydrologic network. Default value is to use
 the median removal from first order streams in the HUC.  If another value
 is desired provide a single numeric ranging from 0 to 1.}
 
 \item{off_network_canalsditches}{Optional argument to set removal for canals
-and ditches that are not part of the hydrologic network in NHDPlus. Default
+and ditches that are not part of the NHDPlus hydrologic network. Default
 value is to use the 25th percentile of removal from third order streams in
 the HUC. If another value is desired provide a single numeric ranging from
 0 to 1.}
 }
 \value{
 A list with three items, 1) a raster stack with one layer with
-        nitrogen removal, a second layer with the type of removal (e.g.
+        the nitrogen removal, a second layer with the type of removal (e.g.
         hydric soils, lakes, streams), 2) a polygon representing removal from
-        land, and 3) removal from the stream network, including stream
-        removal, and lake removal.
+        land, and 3) a polygon representing removal from the stream network,
+        including stream removal, and lake removal.
 }
 \description{
 Starting with base data layers of NHDPlus, SSURGO, impervious surface, flow
 velocity, and time of travel, this function calculates percentage of Nitrogen
-removal.  Details for nitrogen removal calculation are from
+removal.  Nitrogen removal methods and calculations are from
 \href{https://doi.org/10.1016/j.ecoleng.2010.02.006}{Kellogg et al. (2010)}.
 This function assumes data has been downloaded with
 \code{\link{nsink_get_data}} and has been prepared with

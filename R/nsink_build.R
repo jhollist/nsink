@@ -1,40 +1,41 @@
 #' Build out required datasets for N-Sink
 #'
 #' This function is a wrapper around the other functions and runs all of those
-#' required to build out the full dataset need for a huc plus develop the four
+#' required to build out the full dataset needed for a huc and develops the four
 #' static N-Sink maps: the nitrogen loading index, nitrogen removal effeciency,
 #' nitrogen transport index, and the nitrogen delivery index.  The primary
 #' purpose of this is to use the nsink package to develop the required datasets
-#' for an nsink application to be built outside of R (e.g. ArcGIS).  This will take some
-#' time to complete as it is downloading 500-600 Mb of data, processing that data
-#' and then creating output files.
+#' for an nsink application to be built outside of R (e.g. ArcGIS).  This will
+#' take some time to complete as it is downloading 500-600 Mb of data,
+#' processing that data and then creating output files.
 #'
-#' @param huc A character with the 12 digit HUC ID.  Maybe searched with
+#' @param huc A character with the 12 digit HUC ID.  May be searched with
 #'            \code{\link{nsink_get_huc_id}}
-#' @param projection Projection to use for all spatial data, passed as either an
-#'                   EPSG code (as numeric) or WKT as string.
-#' @param output_dir Folder to write out processed nsink files.
+#' @param projection Projection to use for all spatial data, specified as either an
+#'                   EPSG code (as numeric) or WKT (as string).
+#' @param output_dir Folder to write processed nsink files to.
 #'                      Currently, the processed files will be overwritten if
 #'                      the same output folder is used.  To run different
 #'                      HUC12's specify separate output folders.
-#' @param data_dir A folder to hold downloaded data.  The same data
+#' @param data_dir Folder to hold downloaded data.  The same data
 #'                 directory can be used to hold data for multiple HUCs.  Data
 #'                 will not be downloaded again if it already exists in this
 #'                 folder.
 #' @param force Logical value used to force a new download if data already
-#'              exists on file system
+#'              exists on file system.
 #' @param samp_dens The \code{samp_dens} controls the density of points to use when
 #'             creating the nitrogen removal heat map.  The area of the
 #'             watershed is sampled with points that are separated by the
-#'             \code{samp_dens} value.  The larger the value, the fewer the points.
-#' @param year An argument to be passed to FedData's \code{\link{get_nlcd}}
+#'             \code{samp_dens} value, in the units of the input data.
+#'             The larger the value, the fewer the points.
+#' @param year Year argument to be passed to FedData's \code{\link{get_nlcd}}
 #'             function. Defaults to 2016.
 #' @param ... Passes to \code{\link{nsink_calc_removal}} for the off network
 #'            arguments: \code{off_network_lakes}, \code{off_network_streams},
 #'            and \code{off_network_canalsditches}.
 #' @export
-#' @return a list providing details on the huc used and the output location of
-#'         the dataset
+#' @return A list providing details on the huc used and the output location of
+#'         the dataset.
 #' @examples
 #' \dontrun{
 #' library(nsink)
@@ -90,7 +91,7 @@ nsink_build <- function(huc, projection,
 #' data.
 #' @param prepped_data A list of prepped data, as output by
 #'                     \code{\link{nsink_prep_data}}
-#' @param output_dir Folder to store downloaded data and process nsink files
+#' @param output_dir Output folder to save processed nsink files to
 #' @keywords internal
 nsink_write_prepped_data <- function(prepped_data, output_dir) {
   suppressWarnings(sf::st_write(prepped_data$streams, paste0(output_dir, "streams.shp"),
@@ -125,11 +126,11 @@ nsink_write_prepped_data <- function(prepped_data, output_dir) {
 
 #' Write static maps to files
 #'
-#' Writes out static mapps as tiffs
+#' Writes out static maps as tiffs
 #'
 #' @param static_maps A list of static maps, as output by
 #'                     \code{\link{nsink_generate_static_maps}}
-#' @param output_dir Output folder in which to save static maps as .tif
+#' @param output_dir Output folder to save .tif static maps to
 #' @keywords internal
 nsink_write_static_maps <- function(static_maps, output_dir) {
   raster::writeRaster(static_maps$removal_effic,

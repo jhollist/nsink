@@ -13,10 +13,10 @@ nsink_prep_ssurgo(huc_sf, data_dir)
 be downloaded with the \code{\link{nsink_get_data}} function.}
 }
 \value{
-returns a sf object of the SSURGO data with hydric data added.
-        for the huc_sf
+An sf object of the SSURGO data for the huc_sf with hydric data added.
 }
 \description{
-Standardizes impervious data by transforming data, clipping to HUC, ...
+Standardizes impervious data by transforming data, and reducing columns to
+what is needed.
 }
 \keyword{internal}

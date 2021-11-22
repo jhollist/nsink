@@ -7,7 +7,7 @@
 nsink_get_huc_id(huc_name, exact = FALSE)
 }
 \arguments{
-\item{huc_name}{character string of a HUC Name or partial HUC name}
+\item{huc_name}{Character string of a HUC Name or partial HUC name}
 
 \item{exact}{Logical indicating whether or not to do an exact match}
 }

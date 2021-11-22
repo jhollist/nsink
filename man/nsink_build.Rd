@@ -16,31 +16,32 @@ nsink_build(
 )
 }
 \arguments{
-\item{huc}{A character with the 12 digit HUC ID.  Maybe searched with
+\item{huc}{A character with the 12 digit HUC ID.  May be searched with
 \code{\link{nsink_get_huc_id}}}
 
-\item{projection}{Projection to use for all spatial data, passed as either an
-EPSG code (as numeric) or WKT as string.}
+\item{projection}{Projection to use for all spatial data, specified as either an
+EPSG code (as numeric) or WKT (as string).}
 
-\item{output_dir}{Folder to write out processed nsink files.
+\item{output_dir}{Folder to write processed nsink files to.
 Currently, the processed files will be overwritten if
 the same output folder is used.  To run different
 HUC12's specify separate output folders.}
 
-\item{data_dir}{A folder to hold downloaded data.  The same data
+\item{data_dir}{Folder to hold downloaded data.  The same data
 directory can be used to hold data for multiple HUCs.  Data
 will not be downloaded again if it already exists in this
 folder.}
 
 \item{force}{Logical value used to force a new download if data already
-exists on file system}
+exists on file system.}
 
 \item{samp_dens}{The \code{samp_dens} controls the density of points to use when
 creating the nitrogen removal heat map.  The area of the
 watershed is sampled with points that are separated by the
-\code{samp_dens} value.  The larger the value, the fewer the points.}
+\code{samp_dens} value, in the units of the input data.
+The larger the value, the fewer the points.}
 
-\item{year}{An argument to be passed to FedData's \code{\link{get_nlcd}}
+\item{year}{Year argument to be passed to FedData's \code{\link{get_nlcd}}
 function. Defaults to 2016.}
 
 \item{...}{Passes to \code{\link{nsink_calc_removal}} for the off network
@@ -48,18 +49,18 @@ arguments: \code{off_network_lakes}, \code{off_network_streams},
 and \code{off_network_canalsditches}.}
 }
 \value{
-a list providing details on the huc used and the output location of
-        the dataset
+A list providing details on the huc used and the output location of
+        the dataset.
 }
 \description{
 This function is a wrapper around the other functions and runs all of those
-required to build out the full dataset need for a huc plus develop the four
+required to build out the full dataset needed for a huc and develops the four
 static N-Sink maps: the nitrogen loading index, nitrogen removal effeciency,
 nitrogen transport index, and the nitrogen delivery index.  The primary
 purpose of this is to use the nsink package to develop the required datasets
-for an nsink application to be built in other software.  This will take some
-time to complete as it is downloading 500-600 Mb of data, processing that data
-and then creating output files.
+for an nsink application to be built outside of R (e.g. ArcGIS).  This will
+take some time to complete as it is downloading 500-600 Mb of data,
+processing that data and then creating output files.
 }
 \examples{
 \dontrun{

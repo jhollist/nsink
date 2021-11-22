@@ -18,9 +18,10 @@ be downloaded with the \code{\link{nsink_get_data}} function.}
 FedData's, \code{\link{get_nlcd}} function.}
 }
 \value{
-returns a raster object of the impervious cover for the huc_sf
+A raster object of the impervious cover for the huc_sf
 }
 \description{
-Standardizes impervious data by transforming data, clipping to HUC, ...
+Standardizes impervious data by projecting to the coorect CRS,
+and standardizing file name.
 }
 \keyword{internal}

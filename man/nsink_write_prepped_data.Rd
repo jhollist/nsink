@@ -10,7 +10,7 @@ nsink_write_prepped_data(prepped_data, output_dir)
 \item{prepped_data}{A list of prepped data, as output by
 \code{\link{nsink_prep_data}}}
 
-\item{output_dir}{Folder to store downloaded data and process nsink files}
+\item{output_dir}{Output folder to save processed nsink files to}
 }
 \description{
 Writes out data either as shapefiles, for vector data, or tiffs for raster

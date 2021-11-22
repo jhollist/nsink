@@ -11,14 +11,14 @@ nsink_create_summary(land_removal, network_removal)
 generated flowpath and hydric removal raster.}
 
 \item{network_removal}{A data frame of stream network nitrogen removal via
-calculated stream and lake removal}
+calculated stream and lake removal.}
 }
 \value{
-a data frame summarizing nitrogen removal along a flowpath
+A data frame summarizing nitrogen removal along a flowpath
 }
 \description{
 This functions takes a nitrogen removal and removal type data frame for land
-and the flowpath network  and creates a data frame that summarizes the
+and the flowpath network and creates a data frame that summarizes the
 removal along that flowpath.
 }
 \keyword{internal}

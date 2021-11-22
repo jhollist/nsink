@@ -13,9 +13,10 @@ nsink_prep_lakes(huc_sf, data_dir)
 downloaded with the \code{\link{nsink_get_data}} function.}
 }
 \value{
-returns an sf object of the NHDPlus lakes for the huc_sf
+An sf object of the NHDPlus lakes for the huc_sf
 }
 \description{
-Standardizes lakes data by transforming data, clipping to HUC, ...
+Standardizes lakes data by transforming data, clipping to HUC, and
+renaming columns.
 }
 \keyword{internal}

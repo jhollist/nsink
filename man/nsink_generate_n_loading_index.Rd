@@ -7,7 +7,7 @@
 nsink_generate_n_loading_index(input_data)
 }
 \arguments{
-\item{input_data}{list of input data}
+\item{input_data}{List of input data}
 }
 \description{
 This function reclassifies the NLCD data to an index of Nitrogen loading.

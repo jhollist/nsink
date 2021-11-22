@@ -13,7 +13,7 @@ nsink_remove_openwater(huc_sf, data_dir)
 be downloaded with the \code{\link{nsink_get_data}} function.}
 }
 \value{
-returns a sf object of the HUC without salt water/open water area.
+An sf object of the HUC without salt water/open water area.
 }
 \description{
 Uses SSURGO polys and the SSURGO musym = Ws to check for and remove any

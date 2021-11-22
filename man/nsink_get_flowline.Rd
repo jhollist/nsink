@@ -16,12 +16,12 @@ with \code{\link{nsink_get_flowpath_ends}}}
 provides the from and to nodes.}
 }
 \value{
-an \code{sf} object of the NHDPlus flowlines that occur after a
+An \code{sf} object of the NHDPlus flowlines that occur after a
         raster flowpath intersects the stream network.
 }
 \description{
 Extract flowlines that intersect with flowpath ends.  This uses the actual
-flowlines as a part for the flowpath instead of simply using the raster
-derived flowpaths wich do not follow the flowlines exactly.
+flowlines as a part of the flowpath instead of simply using the raster
+derived flowpaths which do not follow the flowlines exactly.
 }
 \keyword{internal}

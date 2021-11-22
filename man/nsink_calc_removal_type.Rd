@@ -7,12 +7,12 @@
 nsink_calc_removal_type(removal_rasters)
 }
 \arguments{
-\item{removal_rasters}{A named list of "land_removal", "stream_removal,
+\item{removal_rasters}{A named list of "land_removal", "stream_removal",
 "lake_removal", and "raster_template" rasters plus a
 sf object "huc".}
 }
 \value{
-raster of landscape nitrogen removal
+Raster of landscape nitrogen removal
 }
 \description{
 Create removal type raster

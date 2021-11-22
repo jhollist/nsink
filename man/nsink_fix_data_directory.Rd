@@ -7,10 +7,10 @@
 nsink_fix_data_directory(data_dir)
 }
 \arguments{
-\item{data_dir}{the data directory}
+\item{data_dir}{The data directory}
 }
 \value{
-a string with the normalized path
+A string with the normalized path
 }
 \description{
 This function takes the data directory and checks for existence, creates it
