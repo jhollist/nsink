@@ -4,11 +4,11 @@
 #' list of static maps created by \code{\link{nsink_generate_static_maps}}.
 #' This is meant as a quick means to visualize the various static maps.
 #'
-#' @param static_maps A list of \code{raster} objectsm ost likely created
+#' @param static_maps A list of \code{raster} objects that can be created
 #'                      via \code{\link{nsink_generate_static_maps}}.  The list
 #'                      should have removal_effic, delivery_idx, and
 #'                      transport_idx.
-#' @param map A character of either, "removal","transport", or "delivery."
+#' @param map A character of either, "removal", "transport", or "delivery."
 #' @examples
 #' \dontrun{
 #' library(nsink)
@@ -39,7 +39,7 @@ nsink_plot <- function(static_maps, map = c("removal", "transport",
 #' although different breaks and colors can be provided by the user.  This is
 #' meant as a quick means to visualize delivery index.
 #'
-#' @param delivery_idx A delivery index \code{raster} most likely created
+#' @param delivery_idx A delivery index \code{raster} that can be created
 #'                      via \code{\link{nsink_generate_static_maps}}.
 #' @param breaks A vector of values specifying breakpoints to break the
 #'               delivery \code{raster}.  Must be one more than number of
@@ -63,7 +63,7 @@ nsink_plot_delivery <- function(delivery_idx, breaks = c(20, 40, 60, 80, 100),
 #' although different breaks and colors can be provided by the user.  This is
 #' meant as a quick means to visualize removal efficiency.
 #'
-#' @param removal_effic A removal efficiency \code{raster} most likely created
+#' @param removal_effic A removal efficiency \code{raster} that can be created
 #'                      via \code{\link{nsink_generate_static_maps}}.
 #' @param breaks A vector of values specifying breakpoints to break the
 #'               removal \code{raster}.  Must be one more than number of
@@ -86,7 +86,7 @@ nsink_plot_removal <- function(removal_effic, breaks = c(0.2, 0.4, 0.6, 0.8),
 #' although different breaks and colors can be provided by the user.  This is
 #' meant as a quick means to visualize removal efficiency.
 #'
-#' @param transport_idx A transport index \code{raster} most likely created
+#' @param transport_idx A transport index \code{raster} that can be created
 #'                      via \code{\link{nsink_generate_static_maps}}.
 #' @param breaks A vector of values specifying breakpoints to break the
 #'               transport \code{raster}.  Must be one more than number of

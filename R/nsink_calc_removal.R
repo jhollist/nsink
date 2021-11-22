@@ -2,7 +2,7 @@
 #'
 #' Starting with base data layers of NHDPlus, SSURGO, impervious surface, flow
 #' velocity, and time of travel, this function calculates percentage of Nitrogen
-#' removal.  Details for nitrogen removal calculation are from
+#' removal.  Nitrogen removal methods and calculations are from
 #' \href{https://doi.org/10.1016/j.ecoleng.2010.02.006}{Kellogg et al. (2010)}.
 #' This function assumes data has been downloaded with
 #' \code{\link{nsink_get_data}} and has been prepared with
@@ -11,23 +11,23 @@
 #' @param input_data A list of input datasets created with
 #'                   \code{\link{nsink_prep_data}}.
 #' @param off_network_lakes Optional argument to set removal for waterbodies
-#'   that are not part of the hydrologic network in NHDPlus. Default value is to
+#'   that are not part of the NHDPlus hydrologic network. Default value is to
 #'   use the 75th percentile of removal from other lakes in the HUC.  If another
 #'   value is desired provide a single numeric ranging from 0 to 1.
 #' @param off_network_streams Optional argument to set removal for streams that
-#'   are not part of the hydrologic network in NHDPlus. Default value is to use
+#'   are not part of the NHDPlus hydrologic network. Default value is to use
 #'   the median removal from first order streams in the HUC.  If another value
 #'   is desired provide a single numeric ranging from 0 to 1.
 #' @param off_network_canalsditches Optional argument to set removal for canals
-#'   and ditches that are not part of the hydrologic network in NHDPlus. Default
+#'   and ditches that are not part of the NHDPlus hydrologic network. Default
 #'   value is to use the 25th percentile of removal from third order streams in
 #'   the HUC. If another value is desired provide a single numeric ranging from
 #'   0 to 1.
 #' @return A list with three items, 1) a raster stack with one layer with
-#'         nitrogen removal, a second layer with the type of removal (e.g.
+#'         the nitrogen removal, a second layer with the type of removal (e.g.
 #'         hydric soils, lakes, streams), 2) a polygon representing removal from
-#'         land, and 3) removal from the stream network, including stream
-#'         removal, and lake removal.
+#'         land, and 3) a polygon representing removal from the stream network,
+#'         including stream removal, and lake removal.
 #'
 #' @references Kellogg, D. Q., Gold, A. J., Cox, S., Addy, K., & August, P. V.
 #'             (2010). A geospatial approach for assessing denitrification sinks
@@ -215,19 +215,19 @@ nsink_calc_removal <- function(input_data,off_network_lakes = NULL,
 #' @param input_data  A named list with "streams", "lakes",
 #'                   "network_removal", "tot", and "raster_template".
 #' @param off_network_lakes Optional argument to set removal for waterbodies
-#'   that are not part of the hydrologic network in NHDPlus. Default value is to
+#'   that are not part of the NHDPlus hydrologic network. Default value is to
 #'   use the 75th percentile of removal from other lakes in the HUC.  If another
 #'   value is desired provide a single numeric ranging from 0 to 1.
 #' @param off_network_streams Optional argument to set removal for streams that
-#'   are not part of the hydrologic network in NHDPlus. Default value is to use
+#'   are not part of the NHDPlus hydrologic network. Default value is to use
 #'   the median removal from first order streams in the HUC.  If another value
 #'   is desired provide a single numeric ranging from 0 to 1.
 #' @param off_network_canalsditches Optional argument to set removal for canals
-#'   and ditches that are not part of the hydrologic network in NHDPlus. Default
+#'   and ditches that are not part of the NHDPlus hydrologic network. Default
 #'   value is to use the 25th percentile of removal from third order streams in
 #'   the HUC. If another value is desired provide a single numeric ranging from
 #'   0 to 1.
-#' @return raster and vectors of off network nitrogen removal
+#' @return Raster and vectors of off network nitrogen removal
 #' @import dplyr sf
 #' @importFrom rlang .data
 #' @importFrom raster rasterize merge
@@ -346,7 +346,6 @@ nsink_calc_off_network_removal <- function(input_data, off_network_lakes,
                                           "CanalDitch")
 
       #Use lower quartile of higher order streams
-
       if(is.null(off_network_canalsditches)){
         low_quart_removal_high_order <- pull(removal_stats_high_order,
                                              .data$low_quart_n_remove)
@@ -441,7 +440,7 @@ nsink_calc_off_network_removal <- function(input_data, off_network_lakes,
 #'
 #' @param input_data A named list with "ssurgo", "impervious", "lakes", and
 #'                   "raster_template".
-#' @return list with raster and vector versions of land based nitrogen removal
+#' @return List with raster and vector versions of land based nitrogen removal
 #' @import dplyr sf
 #' @importFrom rlang .data
 #' @importFrom stars st_as_stars
@@ -482,7 +481,7 @@ nsink_calc_land_removal <- function(input_data) {
 #'
 #' @param input_data  A named list with "streams", "q", "tot", and
 #'                   "raster_template".
-#' @return raster and vector versions of stream based nitrogen removal
+#' @return Raster and vector versions of stream based nitrogen removal
 #' @import dplyr sf
 #' @importFrom rlang .data
 #' @importFrom stars st_rasterize st_as_stars
@@ -558,7 +557,7 @@ nsink_calc_stream_removal <- function(input_data) {
 #'
 #' @param input_data A named list with "streams", "lakes", "tot", "lakemorpho",
 #'                   and "raster_template".
-#' @return raster and vector versions of lake based nitrogen removal
+#' @return Raster and vector versions of lake based nitrogen removal
 #' @import dplyr sf
 #' @importFrom rlang .data
 #' @keywords internal
@@ -681,11 +680,11 @@ nsink_calc_lake_removal <- function(input_data) {
 
 #' Merges removal rasters into single raster
 #'
-#' @param removal_rasters A named list of "land_removal", "stream_removal,
+#' @param removal_rasters A named list of "land_removal", "stream_removal",
 #'                        "lake_removal", and "raster_template" rasters plus a
 #'                        sf object "huc".
 #' @importFrom methods as
-#' @return raster of landscape nitrogen removal
+#' @return Raster of landscape nitrogen removal
 #' @keywords internal
 nsink_merge_removal <- function(removal_rasters) {
   if(is.null(removal_rasters$lake_removal)){
@@ -719,10 +718,10 @@ nsink_merge_removal <- function(removal_rasters) {
 
 #' Create removal type raster
 #'
-#' @param removal_rasters A named list of "land_removal", "stream_removal,
+#' @param removal_rasters A named list of "land_removal", "stream_removal",
 #'                        "lake_removal", and "raster_template" rasters plus a
 #'                        sf object "huc".
-#' @return raster of landscape nitrogen removal
+#' @return Raster of landscape nitrogen removal
 #' @keywords internal
 nsink_calc_removal_type <- function(removal_rasters) {
   type_it <- function(removal_rast, type = c("hydric", "stream", "lake",

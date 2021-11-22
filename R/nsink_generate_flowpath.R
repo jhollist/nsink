@@ -1,14 +1,14 @@
 #' Generate and clean a flowpath for N-Sink
 #'
 #' This function takes an XY location as a starting point and generates a
-#' flowpath for use in the N-Sink nitrogen removal analysis. The flopath is a
+#' flowpath for use in the N-Sink nitrogen removal analysis. The flowpath is a
 #' combination of a flow direction derived flowpath on land plus NHDPlus derived
 #' stream-reach flowpath.
 #'
 #' @param starting_location An \code{\link{sf}} point location as a starting
 #'                          point for the flowpath.  Projection must match
-#'                          projection in input_data
-#' @param input_data A list of input data with (at least) "fdr", "streams" and
+#'                          projection in input_data.
+#' @param input_data A list of input data with (at least) "fdr", "streams",
 #'                  "tot", and "raster_template". These may be generated with
 #'                  \code{\link{nsink_prep_data}}.
 #' @return An \code{\link{sf}} LINESTRING object of the flowpath that starts at
@@ -106,8 +106,8 @@ nsink_get_flowpath_ends <- function(flowpath, streams, tot){
 #' Get flowlines that intersect with a flowpath
 #'
 #' Extract flowlines that intersect with flowpath ends.  This uses the actual
-#' flowlines as a part for the flowpath instead of simply using the raster
-#' derived flowpaths wich do not follow the flowlines exactly.
+#' flowlines as a part of the flowpath instead of simply using the raster
+#' derived flowpaths which do not follow the flowlines exactly.
 #'
 #'
 #' @param flowpath_ends An \code{sf} LINESTRING of the flowpath ends, generated
@@ -115,7 +115,7 @@ nsink_get_flowpath_ends <- function(flowpath, streams, tot){
 #' @param streams NHDPlus streams from \code{\link{nsink_prep_data}}
 #' @param tot NHDPlus time of travel from \code{\link{nsink_prep_data}} which
 #'            provides the from and to nodes.
-#' @return an \code{sf} object of the NHDPlus flowlines that occur after a
+#' @return An \code{sf} object of the NHDPlus flowlines that occur after a
 #'         raster flowpath intersects the stream network.
 #' @import sf dplyr
 #' @importFrom utils tail
