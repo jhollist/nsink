@@ -39,7 +39,12 @@ Authors@R: c(person(given = "Jeffrey",
            family = "Dickson",
            role = c("ctb"),
            email = "david.dickson@uconn.edu>, ",
-           comment = c(ORCID = "0000-0002-2660-6460")))
+           comment = c(ORCID = "0000-0002-2660-6460")),
+           person(given = "Kenneth",
+           family = "Forshay",
+           role = c("mon", "fnd"),
+           email = "forshay.ken@epa.gov>, ",
+           comment = c(ORCID = "0000-0002-2867-8492")))
 Description: N-Sink is an analysis that utilizes geospatial data to estimate a 
              flow path and the nitrogen removal along that flow path.  
              Additionally, several static maps summarizing nitrogen removal may 
