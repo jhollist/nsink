@@ -7,7 +7,7 @@ if(dir.exists("nsink_test_data")){
 }
 
 test_that("downloading data works", {
-  skip_on_ci()
+  #skip_on_ci()
   expect_type(nsink_get_data(huc = niantic_huc, data_dir = "nsink_test_data",
                              force = TRUE), "list")
 })
@@ -17,7 +17,7 @@ test_that("bad huc doesn't work", {
 })
 
 test_that("dowloaded all data that is expected",{
-  skip_on_ci()
+  #skip_on_ci()
   rpu <- unique(nsink:::wbd_lookup[grepl(paste0("^", niantic_huc), nsink:::wbd_lookup$HUC_12),]$RPU)
   rpu <- rpu[!is.na(rpu)]
   folders <- list.dirs(paste0("nsink_test_data/", rpu), full.names = FALSE, recursive = FALSE)

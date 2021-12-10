@@ -4,7 +4,7 @@ library(sf)
 load(system.file("testdata.rda", package="nsink"))
 
 test_that("flowpath summary works correctly", {
-  skip_on_ci()
+  #skip_on_ci()
   start_loc <- st_sf(st_sfc(st_point(c(pt)), crs = aea))
   niantic_fp <- nsink_generate_flowpath(start_loc, niantic_data)
   niantic_fp_removal <- nsink_summarize_flowpath(niantic_fp, niantic_removal)

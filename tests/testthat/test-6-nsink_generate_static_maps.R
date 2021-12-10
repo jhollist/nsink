@@ -2,7 +2,7 @@ context("nsink_generate_static_maps")
 library(nsink)
 library(sf)
 load(system.file("testdata.rda", package="nsink"))
-skip_on_ci()
+#skip_on_ci()
 
 test_that("static maps are generated correctly", {
   niantic_static <- nsink_generate_static_maps(niantic_data, niantic_removal,

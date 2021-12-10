@@ -5,7 +5,7 @@ aea <- 5072
 
 test_that("data prep works", {
   #skip("skipping test_nsink_prep_data")
-  skip_on_ci()
+  #skip_on_ci()
   niantic_nsink_data <- nsink_prep_data(huc = niantic_huc, projection = aea,
                                         data_dir = "nsink_test_data")
   expect_type(niantic_nsink_data, "list")
