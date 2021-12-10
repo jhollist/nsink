@@ -54,16 +54,23 @@ nsink_generate_flowpath <- function(starting_location, input_data){
   dist <- units::set_units(dist, st_crs(input_data$streams,
                                         parameters = TRUE)$ud_unit,
                            mode = "standard")
-  if(length(unlist(st_is_within_distance(fp_ends, input_data$streams,
-                                         as.numeric(dist)))) > 0 &
-         any(fp_ends[1,] != fp_ends[2,])){
-    fp_flowlines <- nsink_get_flowline(fp_ends, input_data$streams, input_data$tot)
+  if(nrow(st_as_sf(fp_ends)) >= 2){
+    if(length(unlist(st_is_within_distance(fp_ends, input_data$streams,
+                                           as.numeric(dist)))) > 0 &
+           any(fp_ends[1,] != fp_ends[2,])){
+      fp_flowlines <- nsink_get_flowline(fp_ends, input_data$streams, input_data$tot)
+    } else {
+      fp_flowlines <- NULL
+    }
   } else {
     fp_flowlines <- NULL
   }
 
   fp_ends <- st_sfc(st_geometry(fp_ends))
   fp_ends <- st_sf(fp_ends, crs = st_crs(input_data$streams))
+  if(!is.null(fp_flowlines)){
+    fp_flowlines <- nsink_split_flowline(fp_ends, fp_flowlines)
+  }
   list(flowpath_ends = fp_ends, flowpath_network = fp_flowlines)
 }
 
@@ -171,4 +178,45 @@ nsink_get_flowline <- function(flowpath_ends, streams, tot){
                                                             tol01),
                                                     flowpath_ends[1,],F))
   fp_flowlines
+}
+
+#' Split flowlines where they intersect with a flowpath
+#'
+#' Takes a flowpath input
+#'
+#'
+#' @param flowpath_ends The ends of the flowpath that are not a part of the
+#'                      network
+#' @param flowpath_network The flowpath network
+#' @return An \code{sf} object of the NHDPlus flowlines split where the fp ends
+#'         intersect with the flowlines.
+#' @import sf dplyr
+#' @importFrom rlang .data
+#' @importFrom lwgeom st_split
+#' @importFrom sf st_snap st_crs st_collection_extract st_intersects
+#' @keywords internal
+nsink_split_flowline <- function(flowpath_ends, flowpath_network){
+  tol1 <- units::set_units(1, "m")
+  tol1 <- units::set_units(tol1, st_crs(flowpath_network, parameters = TRUE)$ud_unit,
+                           mode = "standard")
+  splits <- st_collection_extract(lwgeom::st_split(flowpath_network,
+                                                   flowpath_ends[1,]),
+                                  "LINESTRING")
+  if(nrow(splits) == nrow(flowpath_network)){
+    flowpath_network <- st_snap(flowpath_network, flowpath_ends, tolerance = tol1)
+    splits <- st_collection_extract(lwgeom::st_split(flowpath_network,
+                                                     flowpath_ends[1,]),
+                                    "LINESTRING")
+  }
+  if(nrow(flowpath_network) == 1){return(splits)}
+  splits <- mutate(splits, split_id = seq_along(.data$stream_comid))
+  split_reach_comid <- splits$stream_comid[duplicated(splits$stream_comid)]
+  split_reach <- filter(splits, .data$stream_comid == split_reach_comid)
+  split_reach_tonode <- unique(split_reach$tonode)
+  next_reach <- filter(flowpath_network, .data$fromnode == split_reach_tonode)
+  split_reach <- st_snap(split_reach, flowpath_ends, tolerance = tol1)
+  split_idx <- !st_intersects(split_reach, next_reach, sparse = FALSE)
+  split_ditch <- split_reach$split_id[split_idx]
+  splits <- filter(splits, .data$split_id != split_ditch)
+  splits
 }

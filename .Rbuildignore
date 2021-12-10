@@ -32,3 +32,6 @@
 ^bugs$
 present/
 reviews
+^nsink_niantic_data$
+^paper.Rmd$
+^paper.pdf$

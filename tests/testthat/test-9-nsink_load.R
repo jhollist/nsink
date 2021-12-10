@@ -19,4 +19,8 @@ test_that("load runs as expected", {
 
 })
 
+# Clean up after tests
 unlink("test_output", recursive = TRUE, force = TRUE)
+if(dir.exists("nsink_test_data")){
+  unlink("nsink_test_data", recursive = TRUE, force = TRUE)
+}

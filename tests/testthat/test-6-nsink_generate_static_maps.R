@@ -11,12 +11,6 @@ test_that("static maps are generated correctly", {
                                          "transport_idx", "delivery_idx"))
   expect_equal(mean(raster::values(niantic_static$transport_idx), na.rm = TRUE),
                niantic_static_avg, tolerance = 0.001)
-  horseneck_static <- nsink_generate_static_maps(horseneck_data, horseneck_removal,
-                                                    samp_dens = 3000)
-  expect_setequal(names(horseneck_static), c("removal_effic", "loading_idx",
-                                                "transport_idx", "delivery_idx"))
-  expect_equal(mean(raster::values(horseneck_static$transport_idx), na.rm = TRUE),
-               horseneck_static_avg, tolerance = 0.001)
   low_west_static <- nsink_generate_static_maps(low_west_data, low_west_removal,
                                                     samp_dens = 3000)
   expect_setequal(names(low_west_static), c("removal_effic", "loading_idx",
