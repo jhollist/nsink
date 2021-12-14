@@ -6,7 +6,7 @@ nsink: An R package for flow path nitrogen removal estimation
 
 The `nsink` package estimates cumulative nitrogen (N) removal along a
 specified flow path and is based on methodologies outlined in Kellogg et
-al. (2010). For a user-specified watershed (i.e. hydrologic unit code
+al. (2010). For a user-specified watershed (i.e., hydrologic unit code
 (HUC), `nsink` downloads all required datasets from public datasets in
 the United States, prepares data for use, summarizes N removal along a
 flow path and creates several static maps. The results of an `nsink`
@@ -30,8 +30,8 @@ and manipulation were mostly manual and took weeks to months to complete
 for a single 12-digit HUC. The effort required for the analysis limited
 it’s application as scaling beyond a few pilot studies was not feasible.
 The goal of `nsink` was to address this limitation and provide an open
-source solution that could be run on a single small watershed
-(e.g. 12-digit HUC) in minutes to hours with minimal manual input.
+source solution that could be run on a single small watershed (e.g.,
+12-digit HUC) in minutes to hours with minimal manual input.
 
 # The `nsink` package
 
@@ -84,28 +84,28 @@ The `nsink` package depends on several existing R packages to facilitate
 spatial data handling, data acquisition, data management, data analysis
 and data processing. These are detailed in Table 1.
 
-Table 1. R Package Dependencies for the `nsink` package
+Table 1. R package dependencies for the `nsink` package
 
-| Package     | Task                               | Citation                                                                                               |
-|-------------|------------------------------------|--------------------------------------------------------------------------------------------------------|
-| `sf`        | Spatial Data Handling and Analysis | E. Pebesma (2018); E. Pebesma (2021b)                                                                  |
-| `raster`    | Spatial Data Handling and Analysis | Hijmans (2021)                                                                                         |
-| `stars`     | Spatial Data Handling and Analysis | E. Pebesma (2021c)                                                                                     |
-| `fasterize` | Spatial Data Handling and Analysis | Ross (2020)                                                                                            |
-| `lwgeom`    | Spatial Data Handling and Analysis | E. Pebesma (2021a)                                                                                     |
-| `gstat`     | Spatial Data Handling and Analysis | E. J. Pebesma (2004); Gräler, Pebesma, and Heuvelink (2016); E. Pebesma and Graeler (2021)             |
-| `sp`        | Spatial Data Handling and Analysis | E. J. Pebesma and Bivand (2005); Bivand, Pebesma, and Gomez-Rubio (2013); E. Pebesma and Bivand (2021) |
-| `units`     | Unit Transformations               | E. Pebesma, Mailund, and Hiebert (2016); E. Pebesma et al. (2021)                                      |
-| `FedData`   | Data Acquisition                   | Bocinsky (2020)                                                                                        |
-| `httr`      | Data Acquisition                   | Wickham (2020)                                                                                         |
-| `dplyr`     | Data Management and Analysis       | Wickham et al. (2021)                                                                                  |
-| `zoo`       | Data Management and Analysis       | Zeileis and Grothendieck (2005); Zeileis, Gorthendieck, and Ryan (2021)                                |
-| `igraph`    | Data Management and Analysis       | Csardi and Nepusz (2006); Csardi et al. (2020)                                                         |
-| `readr`     | Data Management and Analysis       | Wickham and Hester (2020)                                                                              |
-| `foreign`   | Data Management and Analysis       | R Core Team (2020)                                                                                     |
-| `rlang`     | Data Management and Analysis       | Henry and Wickham (2021)                                                                               |
-| `furrr`     | Parallel Processing                | Vaughan and Dancho (2021)                                                                              |
-| `future`    | Parallel Processing                | Bengtsson (2021); Bengtsson (2020)                                                                     |
+| Package     | Task                               | Citation                                                                                      |
+|-------------|------------------------------------|-----------------------------------------------------------------------------------------------|
+| `sf`        | Spatial Data Handling and Analysis | Pebesma (2018); Pebesma (2021b)                                                               |
+| `raster`    | Spatial Data Handling and Analysis | Hijmans (2021)                                                                                |
+| `stars`     | Spatial Data Handling and Analysis | Pebesma (2021c)                                                                               |
+| `fasterize` | Spatial Data Handling and Analysis | Ross (2020)                                                                                   |
+| `lwgeom`    | Spatial Data Handling and Analysis | Pebesma (2021a)                                                                               |
+| `gstat`     | Spatial Data Handling and Analysis | Pebesma (2004); Gräler, Pebesma, and Heuvelink (2016); Pebesma and Graeler (2021)             |
+| `sp`        | Spatial Data Handling and Analysis | Pebesma and Bivand (2005); Bivand, Pebesma, and Gomez-Rubio (2013); Pebesma and Bivand (2021) |
+| `units`     | Unit Transformations               | Pebesma, Mailund, and Hiebert (2016); Pebesma et al. (2021)                                   |
+| `FedData`   | Data Acquisition                   | Bocinsky (2020)                                                                               |
+| `httr`      | Data Acquisition                   | Wickham (2020)                                                                                |
+| `dplyr`     | Data Management and Analysis       | Wickham et al. (2021)                                                                         |
+| `zoo`       | Data Management and Analysis       | Zeileis and Grothendieck (2005); Zeileis, Gorthendieck, and Ryan (2021)                       |
+| `igraph`    | Data Management and Analysis       | Csardi and Nepusz (2006); Csardi et al. (2020)                                                |
+| `readr`     | Data Management and Analysis       | Wickham and Hester (2020)                                                                     |
+| `foreign`   | Data Management and Analysis       | R Core Team (2020)                                                                            |
+| `rlang`     | Data Management and Analysis       | Henry and Wickham (2021)                                                                      |
+| `furrr`     | Parallel Processing                | Vaughan and Dancho (2021)                                                                     |
+| `future`    | Parallel Processing                | Bengtsson (2021); Bengtsson (2020)                                                            |
 
 ### Functionality
 
@@ -164,7 +164,7 @@ Distributed Processing in R using Futures</span>.” *The R Journal*.
 
 <div id="ref-spbook" class="csl-entry">
 
-Bivand, Roger S., Edzer Pebesma, and Virgilio Gomez-Rubio. 2013.
+Bivand, Roger S., Edzer J. Pebesma, and Virgilio Gomez-Rubio. 2013.
 *Applied Spatial Data Analysis with R, Second Edition*. Springer, NY.
 <https://doi.org/10.1007/978-1-4614-7618-4>.
 
@@ -196,7 +196,7 @@ Zanini. 2020. *Network Analysis and Visualization*.
 
 <div id="ref-gstatpaper2016" class="csl-entry">
 
-Gräler, Benedikt, Edzer Pebesma, and Gerard Heuvelink. 2016.
+Gräler, Benedikt, Edzer J. Pebesma, and Gerard Heuvelink. 2016.
 “Spatio-Temporal Interpolation Using Gstat.” *The R Journal* 8: 204–18.
 <https://doi.org/10.32614/RJ-2016-014>.
 
@@ -228,10 +228,10 @@ Methodology Design for the United States National Land Cover Database
 
 <div id="ref-kellogg2010geospatial" class="csl-entry">
 
-Kellogg, DQ, Arthur J Gold, Suzanne Cox, Kelly Addy, and Peter V August.
-2010. “A Geospatial Approach for Assessing Denitrification Sinks Within
-Lower-Order Catchments.” *Ecological Engineering* 36 (11): 1596–606.
-<https://doi.org/10.1016/j.ecoleng.2010.02.006>.
+Kellogg, Dorothy Q., Arthur J Gold, Suzanne Cox, Kelly Addy, and Peter V
+August. 2010. “A Geospatial Approach for Assessing Denitrification Sinks
+Within Lower-Order Catchments.” *Ecological Engineering* 36 (11):
+1596–606. <https://doi.org/10.1016/j.ecoleng.2010.02.006>.
 
 </div>
 
@@ -244,11 +244,19 @@ Resolution.” *Open-File Report-US Geological Survey*, no. 2019-1096.
 
 </div>
 
+<div id="ref-gstatpaper2004" class="csl-entry">
+
+Pebesma, Edzer J. 2004. “Multivariable Geostatistics in S: The Gstat
+Package.” *Computers & Geosciences* 30: 683–91.
+<https://doi.org/10.1016/j.cageo.2004.03.012>.
+
+</div>
+
 <div id="ref-sfpaper" class="csl-entry">
 
-Pebesma, Edzer. 2018. “<span class="nocase">Simple Features for R:
-Standardized Support for Spatial Vector Data</span>.” *The R Journal* 10
-(1): 439–46. <https://doi.org/10.32614/RJ-2018-009>.
+———. 2018. “<span class="nocase">Simple Features for R: Standardized
+Support for Spatial Vector Data</span>.” *The R Journal* 10 (1): 439–46.
+<https://doi.org/10.32614/RJ-2018-009>.
 
 </div>
 
@@ -273,11 +281,10 @@ Cubes*. <https://CRAN.R-project.org/package=stars>.
 
 </div>
 
-<div id="ref-gstatpaper2004" class="csl-entry">
+<div id="ref-sp" class="csl-entry">
 
-Pebesma, Edzer J. 2004. “Multivariable Geostatistics in S: The Gstat
-Package.” *Computers & Geosciences* 30: 683–91.
-<https://doi.org/10.1016/j.cageo.2004.03.012>.
+Pebesma, Edzer J., and Roger Bivand. 2021. *Sp: Classes and Methods for
+Spatial Data*. <https://CRAN.R-project.org/package=sp>.
 
 </div>
 
@@ -289,16 +296,9 @@ Spatial Data in R.” *R News* 5 (2): 9–13.
 
 </div>
 
-<div id="ref-sp" class="csl-entry">
-
-Pebesma, Edzer, and Roger Bivand. 2021. *Sp: Classes and Methods for
-Spatial Data*. <https://CRAN.R-project.org/package=sp>.
-
-</div>
-
 <div id="ref-gstat" class="csl-entry">
 
-Pebesma, Edzer, and Benedikt Graeler. 2021. *Gstat: Spatial and
+Pebesma, Edzer J., and Benedikt Graeler. 2021. *Gstat: Spatial and
 Spatio-Temporal Geostatistical Modelling, Prediction and Simulation*.
 <https://CRAN.R-project.org/package=gstat>.
 
@@ -306,7 +306,7 @@ Spatio-Temporal Geostatistical Modelling, Prediction and Simulation*.
 
 <div id="ref-unitspaper" class="csl-entry">
 
-Pebesma, Edzer, Thomas Mailund, and James Hiebert. 2016. “Measurement
+Pebesma, Edzer J., Thomas Mailund, and James Hiebert. 2016. “Measurement
 Units in R.” *R Journal* 8 (2): 486–94.
 <https://doi.org/10.32614/RJ-2016-061>.
 
@@ -314,8 +314,8 @@ Units in R.” *R Journal* 8 (2): 486–94.
 
 <div id="ref-units" class="csl-entry">
 
-Pebesma, Edzer, Thomas Mailund, Tomasz Kalinowski, and Iñaki Ucar. 2021.
-*Units: Spatiotemporal Arrays, Raster and Vector Data Cubes*.
+Pebesma, Edzer J., Thomas Mailund, Tomasz Kalinowski, and Iñaki Ucar.
+2021. *Units: Spatiotemporal Arrays, Raster and Vector Data Cubes*.
 <https://CRAN.R-project.org/package=units>.
 
 </div>
