@@ -1,6 +1,6 @@
 nsink: An R package for flow path nitrogen removal estimation
 ================
-2021-11-22
+2021-12-14
 
 # Summary
 
@@ -9,7 +9,7 @@ specified flow path and is based on methodologies outlined in Kellogg et
 al. (2010). For a user-specified watershed (i.e. hydrologic unit code
 (HUC), `nsink` downloads all required datasets from public datasets in
 the United States, prepares data for use, summarizes N removal along a
-flow path and creates several static HUC maps. The results of an `nsink`
+flow path and creates several static maps. The results of an `nsink`
 analysis may be exported to standard geospatial files for use in other
 applications.
 
