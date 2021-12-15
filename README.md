@@ -7,7 +7,7 @@ nsink
 [![R build
 status](https://github.com/jhollist/nsink/workflows/R-CMD-check/badge.svg)](https://github.com/jhollist/nsink/actions)
 [![Codecov test
-coverage](https://codecov.io/gh/jhollist/nsink/branch/master/graph/badge.svg)](https://codecov.io/gh/jhollist/nsink?branch=master)
+coverage](https://codecov.io/gh/jhollist/nsink/branch/main/graph/badge.svg)](https://codecov.io/gh/jhollist/nsink?branch=main)
 [![Lifecycle:
 stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
 <!-- badges: end -->
@@ -28,7 +28,7 @@ al (2010)](https://doi.org/10.1016/j.ecoleng.2010.02.006).
 
 # `nsink` functionality
 
-As of 2021-10-26 user functions for the `nsink` package are:
+As of 2021-12-15 user functions for the `nsink` package are:
 
 -   `nsink_get_huc_id()`: A function for searching the name of a USGS
     Watershed Boundary Dataset Hydrologic Unit
@@ -112,7 +112,7 @@ library(nsink)
 # Access package level help
 help(package = "nsink")
 
-# Access the Introduction to `nsink` vignette
+# Access the Introduction to nsink vignette
 vignette("intro", package = "nsink")
 ```
 
