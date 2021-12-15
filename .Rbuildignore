@@ -36,3 +36,4 @@ reviews
 ^paper.Rmd$
 ^paper.pdf$
 ^paper.docx$
+^CODE_OF_CONDUCT\.md$
