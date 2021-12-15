@@ -94,6 +94,7 @@ nsink_get_flowpath_ends <- function(flowpath, streams, tot){
 
   #drops streams without traced network from and to nodes
   #Removal from these is dealt with via off_network removal
+
   if(nrow(streams) > 0){
     streams <- suppressMessages(left_join(streams, tot))
     streams <- filter(streams, !is.na(.data$fromnode))
@@ -161,7 +162,7 @@ nsink_get_flowline <- function(flowpath_ends, streams, tot){
   }
   fl_comids <- edge_attr(streams_g, "stream_comid", idx)
   st_agr(flowpath_ends) <- "constant"
-  fp_end_pt <- tail(st_cast(flowpath_ends[1], "POINT"), 1)
+  fp_end_pt <- tail(st_cast(flowpath_ends[1,], "POINT"), 1)
   tol1 <- units::set_units(1, "m")
   tol1 <- units::set_units(tol1, st_crs(streams, parameters = TRUE)$ud_unit,
                            mode = "standard")
@@ -176,7 +177,8 @@ nsink_get_flowline <- function(flowpath_ends, streams, tot){
   fp_flowlines <- filter(fp_flowlines, !st_overlaps(st_snap(fp_flowlines,
                                                             flowpath_ends[1,],
                                                             tol01),
-                                                    flowpath_ends[1,],F))
+                                                    flowpath_ends[1,],
+                                                    sparse = FALSE))
   fp_flowlines
 }
 
@@ -203,12 +205,19 @@ nsink_split_flowline <- function(flowpath_ends, flowpath_network){
                                                    flowpath_ends[1,]),
                                   "LINESTRING")
   if(nrow(splits) == nrow(flowpath_network)){
-    flowpath_network <- st_snap(flowpath_network, flowpath_ends, tolerance = tol1)
+    flowpath_network <- st_snap(flowpath_network, flowpath_ends[1,],
+                                tolerance = 0)
     splits <- st_collection_extract(lwgeom::st_split(flowpath_network,
                                                      flowpath_ends[1,]),
                                     "LINESTRING")
   }
-  if(nrow(flowpath_network) == 1){return(splits)}
+  if(nrow(flowpath_network) == 1){
+    return(splits)
+  } else if(nrow(splits) == nrow(flowpath_network) &
+            any(st_is_within_distance(flowpath_network, flowpath_ends[1,], tol1,
+                                  sparse = FALSE))){
+    return(splits)
+  }
   splits <- mutate(splits, split_id = seq_along(.data$stream_comid))
   split_reach_comid <- splits$stream_comid[duplicated(splits$stream_comid)]
   split_reach <- filter(splits, .data$stream_comid == split_reach_comid)
