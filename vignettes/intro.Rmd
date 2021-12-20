@@ -189,7 +189,7 @@ flowpath.
 niantic_fp <- nsink_generate_flowpath(start_loc, niantic_data)
 ```
 
-The reutrned value has both the `flowpath_ends`, the portion of the flowpath on
+The returned value has both the `flowpath_ends`, the portion of the flowpath on
 the land which is created using the flow direction grid, and the 
 `flowpath_network` which is the portion of the flowpath from the NHD Plus 
 network that occur after the upstream `flowpath_ends` intersect the network.
