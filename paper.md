@@ -18,6 +18,21 @@ authors:
 - name: Qian Lei-Parent
   orcid: 0000-0002-1904-2513
   affiliation: 3
+- name: Emily Wilson
+  orcid: 0000-0003-0035-5752
+  affiliation: 3
+- name: Cary Chadwick
+  orcid: 0000-0002-6952-7535
+  affiliation: 3
+- name: David Dickson
+  orcid: 0000-0002-2660-6460
+  affiliation: 3
+- name: Arthur Gold
+  orcid: 0000-0002-0290-1377
+  affiliation: 2
+- name: Chester Arnold
+  affiliation: 3
+
 bibliography: paper.bib
 affiliations:
 - name: U. S. Environmental Protection Agency, Atlantic Coastal Environmental Sciences
