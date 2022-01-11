@@ -28,7 +28,7 @@ al (2010)](https://doi.org/10.1016/j.ecoleng.2010.02.006).
 
 # `nsink` functionality
 
-As of 2021-12-15 user functions for the `nsink` package are:
+As of 2022-01-10 user functions for the `nsink` package are:
 
 -   `nsink_get_huc_id()`: A function for searching the name of a USGS
     Watershed Boundary Dataset Hydrologic Unit
@@ -89,7 +89,7 @@ it. The code below will take care of installing `remotes` and installing
 
 ``` r
 install.packages("remotes")
-remotes::install_github("jhollist/nsink", dependencies = TRUE, build_vignettes = TRUE)
+remotes::install_github("usepa/nsink", dependencies = TRUE, build_vignettes = TRUE)
 ```
 
 And then to load up the package:
