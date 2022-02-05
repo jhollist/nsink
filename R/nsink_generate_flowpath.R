@@ -68,6 +68,7 @@ nsink_generate_flowpath <- function(starting_location, input_data){
 
   fp_ends <- st_sfc(st_geometry(fp_ends))
   fp_ends <- st_sf(fp_ends, crs = st_crs(input_data$streams))
+
   if(!is.null(fp_flowlines)){
     fp_flowlines <- nsink_split_flowline(fp_ends, fp_flowlines)
   }
@@ -174,11 +175,12 @@ nsink_get_flowline <- function(flowpath_ends, streams, tot){
   fp_flowlines <- lwgeom::st_split(fp_flowlines, st_combine(fp_end_pt))
   fp_flowlines <- suppressWarnings(st_collection_extract(fp_flowlines,
                                                          "LINESTRING"))
-  fp_flowlines <- filter(fp_flowlines, !st_overlaps(st_snap(fp_flowlines,
-                                                            flowpath_ends[1,],
-                                                            tol01),
-                                                    flowpath_ends[1,],
-                                                    sparse = FALSE))
+  #browser()
+  #fp_flowlines1 <- filter(fp_flowlines, !st_overlaps(st_snap(fp_flowlines,
+  #                                                          flowpath_ends[1,],
+  #                                                          tol01),
+  #                                                  flowpath_ends[1,],
+  #                                                  sparse = FALSE))
   fp_flowlines
 }
 
@@ -198,6 +200,7 @@ nsink_get_flowline <- function(flowpath_ends, streams, tot){
 #' @importFrom sf st_snap st_crs st_collection_extract st_intersects
 #' @keywords internal
 nsink_split_flowline <- function(flowpath_ends, flowpath_network){
+
   tol1 <- units::set_units(1, "m")
   tol1 <- units::set_units(tol1, st_crs(flowpath_network, parameters = TRUE)$ud_unit,
                            mode = "standard")

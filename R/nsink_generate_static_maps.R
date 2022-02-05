@@ -100,7 +100,7 @@ nsink_generate_n_loading_index <- function(input_data) {
 nsink_generate_n_removal_heatmap <- function(input_data, removal, samp_dens,
                                              ncpu = future::availableCores() - 1,
                                              seed = 23) {
-
+  initial_plan <- future::plan()
   set.seed(seed)
   num_pts <- as.numeric(round(st_area(input_data$huc) / (samp_dens * samp_dens)))
   num_pts <- sum(num_pts)
@@ -124,9 +124,10 @@ nsink_generate_n_removal_heatmap <- function(input_data, removal, samp_dens,
   # for fewer points, the interp sample is done serially
   # for more points, it is done in parallel
   message(paste0(" Running ", length(sample_pts), " sampled flowpaths..."))
-
-
+  #sample_pts <- sample_pts[350:370]
+  #sample_pts <- sample_pts[676:length(sample_pts)]
   if(length(sample_pts) < 50){
+
     pb <- txtProgressBar(max = length(sample_pts), style = 3)
     xdf <- data.frame(fp_removal = vector("numeric", length(sample_pts)))
     suppressPackageStartupMessages({
@@ -174,10 +175,10 @@ nsink_generate_n_removal_heatmap <- function(input_data, removal, samp_dens,
         }, .progress = TRUE, .options = furrr_options(seed = TRUE)))
     )
 
-    future::plan(future::sequential)
+    future::plan(initial_plan)
     #future:::ClusterRegistry("stop")
   }
-
+  #browser()
   sample_pts_removal <- dplyr::filter(sample_pts_removal, !is.na(.data$fp_removal))
   message("\n Interpolating sampled flowpaths...")
 
@@ -227,10 +228,12 @@ nsink_generate_n_removal_heatmap <- function(input_data, removal, samp_dens,
   } else {
     idw_n_removal_heat_map <- idw_list[[1]]
   }
+
   idw_n_removal_heat_map_agg <- raster::aggregate(idw_n_removal_heat_map,
                                                   fun = max, fact = 3)
   idw_n_removal_heat_map_agg <- raster::mask(
     raster::crop(idw_n_removal_heat_map_agg, input_data$huc),input_data$huc)
+
   idw_n_removal_heat_map_agg
 
 }
