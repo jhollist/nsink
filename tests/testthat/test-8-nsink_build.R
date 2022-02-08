@@ -1,7 +1,7 @@
 context("nsink_build")
 
 test_that("build runs as expected", {
-  #skip_on_ci()
+  skip_on_ci()
   library(nsink)
   library(sf)
   load(system.file("testdata.rda", package="nsink"))
