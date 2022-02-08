@@ -1,7 +1,7 @@
 context("nsink_load")
 
 test_that("load runs as expected", {
-  #skip_on_ci()
+  skip_on_ci()
   library(nsink)
   library(sf)
   aea <- 5072
