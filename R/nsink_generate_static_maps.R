@@ -100,7 +100,7 @@ nsink_generate_n_loading_index <- function(input_data) {
 nsink_generate_n_removal_heatmap <- function(input_data, removal, samp_dens,
                                              ncpu = future::availableCores() - 1,
                                              seed = 23) {
-  browser()
+
   initial_plan <- future::plan()
   set.seed(seed)
   num_pts <- as.numeric(round(st_area(input_data$huc) / (samp_dens * samp_dens)))
