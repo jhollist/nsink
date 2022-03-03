@@ -64,16 +64,16 @@ Imports:
   FedData, 
   foreign,
   gstat,
-  sp,
   methods,
   rlang,
   furrr,
   future, 
   stars,
-  units
+  units,
+  archive
 Remotes: 
   ropensci/FedData
-License: MIT + file LICENSE
+License: MIT + file LICENSE.md
 Encoding: UTF-8
 Language: es
 LazyData: true

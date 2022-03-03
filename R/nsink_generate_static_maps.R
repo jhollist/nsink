@@ -126,8 +126,7 @@ nsink_generate_n_removal_heatmap <- function(input_data, removal, samp_dens,
   # for fewer points, the interp sample is done serially
   # for more points, it is done in parallel
   message(paste0(" Running ", length(sample_pts), " sampled flowpaths..."))
-  #sample_pts <- sample_pts[350:370]
-  #sample_pts <- sample_pts[676:length(sample_pts)]
+
   if(length(sample_pts) < 50){
 
     pb <- txtProgressBar(max = length(sample_pts), style = 3)

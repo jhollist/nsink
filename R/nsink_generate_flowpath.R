@@ -214,20 +214,28 @@ nsink_split_flowline <- function(flowpath_ends, flowpath_network){
                                                      flowpath_ends[1,]),
                                     "LINESTRING")
   }
+
   if(nrow(flowpath_network) == 1){
-    return(splits)
-  } else if(nrow(splits) == nrow(flowpath_network) &
-            any(st_is_within_distance(flowpath_network, flowpath_ends[1,], tol1,
-                                  sparse = FALSE))){
     return(splits)
   }
   splits <- mutate(splits, split_id = seq_along(.data$stream_comid))
   split_reach_comid <- splits$stream_comid[duplicated(splits$stream_comid)]
-  split_reach <- filter(splits, .data$stream_comid == split_reach_comid)
-  split_reach_tonode <- unique(split_reach$tonode)
-  next_reach <- filter(flowpath_network, .data$fromnode == split_reach_tonode)
-  split_reach <- st_snap(split_reach, flowpath_ends, tolerance = tol1)
-  split_idx <- !st_intersects(split_reach, next_reach, sparse = FALSE)
+  if(length(split_reach_comid) > 0){
+    split_reach <- filter(splits, .data$stream_comid == split_reach_comid)
+    split_reach_tonode <- unique(split_reach$tonode)
+    next_reach <- filter(flowpath_network, .data$fromnode == split_reach_tonode)
+    split_reach <- st_snap(split_reach, flowpath_ends, tolerance = tol1)
+    split_idx <- !st_intersects(split_reach, next_reach, sparse = FALSE)
+  } else {
+    split_reach <- splits[st_is_within_distance(flowpath_ends[1,], splits, tol1,
+                                               sparse = FALSE),]
+    next_reach <- filter(split_reach, .data$tonode %in% .data$fromnode)
+    split_idx <- next_reach$split_id
+
+  }
+  if(nrow(next_reach) == 0){
+    return(splits)
+  }
   split_ditch <- split_reach$split_id[split_idx]
   splits <- filter(splits, .data$split_id != split_ditch)
   splits

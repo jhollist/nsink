@@ -75,21 +75,34 @@ nsink_get_data <- function(huc, data_dir = normalizePath("nsink_data",
 
     # unzip nhdplus data
     message("Unzipping NHDPlus files ...")
-    attr_z <- nsink_run_7z(paste0(data_dir, basename(attr_url)),
-                           paste0(data_dir, "attr"), force)
-    erom_z <- nsink_run_7z(paste0(data_dir, basename(erom_url)),
-                           paste0(data_dir, "erom"), force)
-    nhd_z <- nsink_run_7z(paste0(data_dir, basename(nhd_url)),
-                          paste0(data_dir, "nhd"), force)
-    fdr_z <- nsink_run_7z(paste0(data_dir, basename(fdr_url)),
-                          paste0(data_dir, "fdr"), force)
-    wbd_z <- nsink_run_7z(paste0(data_dir, basename(wbd_url)),
-                          paste0(data_dir, "wbd"), force)
+
+    if(!dir.exists(paste0(data_dir, "attr"))){
+      attr_z <- archive::archive_extract(paste0(data_dir, basename(attr_url)),
+                                         paste0(data_dir, "attr"))
+    }
+    if(!dir.exists(paste0(data_dir, "erom"))){
+    erom_z <- archive::archive_extract(paste0(data_dir, basename(erom_url)),
+                                       paste0(data_dir, "erom"))
+    }
+    if(!dir.exists(paste0(data_dir, "nhd"))){
+    nhd_z <- archive::archive_extract(paste0(data_dir, basename(nhd_url)),
+                                      paste0(data_dir, "nhd"))
+    }
+    if(!dir.exists(paste0(data_dir, "fdr"))){
+    fdr_z <- archive::archive_extract(paste0(data_dir, basename(fdr_url)),
+                                      paste0(data_dir, "fdr"))
+    }
+    if(!dir.exists(paste0(data_dir, "wbd"))){
+    wbd_z <- archive::archive_extract(paste0(data_dir, basename(wbd_url)),
+                                      paste0(data_dir, "wbd"))
+    }
 
 
     # Use actual huc to limit downloads on impervious and ssurgo
-    huc_sf <- sf::st_read(paste0(data_dir, "wbd/WBD_Subwatershed.shp"),
-                          quiet = TRUE)
+    huc_sf_file <- list.files(paste0(data_dir, "wbd"), "WBD_Subwatershed.shp", full.names = TRUE,
+               recursive = TRUE)
+
+    huc_sf <- sf::st_read(huc_sf_file,quiet = TRUE)
     huc_12 <- huc_sf[grepl(paste0("^", huc), huc_sf$HUC_12), ]
     huc_12 <- mutate(huc_12, selected_huc = huc)
     huc_12 <- group_by(huc_12, .data$selected_huc)

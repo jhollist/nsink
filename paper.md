@@ -9,7 +9,7 @@ tags:
 date: "2021-12-20"
 output: github_document
 authors:
-- name: Jeff Hollister
+- name: Jeffrey W. Hollister
   orcid: 0000-0002-9254-9740
   affiliation: 1
 - name: Dorothy Q. Kellogg
@@ -36,18 +36,18 @@ authors:
 bibliography: paper.bib
 affiliations:
 - name: U. S. Environmental Protection Agency, Atlantic Coastal Environmental Sciences
-    Division
+    Division, Narragansett, RI 02882
   index: 1
-- name: University of Rhode Island, Department of Natural Resources Science
+- name: University of Rhode Island, Department of Natural Resources Science, Kingston, RI 02881
   index: 2
-- name: University of Connecticut, Center for Land Use Education and Research
+- name: University of Connecticut, Center for Land Use Education and Research, Storrs, CT 06268
   index: 3
 ---
   
   
 # Summary
 
-The `nsink` package estimates cumulative nitrogen (N) removal along a specified flow path and is based on methodologies outlined in Kellogg et al. [ -@kellogg2010geospatial]. For a user-specified watershed (i.e., hydrologic unit code (HUC), `nsink` downloads all required datasets from public datasets in the United States, prepares data for use, summarizes N removal along a flow path and creates several static maps.  The results of an `nsink` analysis may be exported to standard geospatial files for use in other applications.  
+The `nsink` package estimates cumulative nitrogen (N) removal along a specified flow path and is based on methodologies outlined in Kellogg et al. [ -@kellogg2010geospatial]. For a user-specified watershed (i.e., hydrologic unit code (HUC)), `nsink` downloads all required datasets from public datasets in the United States, prepares data for use, summarizes N removal along a flow path and creates several static maps.  The results of an `nsink` analysis may be exported to standard geospatial files for use in other applications.  
 
 # Statement of need
 

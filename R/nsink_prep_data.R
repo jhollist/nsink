@@ -63,9 +63,9 @@ nsink_prep_data <- function(huc, projection,
     message("Preparing data for nsink analysis...")
     dirs <- list.dirs(data_dir, full.names = FALSE, recursive = FALSE)
     if (all(c("attr", "erom", "fdr", "imperv", "nhd", "ssurgo", "wbd", "nlcd") %in% dirs)) {
-      huc_sf <- st_read(paste0(data_dir, "wbd/WBD_Subwatershed.shp"),
-                        quiet = TRUE)
-
+      huc_sf_file <- list.files(paste0(data_dir, "wbd"), "WBD_Subwatershed.shp", full.names = TRUE,
+                                recursive = TRUE)
+      huc_sf <- st_read(huc_sf_file,quiet = TRUE)
       huc_sf <- huc_sf[grepl(paste0("^", huc), huc_sf$HUC_12), ]
       huc_sf <- mutate(huc_sf, selected_huc = huc)
       huc_sf <- group_by(huc_sf, .data$selected_huc)
@@ -149,11 +149,11 @@ nsink_prep_data <- function(huc, projection,
 #' @importFrom rlang .data
 #' @keywords  internal
 nsink_prep_streams <- function(huc_sf, data_dir) {
-
-  if (file.exists(paste0(data_dir, "nhd/NHDFlowline.shp"))) {
+  nhd_streams_file <- list.files(paste0(data_dir, "nhd"), "NHDFlowline.shp",
+                         recursive = TRUE, full.names = TRUE)
+  if (length(nhd_streams_file) == 1) {
     message("Preparing streams...")
-
-    streams <- st_read(paste0(data_dir, "nhd/NHDFlowline.shp"), quiet = TRUE)
+    streams <- st_read(nhd_streams_file, quiet = TRUE)
     streams <- st_transform(streams, st_crs(huc_sf))
     streams <- st_zm(streams)
     streams <- rename_all(streams, tolower)
@@ -194,10 +194,12 @@ nsink_prep_streams <- function(huc_sf, data_dir) {
 #' @importFrom rlang .data
 #' @keywords  internal
 nsink_prep_lakes <- function(huc_sf, data_dir) {
-  if (file.exists(paste0(data_dir, "nhd/NHDWaterbody.shp"))) {
+  nhd_waterbody_file <- list.files(paste0(data_dir, "nhd"), "NHDWaterbody.shp",
+                                 recursive = TRUE, full.names = TRUE)
+  if (length(nhd_waterbody_file) == 1) {
     message("Preparing lakes...")
 
-    lakes <- st_read(paste0(data_dir, "nhd/NHDWaterbody.shp"), quiet = TRUE)
+    lakes <- st_read(nhd_waterbody_file, quiet = TRUE)
     lakes <- st_zm(lakes)
     lakes <- st_transform(lakes, st_crs(huc_sf))
     lakes <- rename_all(lakes, tolower)
@@ -224,9 +226,13 @@ nsink_prep_lakes <- function(huc_sf, data_dir) {
 #' @keywords  internal
 nsink_prep_fdr <- function(huc_sf, huc_raster, data_dir) {
 
-  if (dir.exists(paste0(data_dir, "fdr"))) {
+  fdr_file <- list.dirs(paste0(data_dir, "fdr/NHDPlusNE"), recursive = TRUE,
+                        full.names = TRUE)
+  fdr_file <- fdr_file[grepl("fdr", basename(fdr_file))]
+
+  if (length(fdr_file == 1)) {
     message("Preparing flow direction...")
-    fdr <- raster::raster(paste0(data_dir, "fdr"))
+    fdr <- raster::raster(fdr_file)
     huc_sf <- st_transform(huc_sf, st_crs(fdr))
     fdr <- raster::crop(fdr, as(huc_sf, "Spatial"))
     fdr <- raster::mask(fdr, as(huc_sf, "Spatial"))
@@ -306,7 +312,7 @@ nsink_prep_nlcd <- function(huc_sf, huc_raster, data_dir, year) {
 #' @param data_dir Base directory that contains N-Sink data folders.  Data may
 #'                 be downloaded with the \code{\link{nsink_get_data}} function.
 #' @return An sf object of the SSURGO data for the huc_sf with hydric data added.
-#'         
+#'
 #' @import dplyr sf
 #' @importFrom methods as
 #' @importFrom utils read.csv
@@ -375,9 +381,11 @@ nsink_prep_ssurgo <- function(huc_sf, data_dir) {
 #' @importFrom rlang .data
 #' @keywords  internal
 nsink_prep_q <- function(data_dir) {
-  if (file.exists(paste0(data_dir, "erom/EROM_MA0001.DBF"))) {
+  erom_file <- list.files(paste0(data_dir, "erom/"), "EROM_MA0001.DBF",
+                          recursive = TRUE, full.names = TRUE)
+  if (length(erom_file == 1)) {
     message("Preparing stream flow...")
-    q <- foreign::read.dbf(paste0(data_dir, "erom/EROM_MA0001.DBF"))
+    q <- foreign::read.dbf(erom_file)
     q <- select(q, stream_comid = .data$ComID, q_cfs = .data$Q0001E)
     q <- mutate(q,
       q_cms = .data$q_cfs * 0.028316846592,
@@ -401,9 +409,11 @@ nsink_prep_q <- function(data_dir) {
 #' @importFrom rlang .data
 #' @keywords  internal
 nsink_prep_tot <- function(data_dir) {
-  if (file.exists(paste0(data_dir, "attr/PlusFlowlineVAA.dbf"))) {
+  tot_file <- list.files(paste0(data_dir, "attr/"), "PlusFlowlineVAA.dbf",
+                          recursive = TRUE, full.names = TRUE)
+  if (length(tot_file) == 1) {
     message("Preparing time of travel...")
-    tot <- foreign::read.dbf(paste0(data_dir, "attr/PlusFlowlineVAA.dbf"))
+    tot <- foreign::read.dbf(tot_file)
     tot <- rename_all(tot, tolower)
     tot <- select(tot, stream_comid = .data$comid, totma = .data$totma,
                   .data$fromnode, .data$tonode, stream_order = .data$streamorde)
@@ -425,12 +435,12 @@ nsink_prep_tot <- function(data_dir) {
 #' @importFrom rlang .data
 #' @keywords  internal
 nsink_prep_lakemorpho <- function(data_dir) {
-  if (file.exists(paste0(data_dir, "attr/PlusWaterbodyLakeMorphology.dbf"))) {
+  lm_file <- list.files(paste0(data_dir, "attr/"),
+                        "PlusWaterbodyLakeMorphology.dbf",
+                         recursive = TRUE, full.names = TRUE)
+  if (length(lm_file) == 1) {
     message("Preparing lake morphometry...")
-    lakemorpho <- foreign::read.dbf(paste0(
-      data_dir,
-      "attr/PlusWaterbodyLakeMorphology.dbf"
-    ))
+    lakemorpho <- foreign::read.dbf(lm_file)
     lakemorpho <- rename_all(lakemorpho, tolower)
     lakemorpho <- rename(lakemorpho, lake_comid = .data$comid)
     lakemorpho <- mutate_if(lakemorpho, is.factor, as.character())
