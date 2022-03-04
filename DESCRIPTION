@@ -73,7 +73,7 @@ Imports:
   archive
 Remotes: 
   ropensci/FedData
-License: MIT + file LICENSE.md
+License: MIT + file LICENSE
 Encoding: UTF-8
 Language: es
 LazyData: true
