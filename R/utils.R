@@ -98,7 +98,7 @@ nsink_get_plus_remotepath <- function(rpu, component = c(
 #' @param force Whether or not to extract again if the destination files
 #'                      already exist
 #' @keywords internal
-#' @author Joseph Stachelek, \email{stachel2@msu.edu}
+#' @author Jemma Stachelek, \email{jsta@lanl.gov}
 
 
 nsink_run_7z <- function(zipfile, destdir, extract_again = FALSE) {
