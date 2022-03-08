@@ -39,3 +39,6 @@ reviews
 ^CODE_OF_CONDUCT\.md$
 ^10.21105.joss.04039\.pdf$
 ^archive_it$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$

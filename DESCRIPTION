@@ -77,7 +77,8 @@ License: MIT + file LICENSE
 Encoding: UTF-8
 Language: es
 LazyData: true
-URL: https://github.com/USEPA/nsink
+URL: https://github.com/USEPA/nsink,
+    https://jhollist.github.io/nsink/
 BugReports: https://github.com/USEPA/nsink/issues
 RoxygenNote: 7.1.2
 SystemRequirements: 7-Zip

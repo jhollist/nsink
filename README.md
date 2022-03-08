@@ -28,7 +28,7 @@ al (2010)](https://doi.org/10.1016/j.ecoleng.2010.02.006).
 
 # `nsink` functionality
 
-As of 2022-01-10 user functions for the `nsink` package are:
+As of 2022-03-08 user functions for the `nsink` package are:
 
 -   `nsink_get_huc_id()`: A function for searching the name of a USGS
     Watershed Boundary Dataset Hydrologic Unit
@@ -116,20 +116,9 @@ help(package = "nsink")
 vignette("intro", package = "nsink")
 ```
 
-## Note on 7-zip
+# Contributing
 
-7-zip is needed to extract NHD+ files. It can been installed in normal
-ways for your OS and if not installed, `nsink` will provide suggestions.
-On linux systems without sudo rights you can attempt to build from
-source and copy the bin folder.
-
-    cd
-    git clone https://github.com/btolab/p7zip
-    cd p7zip
-    cp makefile.linux_any_cpu makefile.linux
-    make all_test
-    cd
-
-    # if No user folder create it
-    mkdir usr
-    cp -r p7zip/bin usr/.
+If you would like to contribute to the `nsink` package, please first
+read the [CONTRIBUTING](.github/CONTRIBUTING.md). In short,
+contributions are happily accepted either via suggestions in the
+[Issues](https://github.com/USEPA/nsink/issues) or via pull request.
