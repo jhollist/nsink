@@ -1,6 +1,6 @@
 Package: nsink
 Title: Flow path nitrogen removal estimation
-Version: 1.1.1
+Version: 1.2.0
 Authors@R: c(person(given = "Jeffrey",
            family = "Hollister",
            role = c("aut", "cre"),
@@ -42,7 +42,7 @@ Authors@R: c(person(given = "Jeffrey",
            comment = c(ORCID = "0000-0002-2660-6460")),
            person(given = "Kenneth",
            family = "Forshay",
-           role = c("mon", "fnd"),
+           role = c("fnd"),
            email = "forshay.ken@epa.gov>, ",
            comment = c(ORCID = "0000-0002-2867-8492")))
 Description: N-Sink is an analysis that utilizes geospatial data to estimate a 
@@ -81,7 +81,6 @@ URL: https://github.com/USEPA/nsink,
     https://jhollist.github.io/nsink/
 BugReports: https://github.com/USEPA/nsink/issues
 RoxygenNote: 7.1.2
-SystemRequirements: 7-Zip
 Suggests: 
     knitr,
     rmarkdown,

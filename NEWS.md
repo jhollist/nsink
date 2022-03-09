@@ -1,8 +1,5 @@
-v1.1.1 (2022-02-04)
+v1.2.0 (2022-03-09)
 ===================
-
-
-
 
 # Changes
 - Finalized edits for JOSS publication
