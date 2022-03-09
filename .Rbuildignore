@@ -42,3 +42,4 @@ reviews
 ^_pkgdown\.yml$
 ^docs$
 ^pkgdown$
+^nsink-1.2.0\.zip$
