@@ -1,0 +1,15 @@
+citHeader("To cite nsink in publications use:")
+
+citEntry(
+  entry    = "Article",
+  title    = "nsink: An R package for flow path nitrogen removal estimation",
+  author   = "Jeffrey W. Hollister and Dorothy Q. Kellogg and Qian Lei-Parent and Emily Wilson and Cary Chadwick and David Dickson and Arthur Gold and Chester Arnold",
+  journal  = "Journal of Open Source Software",
+  year     = 2022,
+  volume   = 7,
+  number   = 71,
+  pages    = 4039,
+  url      = "https://doi.org/10.21105/joss.04039",
+  doi      = "10.21105/joss.04039",
+  textVersion = paste("Hollister et al., (2022). nsink: An R package for flow path nitrogen removal estimation. Journal of Open Source Software, 7(71), 4039, https://doi.org/10.21105/joss.04039")
+)
