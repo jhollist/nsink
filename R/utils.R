@@ -55,7 +55,7 @@ nsink_get_plus_remotepath <- function(rpu, component = c(
   url_components <- select(url_components, .data$DrainageID, .data$VPUID, .data$RPU)
   url_components <- unique(url_components)
   baseurl <- paste0(
-    "https://s3.amazonaws.com/edap-nhdplus/NHDPlusV21/Data/NHDPlus",
+    "https://edap-ow-data-commons.s3.amazonaws.com/NHDPlusV21/Data/NHDPlus",
     url_components$DrainageID
   )
   url1 <- paste0(
