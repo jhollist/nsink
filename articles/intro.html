@@ -8,8 +8,8 @@
 <meta name="description" content="nsink">
 <title>Introduction to `nsink` • nsink</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="../deps/bootstrap-5.1.0/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.1.0/bootstrap.bundle.min.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
+<link href="../deps/bootstrap-5.1.3/bootstrap.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.1.3/bootstrap.bundle.min.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
 <!-- bootstrap-toc --><script src="https://cdn.rawgit.com/afeld/bootstrap-toc/v1.0.1/dist/bootstrap-toc.min.js"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- search --><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Introduction to `nsink`">
 <meta property="og:description" content="nsink">
@@ -69,7 +69,7 @@
 
 
 <script src="intro_files/accessible-code-block-0.0.1/empty-anchor.js"></script><div class="row">
-  <main id="main"><div class="page-header">
+  <main id="main" class="col-md-9"><div class="page-header">
       <img src="" class="logo" alt=""><h1>Introduction to `nsink`</h1>
             
       
@@ -87,40 +87,41 @@
 <p>The first step in the N-Sink process is to acquire data needed for the analysis. The <code>nsink</code> package utilizes openly available data from several U.S. Federal Government sources. Each dataset uses a 12-digit HUC ID number to select the data for download. The first step is to identify the HUC ID and then download the data.</p>
 <p>To identify the HUC ID you can use the <code><a href="../reference/nsink_get_huc_id.html">nsink_get_huc_id()</a></code> function which will use a 12-digit HUC name to search all HUCs. Matches are returned as a data frame with an option to return partial or exact matches.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="co"># Get HUC ID - Palmer showing multiple matches</span>
-<span class="fu"><a href="../reference/nsink_get_huc_id.html">nsink_get_huc_id</a></span><span class="op">(</span><span class="st">"Palmer"</span><span class="op">)</span></code></pre></div>
-<pre><code><span class="co">#&gt; <span style="color: #949494;"># A tibble: 22 × 3</span></span>
-<span class="co">#&gt;    huc_12       huc_12_name                  state</span>
-<span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                        <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span></span>
-<span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> 041503050403 Palmer Brook-Raquettte River NY   </span>
-<span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> 102100090205 City of Palmer-Loup River    NE   </span>
-<span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> 103001011203 Upper Palmer Creek           MO   </span>
-<span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> 103001011204 Palmer Creek-Missouri River  MO   </span>
-<span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> 101402010405 Palmer Creek-Lone Tree Creek NE   </span>
-<span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> 171003090201 Palmer Creek-Applegate River OR   </span>
-<span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> 170900080702 Palmer Creek                 OR   </span>
-<span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> 170200070402 Palmer Lake                  WA   </span>
-<span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> 111401010805 Palmer Lake-Red River        OK,TX</span>
-<span class="co">#&gt; <span style="color: #BCBCBC;">10</span> 071200061003 Palmer Creek-Fox River       WI   </span>
-<span class="co">#&gt; <span style="color: #949494;"># … with 12 more rows</span></span></code></pre>
+<code class="sourceCode R"><span><span class="co"># Get HUC ID - Palmer showing multiple matches</span></span>
+<span><span class="fu"><a href="../reference/nsink_get_huc_id.html">nsink_get_huc_id</a></span><span class="op">(</span><span class="st">"Palmer"</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 22 × 3</span></span></span>
+<span><span class="co">#&gt;    huc_12       huc_12_name                  state</span></span>
+<span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                        <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> 041503050403 Palmer Brook-Raquettte River NY   </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> 102100090205 City of Palmer-Loup River    NE   </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> 103001011203 Upper Palmer Creek           MO   </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> 103001011204 Palmer Creek-Missouri River  MO   </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> 101402010405 Palmer Creek-Lone Tree Creek NE   </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> 171003090201 Palmer Creek-Applegate River OR   </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> 170900080702 Palmer Creek                 OR   </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> 170200070402 Palmer Lake                  WA   </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> 111401010805 Palmer Lake-Red River        OK,TX</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> 071200061003 Palmer Creek-Fox River       WI   </span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># … with 12 more rows</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># ℹ Use `print(n = ...)` to see more rows</span></span></span></code></pre>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="co"># The Niantic</span>
-<span class="va">niantic_huc_id</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/nsink_get_huc_id.html">nsink_get_huc_id</a></span><span class="op">(</span><span class="st">"Niantic River"</span><span class="op">)</span><span class="op">$</span><span class="va">huc_12</span>
-<span class="va">niantic_huc_id</span></code></pre></div>
-<pre><code><span class="co">#&gt; [1] "011000030304"</span></code></pre>
-<p>With the HUC ID in hand we can now use the <code><a href="../reference/nsink_get_data.html">nsink_get_data()</a></code> function to download the required data. All data are from publicly available sources and as of 2022-03-14 no authentication is required to access these sources. The HUC ID is required and users may specify a path for storing the data as well as indicate whether or not to download the data again if they already exist in the data directory. Also note, the file archiver <a href="https://www.7-zip.org/" class="external-link">7-zip</a> is required by <code><a href="../reference/nsink_get_data.html">nsink_get_data()</a></code> to extract the NHD Plus files.</p>
+<code class="sourceCode R"><span><span class="co"># The Niantic</span></span>
+<span><span class="va">niantic_huc_id</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/nsink_get_huc_id.html">nsink_get_huc_id</a></span><span class="op">(</span><span class="st">"Niantic River"</span><span class="op">)</span><span class="op">$</span><span class="va">huc_12</span></span>
+<span><span class="va">niantic_huc_id</span></span></code></pre></div>
+<pre><code><span><span class="co">#&gt; [1] "011000030304"</span></span></code></pre>
+<p>With the HUC ID in hand we can now use the <code><a href="../reference/nsink_get_data.html">nsink_get_data()</a></code> function to download the required data. All data are from publicly available sources and as of 2022-08-08 no authentication is required to access these sources. The HUC ID is required and users may specify a path for storing the data as well as indicate whether or not to download the data again if they already exist in the data directory. Also note, the file archiver <a href="https://www.7-zip.org/" class="external-link">7-zip</a> is required by <code><a href="../reference/nsink_get_data.html">nsink_get_data()</a></code> to extract the NHD Plus files.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="co"># Get data for selected HUC</span>
-<span class="va">niantic_download</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/nsink_get_data.html">nsink_get_data</a></span><span class="op">(</span><span class="va">niantic_huc_id</span>, 
-                                   data_dir <span class="op">=</span> <span class="st">"nsink_niantic_data"</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span><span class="co"># Get data for selected HUC</span></span>
+<span><span class="va">niantic_download</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/nsink_get_data.html">nsink_get_data</a></span><span class="op">(</span><span class="va">niantic_huc_id</span>, </span>
+<span>                                   data_dir <span class="op">=</span> <span class="st">"nsink_niantic_data"</span><span class="op">)</span></span></code></pre></div>
 <p>In addition to download the data, the function returns the basic information about your download: HUC ID and download location.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">niantic_download</span></code></pre></div>
-<pre><code><span class="co">#&gt; $huc</span>
-<span class="co">#&gt; [1] "011000030304"</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; $data_dir</span>
-<span class="co">#&gt; [1] "C:/Users/JHollist/OneDrive - Environmental Protection Agency (EPA)/projects/nsink/nsink_niantic_data/"</span></code></pre>
+<code class="sourceCode R"><span><span class="va">niantic_download</span></span></code></pre></div>
+<pre><code><span><span class="co">#&gt; $huc</span></span>
+<span><span class="co">#&gt; [1] "011000030304"</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $data_dir</span></span>
+<span><span class="co">#&gt; [1] "C:/Users/JHollist/OneDrive - Environmental Protection Agency (EPA)/projects/nsink/nsink_niantic_data/"</span></span></code></pre>
 </div>
 <div class="section level2">
 <h2 id="prepare-the-data">Prepare the data<a class="anchor" aria-label="anchor" href="#prepare-the-data"></a>
@@ -139,12 +140,12 @@
 It requires a HUC ID, a specified CRS, and a path to a data directory. It returns a list with all required data for subsequent N-Sink analyses.</p>
 <p>A quick note on the CRS. In the near future, the preferred way to specify the CRS values will either be with Well-Known Text (WKT) or <a href="http://spatialreference.org/ref/epsg/" class="external-link">EPSG Codes</a>. Proj.4 strings will eventually be deprecated. Currently the packages that <code>nsink</code> relies on are at different stages in implementing the changes to PROJ. <code>nsink</code> currently works with all options, but Proj.4 strings are not recomended. This vignette shows examples with EPSG codes.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="co"># EPSG for CONUS Albers Equal Area</span>
-<span class="va">aea</span> <span class="op">&lt;-</span> <span class="fl">5072</span>
-
-<span class="co"># Prep data for selected HUC</span>
-<span class="va">niantic_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/nsink_prep_data.html">nsink_prep_data</a></span><span class="op">(</span><span class="va">niantic_huc_id</span>, projection <span class="op">=</span> <span class="va">aea</span>, 
-                data_dir <span class="op">=</span> <span class="st">"nsink_niantic_data"</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span><span class="co"># EPSG for CONUS Albers Equal Area</span></span>
+<span><span class="va">aea</span> <span class="op">&lt;-</span> <span class="fl">5072</span></span>
+<span></span>
+<span><span class="co"># Prep data for selected HUC</span></span>
+<span><span class="va">niantic_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/nsink_prep_data.html">nsink_prep_data</a></span><span class="op">(</span><span class="va">niantic_huc_id</span>, projection <span class="op">=</span> <span class="va">aea</span>, </span>
+<span>                data_dir <span class="op">=</span> <span class="st">"nsink_niantic_data"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="calculate-removal">Calculate removal<a class="anchor" aria-label="anchor" href="#calculate-removal"></a>
@@ -161,118 +162,119 @@ Details on how the nitrogen removal estimates are calculated are available in Ke
 Removal is calculated separately for streams and waterbodies (e.g. lakes and reservoirs).</li>
 </ul>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="co"># Calculate removal from prepped data</span>
-<span class="va">niantic_removal</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/nsink_calc_removal.html">nsink_calc_removal</a></span><span class="op">(</span><span class="va">niantic_data</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span><span class="co"># Calculate removal from prepped data</span></span>
+<span><span class="va">niantic_removal</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/nsink_calc_removal.html">nsink_calc_removal</a></span><span class="op">(</span><span class="va">niantic_data</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="generate-and-summarize-flowpaths">Generate and summarize flowpaths<a class="anchor" aria-label="anchor" href="#generate-and-summarize-flowpaths"></a>
 </h2>
 <p>A useful part of the N-Sink approach is the ability to summarize that removal along the length of a specified flowpath. The <code>nsink</code> package provides two functions that facilitate this process. The <code><a href="../reference/nsink_generate_flowpath.html">nsink_generate_flowpath()</a></code> function takes a point location as an <code>sf</code> object and the prepped data (generated by <code><a href="../reference/nsink_prep_data.html">nsink_prep_data()</a></code>) as input and returns an <code>sf</code> LINESTRING of the flowpath starting from the input point location and terminating at the furthest downstream location in the input NHD Plus. The flowpath on land is generated from a flow direction grid. Once that flowpath intersects the stream network, flow is determined by flow along the NHD Plus stream network. First, create the <code>sf</code> POINT object.</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="co"># Load up the sf package</span>
-<span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://r-spatial.github.io/sf/" class="external-link">sf</a></span><span class="op">)</span>
-<span class="co"># Starting point</span>
-<span class="va">pt</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1948121</span>, <span class="fl">2295822</span><span class="op">)</span>
-<span class="va">start_loc</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://r-spatial.github.io/sf/reference/sf.html" class="external-link">st_sf</a></span><span class="op">(</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/sfc.html" class="external-link">st_sfc</a></span><span class="op">(</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st.html" class="external-link">st_point</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">pt</span><span class="op">)</span><span class="op">)</span>, crs <span class="op">=</span> <span class="va">aea</span><span class="op">)</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span><span class="co"># Load up the sf package</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://r-spatial.github.io/sf/" class="external-link">sf</a></span><span class="op">)</span></span>
+<span><span class="co"># Starting point</span></span>
+<span><span class="va">pt</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1948121</span>, <span class="fl">2295822</span><span class="op">)</span></span>
+<span><span class="va">start_loc</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://r-spatial.github.io/sf/reference/sf.html" class="external-link">st_sf</a></span><span class="op">(</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/sfc.html" class="external-link">st_sfc</a></span><span class="op">(</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st.html" class="external-link">st_point</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">pt</span><span class="op">)</span><span class="op">)</span>, crs <span class="op">=</span> <span class="va">aea</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>You may also determine your point location interactively by plotting your data and using the <code><a href="https://rdrr.io/r/graphics/locator.html" class="external-link">locator()</a></code> function . First create a simple plot.</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="co"># Create a simple plot</span>
-<span class="fu"><a href="https://r-spatial.github.io/sf/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_geometry.html" class="external-link">st_geometry</a></span><span class="op">(</span><span class="va">niantic_data</span><span class="op">$</span><span class="va">huc</span><span class="op">)</span><span class="op">)</span>
-<span class="fu"><a href="https://r-spatial.github.io/sf/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_geometry.html" class="external-link">st_geometry</a></span><span class="op">(</span><span class="va">niantic_data</span><span class="op">$</span><span class="va">lakes</span><span class="op">)</span>, add <span class="op">=</span> <span class="cn">T</span>, col <span class="op">=</span> <span class="st">"darkblue"</span><span class="op">)</span>
-<span class="fu"><a href="https://r-spatial.github.io/sf/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_geometry.html" class="external-link">st_geometry</a></span><span class="op">(</span><span class="va">niantic_data</span><span class="op">$</span><span class="va">streams</span><span class="op">)</span>, add <span class="op">=</span> <span class="cn">T</span>, col <span class="op">=</span> <span class="st">"blue"</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span><span class="co"># Create a simple plot</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_geometry.html" class="external-link">st_geometry</a></span><span class="op">(</span><span class="va">niantic_data</span><span class="op">$</span><span class="va">huc</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_geometry.html" class="external-link">st_geometry</a></span><span class="op">(</span><span class="va">niantic_data</span><span class="op">$</span><span class="va">lakes</span><span class="op">)</span>, add <span class="op">=</span> <span class="cn">T</span>, col <span class="op">=</span> <span class="st">"darkblue"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_geometry.html" class="external-link">st_geometry</a></span><span class="op">(</span><span class="va">niantic_data</span><span class="op">$</span><span class="va">streams</span><span class="op">)</span>, add <span class="op">=</span> <span class="cn">T</span>, col <span class="op">=</span> <span class="st">"blue"</span><span class="op">)</span></span></code></pre></div>
 <p>With the map made, you can use that to interactively select a location and use the x and y to create the <code>sf</code> POINT object.</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="co"># Select location on map for starting point</span>
-<span class="va">pt</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/unlist.html" class="external-link">unlist</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/graphics/locator.html" class="external-link">locator</a></span><span class="op">(</span>n <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span>
-<span class="co"># convert to sf POINT</span>
-<span class="va">start_loc_inter</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://r-spatial.github.io/sf/reference/sf.html" class="external-link">st_sf</a></span><span class="op">(</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/sfc.html" class="external-link">st_sfc</a></span><span class="op">(</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st.html" class="external-link">st_point</a></span><span class="op">(</span><span class="va">pt</span><span class="op">)</span>, crs <span class="op">=</span> <span class="va">aea</span><span class="op">)</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span><span class="co"># Select location on map for starting point</span></span>
+<span><span class="va">pt</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/unlist.html" class="external-link">unlist</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/graphics/locator.html" class="external-link">locator</a></span><span class="op">(</span>n <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co"># convert to sf POINT</span></span>
+<span><span class="va">start_loc_inter</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://r-spatial.github.io/sf/reference/sf.html" class="external-link">st_sf</a></span><span class="op">(</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/sfc.html" class="external-link">st_sfc</a></span><span class="op">(</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st.html" class="external-link">st_point</a></span><span class="op">(</span><span class="va">pt</span><span class="op">)</span>, crs <span class="op">=</span> <span class="va">aea</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>With a point identified, we can use that as the starting location for our flowpath.</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">niantic_fp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/nsink_generate_flowpath.html">nsink_generate_flowpath</a></span><span class="op">(</span><span class="va">start_loc</span>, <span class="va">niantic_data</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">niantic_fp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/nsink_generate_flowpath.html">nsink_generate_flowpath</a></span><span class="op">(</span><span class="va">start_loc</span>, <span class="va">niantic_data</span><span class="op">)</span></span></code></pre></div>
 <p>The returned value has both the <code>flowpath_ends</code>, the portion of the flowpath on the land which is created using the flow direction grid, and the <code>flowpath_network</code> which is the portion of the flowpath from the NHD Plus network that occur after the upstream <code>flowpath_ends</code> intersect the network.</p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">niantic_fp</span></code></pre></div>
-<pre><code><span class="co">#&gt; $flowpath_ends</span>
-<span class="co">#&gt; Simple feature collection with 2 features and 0 fields</span>
-<span class="co">#&gt; Geometry type: LINESTRING</span>
-<span class="co">#&gt; Dimension:     XY</span>
-<span class="co">#&gt; Bounding box:  xmin: 1948003 ymin: 2281809 xmax: 1958233 ymax: 2296449</span>
-<span class="co">#&gt; CRS:           +proj=aea +lat_0=23 +lon_0=-96 +lat_1=29.5 +lat_2=45.5 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs</span>
-<span class="co">#&gt;                          fp_ends</span>
-<span class="co">#&gt; 1 LINESTRING (1948123 2295819...</span>
-<span class="co">#&gt; 2 LINESTRING (1957513 2283579...</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; $flowpath_network</span>
-<span class="co">#&gt; Simple feature collection with 30 features and 18 fields</span>
-<span class="co">#&gt; Geometry type: LINESTRING</span>
-<span class="co">#&gt; Dimension:     XY</span>
-<span class="co">#&gt; Bounding box:  xmin: 1949097 ymin: 2283213 xmax: 1957637 ymax: 2296345</span>
-<span class="co">#&gt; CRS:           +proj=aea +lat_0=23 +lon_0=-96 +lat_1=29.5 +lat_2=45.5 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs</span>
-<span class="co">#&gt; First 10 features:</span>
-<span class="co">#&gt;    stream_comid      fdate resolution gnis_id     gnis_name lengthkm</span>
-<span class="co">#&gt; 1       6170640 2008-07-17     Medium  208394 Latimer Brook    0.658</span>
-<span class="co">#&gt; 2       6170090 1999-09-06     Medium  208394 Latimer Brook    0.130</span>
-<span class="co">#&gt; 3       6170644 2008-07-17     Medium  208394 Latimer Brook    0.307</span>
-<span class="co">#&gt; 4       6170096 1999-09-06     Medium  208394 Latimer Brook    1.241</span>
-<span class="co">#&gt; 5       6170966 2008-07-17     Medium  208394 Latimer Brook    0.148</span>
-<span class="co">#&gt; 6       6170652 2008-07-17     Medium  208394 Latimer Brook    0.169</span>
-<span class="co">#&gt; 7       6170100 1999-09-06     Medium  208394 Latimer Brook    0.071</span>
-<span class="co">#&gt; 8       6170658 2008-07-17     Medium  208394 Latimer Brook    0.268</span>
-<span class="co">#&gt; 9       6170664 2008-07-17     Medium  208394 Latimer Brook    0.290</span>
-<span class="co">#&gt; 10      6170122 1999-09-06     Medium  208394 Latimer Brook    1.212</span>
-<span class="co">#&gt;         reachcode        flowdir lake_comid          ftype fcode  shape_leng</span>
-<span class="co">#&gt; 1  01100003000098 With Digitized    6169112 ArtificialPath 55800 0.006702425</span>
-<span class="co">#&gt; 2  01100003000097 With Digitized          0    StreamRiver 46006 0.001281976</span>
-<span class="co">#&gt; 3  01100003000097 With Digitized    6169134 ArtificialPath 55800 0.003591168</span>
-<span class="co">#&gt; 4  01100003000097 With Digitized          0    StreamRiver 46006 0.013000742</span>
-<span class="co">#&gt; 5  01100003000097 With Digitized    6169152 ArtificialPath 55800 0.001734513</span>
-<span class="co">#&gt; 6  01100003000096 With Digitized    6169152 ArtificialPath 55800 0.001765153</span>
-<span class="co">#&gt; 7  01100003000096 With Digitized          0    StreamRiver 46006 0.000853676</span>
-<span class="co">#&gt; 8  01100003000796 With Digitized    6169150 ArtificialPath 55800 0.002886813</span>
-<span class="co">#&gt; 9  01100003000797 With Digitized    6169150 ArtificialPath 55800 0.002836633</span>
-<span class="co">#&gt; 10 01100003000094 With Digitized          0    StreamRiver 46006 0.012087397</span>
-<span class="co">#&gt;    enabled gnis_nbr        totma  fromnode    tonode stream_order</span>
-<span class="co">#&gt; 1     True        0 257.19887393 150029595 150029459            1</span>
-<span class="co">#&gt; 2     True        0   0.01071115 150029459 150029597            1</span>
-<span class="co">#&gt; 3     True        0  12.68401556 150029597 150029461            1</span>
-<span class="co">#&gt; 4     True        0   0.05086744 150029461 150029733            1</span>
-<span class="co">#&gt; 5     True        0   1.29543583 150029733 150029601            1</span>
-<span class="co">#&gt; 6     True        0   1.47924767 150029601 150029463            2</span>
-<span class="co">#&gt; 7     True        0   0.00302952 150029463 150029604            2</span>
-<span class="co">#&gt; 8     True        0   8.76143527 150029604 150029607            2</span>
-<span class="co">#&gt; 9     True        0   9.48065757 150029607 150029468            2</span>
-<span class="co">#&gt; 10    True        0   0.05996156 150029468 150029471            2</span>
-<span class="co">#&gt;                          geometry</span>
-<span class="co">#&gt; 1  LINESTRING (1949097 2296345...</span>
-<span class="co">#&gt; 2  LINESTRING (1949129 2296257...</span>
-<span class="co">#&gt; 3  LINESTRING (1949211 2296168...</span>
-<span class="co">#&gt; 4  LINESTRING (1949488 2296233...</span>
-<span class="co">#&gt; 5  LINESTRING (1950416 2295753...</span>
-<span class="co">#&gt; 6  LINESTRING (1950556 2295764...</span>
-<span class="co">#&gt; 7  LINESTRING (1950689 2295680...</span>
-<span class="co">#&gt; 8  LINESTRING (1950756 2295705...</span>
-<span class="co">#&gt; 9  LINESTRING (1950974 2295603...</span>
-<span class="co">#&gt; 10 LINESTRING (1950975 2295347...</span></code></pre>
+<code class="sourceCode R"><span><span class="va">niantic_fp</span></span></code></pre></div>
+<pre><code><span><span class="co">#&gt; $flowpath_ends</span></span>
+<span><span class="co">#&gt; Simple feature collection with 2 features and 0 fields</span></span>
+<span><span class="co">#&gt; Geometry type: LINESTRING</span></span>
+<span><span class="co">#&gt; Dimension:     XY</span></span>
+<span><span class="co">#&gt; Bounding box:  xmin: 1948003 ymin: 2281809 xmax: 1958233 ymax: 2296449</span></span>
+<span><span class="co">#&gt; CRS:           +proj=aea +lat_0=23 +lon_0=-96 +lat_1=29.5 +lat_2=45.5 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs</span></span>
+<span><span class="co">#&gt;                          fp_ends</span></span>
+<span><span class="co">#&gt; 1 LINESTRING (1948123 2295819...</span></span>
+<span><span class="co">#&gt; 2 LINESTRING (1957513 2283579...</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $flowpath_network</span></span>
+<span><span class="co">#&gt; Simple feature collection with 30 features and 18 fields</span></span>
+<span><span class="co">#&gt; Geometry type: LINESTRING</span></span>
+<span><span class="co">#&gt; Dimension:     XY</span></span>
+<span><span class="co">#&gt; Bounding box:  xmin: 1949097 ymin: 2283213 xmax: 1957637 ymax: 2296345</span></span>
+<span><span class="co">#&gt; CRS:           +proj=aea +lat_0=23 +lon_0=-96 +lat_1=29.5 +lat_2=45.5 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs</span></span>
+<span><span class="co">#&gt; First 10 features:</span></span>
+<span><span class="co">#&gt;    stream_comid      fdate resolution gnis_id     gnis_name lengthkm</span></span>
+<span><span class="co">#&gt; 1       6170640 2008-07-17     Medium  208394 Latimer Brook    0.658</span></span>
+<span><span class="co">#&gt; 2       6170090 1999-09-06     Medium  208394 Latimer Brook    0.130</span></span>
+<span><span class="co">#&gt; 3       6170644 2008-07-17     Medium  208394 Latimer Brook    0.307</span></span>
+<span><span class="co">#&gt; 4       6170096 1999-09-06     Medium  208394 Latimer Brook    1.241</span></span>
+<span><span class="co">#&gt; 5       6170966 2008-07-17     Medium  208394 Latimer Brook    0.148</span></span>
+<span><span class="co">#&gt; 6       6170652 2008-07-17     Medium  208394 Latimer Brook    0.169</span></span>
+<span><span class="co">#&gt; 7       6170100 1999-09-06     Medium  208394 Latimer Brook    0.071</span></span>
+<span><span class="co">#&gt; 8       6170658 2008-07-17     Medium  208394 Latimer Brook    0.268</span></span>
+<span><span class="co">#&gt; 9       6170664 2008-07-17     Medium  208394 Latimer Brook    0.290</span></span>
+<span><span class="co">#&gt; 10      6170122 1999-09-06     Medium  208394 Latimer Brook    1.212</span></span>
+<span><span class="co">#&gt;         reachcode        flowdir lake_comid          ftype fcode  shape_leng</span></span>
+<span><span class="co">#&gt; 1  01100003000098 With Digitized    6169112 ArtificialPath 55800 0.006702425</span></span>
+<span><span class="co">#&gt; 2  01100003000097 With Digitized          0    StreamRiver 46006 0.001281976</span></span>
+<span><span class="co">#&gt; 3  01100003000097 With Digitized    6169134 ArtificialPath 55800 0.003591168</span></span>
+<span><span class="co">#&gt; 4  01100003000097 With Digitized          0    StreamRiver 46006 0.013000742</span></span>
+<span><span class="co">#&gt; 5  01100003000097 With Digitized    6169152 ArtificialPath 55800 0.001734513</span></span>
+<span><span class="co">#&gt; 6  01100003000096 With Digitized    6169152 ArtificialPath 55800 0.001765153</span></span>
+<span><span class="co">#&gt; 7  01100003000096 With Digitized          0    StreamRiver 46006 0.000853676</span></span>
+<span><span class="co">#&gt; 8  01100003000796 With Digitized    6169150 ArtificialPath 55800 0.002886813</span></span>
+<span><span class="co">#&gt; 9  01100003000797 With Digitized    6169150 ArtificialPath 55800 0.002836633</span></span>
+<span><span class="co">#&gt; 10 01100003000094 With Digitized          0    StreamRiver 46006 0.012087397</span></span>
+<span><span class="co">#&gt;    enabled gnis_nbr        totma  fromnode    tonode stream_order</span></span>
+<span><span class="co">#&gt; 1     True        0 257.19887393 150029595 150029459            1</span></span>
+<span><span class="co">#&gt; 2     True        0   0.01071115 150029459 150029597            1</span></span>
+<span><span class="co">#&gt; 3     True        0  12.68401556 150029597 150029461            1</span></span>
+<span><span class="co">#&gt; 4     True        0   0.05086744 150029461 150029733            1</span></span>
+<span><span class="co">#&gt; 5     True        0   1.29543583 150029733 150029601            1</span></span>
+<span><span class="co">#&gt; 6     True        0   1.47924767 150029601 150029463            2</span></span>
+<span><span class="co">#&gt; 7     True        0   0.00302952 150029463 150029604            2</span></span>
+<span><span class="co">#&gt; 8     True        0   8.76143527 150029604 150029607            2</span></span>
+<span><span class="co">#&gt; 9     True        0   9.48065757 150029607 150029468            2</span></span>
+<span><span class="co">#&gt; 10    True        0   0.05996156 150029468 150029471            2</span></span>
+<span><span class="co">#&gt;                          geometry</span></span>
+<span><span class="co">#&gt; 1  LINESTRING (1949097 2296345...</span></span>
+<span><span class="co">#&gt; 2  LINESTRING (1949129 2296257...</span></span>
+<span><span class="co">#&gt; 3  LINESTRING (1949211 2296168...</span></span>
+<span><span class="co">#&gt; 4  LINESTRING (1949488 2296233...</span></span>
+<span><span class="co">#&gt; 5  LINESTRING (1950416 2295753...</span></span>
+<span><span class="co">#&gt; 6  LINESTRING (1950556 2295764...</span></span>
+<span><span class="co">#&gt; 7  LINESTRING (1950689 2295680...</span></span>
+<span><span class="co">#&gt; 8  LINESTRING (1950756 2295705...</span></span>
+<span><span class="co">#&gt; 9  LINESTRING (1950974 2295603...</span></span>
+<span><span class="co">#&gt; 10 LINESTRING (1950975 2295347...</span></span></code></pre>
 <p>With a flowpath generated we can summarize the relative nitrogen removal along that flowpath with the <code><a href="../reference/nsink_summarize_flowpath.html">nsink_summarize_flowpath()</a></code> function. It takes the flowpath and removal as input. A data frame is returned with each segment identified by type, the percent removal associated with that segment, and relative removal. Total relative removal is 100 - minimum of the <code>n_out</code> column.</p>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">niantic_fp_removal</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/nsink_summarize_flowpath.html">nsink_summarize_flowpath</a></span><span class="op">(</span><span class="va">niantic_fp</span>, <span class="va">niantic_removal</span><span class="op">)</span>
-<span class="va">niantic_fp_removal</span>
-<span class="fl">100</span><span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="va">niantic_fp_removal</span><span class="op">$</span><span class="va">n_out</span><span class="op">)</span></code></pre></div>
-<pre><code><span class="co">#&gt; <span style="color: #949494;"># A tibble: 26 × 5</span></span>
-<span class="co">#&gt;    segment_type length percent_removal  n_in n_out</span>
-<span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
-<span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> Hydric          154           2.56  100    97.4</span>
-<span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> No Removal     <span style="text-decoration: underline;">1</span>418           0      97.4  97.4</span>
-<span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> Lake/Pond       658          54.8    97.4  44  </span>
-<span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> Stream          130           0.014  44    44  </span>
-<span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> Lake/Pond       307          18.8    44    35.7</span>
-<span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> Stream         <span style="text-decoration: underline;">1</span>241           0.051  35.7  35.7</span>
-<span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> Lake/Pond       317           6.71   35.7  33.3</span>
-<span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> Stream           71           0.003  33.3  33.3</span>
-<span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> Lake/Pond       558          34.1    33.3  22  </span>
-<span class="co">#&gt; <span style="color: #BCBCBC;">10</span> Stream         <span style="text-decoration: underline;">1</span>212           0.039  22    22  </span>
-<span class="co">#&gt; <span style="color: #949494;"># … with 16 more rows</span></span></code></pre>
-<pre><code><span class="co">#&gt; [1] 86.9</span></code></pre>
+<code class="sourceCode R"><span><span class="va">niantic_fp_removal</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/nsink_summarize_flowpath.html">nsink_summarize_flowpath</a></span><span class="op">(</span><span class="va">niantic_fp</span>, <span class="va">niantic_removal</span><span class="op">)</span></span>
+<span><span class="va">niantic_fp_removal</span></span>
+<span><span class="fl">100</span><span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="va">niantic_fp_removal</span><span class="op">$</span><span class="va">n_out</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 26 × 5</span></span></span>
+<span><span class="co">#&gt;    segment_type length percent_removal  n_in n_out</span></span>
+<span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> Hydric          154           2.56  100    97.4</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> No Removal     <span style="text-decoration: underline;">1</span>418           0      97.4  97.4</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> Lake/Pond       658          54.8    97.4  44  </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> Stream          130           0.014  44    44  </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> Lake/Pond       307          18.8    44    35.7</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> Stream         <span style="text-decoration: underline;">1</span>241           0.051  35.7  35.7</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> Lake/Pond       317           6.71   35.7  33.3</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> Stream           71           0.003  33.3  33.3</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> Lake/Pond       558          34.1    33.3  22  </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> Stream         <span style="text-decoration: underline;">1</span>212           0.039  22    22  </span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># … with 16 more rows</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># ℹ Use `print(n = ...)` to see more rows</span></span></span></code></pre>
+<pre><code><span><span class="co">#&gt; [1] 86.9</span></span></code></pre>
 </div>
 <div class="section level2">
 <h2 id="static-maps">Static maps<a class="anchor" aria-label="anchor" href="#static-maps"></a>
@@ -292,12 +294,12 @@ The function returns four separate rasters.</p>
 <code>delivery_idx</code>: The delivery index is the combination of the loading index and the transport index It represents which areas of the landscape are delivering the most nitrogen to the outflow of the watershed.</li>
 </ul>
 <div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">niantic_static_maps</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/nsink_generate_static_maps.html">nsink_generate_static_maps</a></span><span class="op">(</span><span class="va">niantic_data</span>, <span class="va">niantic_removal</span>, 
-                                                  <span class="fl">900</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">niantic_static_maps</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/nsink_generate_static_maps.html">nsink_generate_static_maps</a></span><span class="op">(</span><span class="va">niantic_data</span>, <span class="va">niantic_removal</span>, </span>
+<span>                                                  <span class="fl">900</span><span class="op">)</span></span></code></pre></div>
 <p>And with these static maps made, you can plot them quickly with <code><a href="../reference/nsink_plot.html">nsink_plot()</a></code> and sepcifying which plot you would like to see with the <code>map</code> argument which can be “removal”, “transport”, or “delivery”.<br>
 An example of <code><a href="../reference/nsink_plot.html">nsink_plot()</a></code> is below.</p>
 <div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="../reference/nsink_plot.html">nsink_plot</a></span><span class="op">(</span><span class="va">niantic_static_maps</span>, <span class="st">"transport"</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/nsink_plot.html">nsink_plot</a></span><span class="op">(</span><span class="va">niantic_static_maps</span>, <span class="st">"transport"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="intro_files/figure-html/plots-1.png" width="700"></p>
 </div>
 <div class="section level2">
@@ -305,9 +307,9 @@ An example of <code><a href="../reference/nsink_plot.html">nsink_plot()</a></cod
 </h2>
 <p>The workflow described above includes all the basic functionality. Some users may wish to use <code>nsink</code> to calculate the base layers for an N-Sink analysis and then build an application outside of R. A convenience function that downloads all data, prepares, calculates removal, and generates static maps has been included to facilitate this type of analysis. The <code><a href="../reference/nsink_build.html">nsink_build()</a></code> function requires a HUC ID, coordinate reference system, and sampling density. An output folder is also needed but has a default location. Optional arguments for forcing a new download and playing a sound to signal when the build has finished. Nothing returns to R, but all prepped data files and <code>.tif</code> files are written into the output folder for use in other applications.</p>
 <div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">niantic_huc_id</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/nsink_get_huc_id.html">nsink_get_huc_id</a></span><span class="op">(</span><span class="st">"Niantic River"</span><span class="op">)</span><span class="op">$</span><span class="va">huc_12</span>
-<span class="va">aea</span> <span class="op">&lt;-</span> <span class="fl">5072</span>
-<span class="fu"><a href="../reference/nsink_build.html">nsink_build</a></span><span class="op">(</span><span class="va">niantic_huc_id</span>, <span class="va">aea</span>, samp_dens <span class="op">=</span> <span class="fl">900</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">niantic_huc_id</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/nsink_get_huc_id.html">nsink_get_huc_id</a></span><span class="op">(</span><span class="st">"Niantic River"</span><span class="op">)</span><span class="op">$</span><span class="va">huc_12</span></span>
+<span><span class="va">aea</span> <span class="op">&lt;-</span> <span class="fl">5072</span></span>
+<span><span class="fu"><a href="../reference/nsink_build.html">nsink_build</a></span><span class="op">(</span><span class="va">niantic_huc_id</span>, <span class="va">aea</span>, samp_dens <span class="op">=</span> <span class="fl">900</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
@@ -340,7 +342,7 @@ An example of <code><a href="../reference/nsink_plot.html">nsink_plot()</a></cod
 
 <div class="pkgdown-footer-right">
   <p></p>
-<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.2.</p>
+<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.6.</p>
 </div>
 
     </footer>
