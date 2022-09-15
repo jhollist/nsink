@@ -22,6 +22,6 @@ This avoids needing to use archive package which is only available via
 GitHub.
 }
 \author{
-Joseph Stachelek, \email{stachel2@msu.edu}
+Jemma Stachelek, \email{jsta@lanl.gov}
 }
 \keyword{internal}

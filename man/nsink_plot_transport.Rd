@@ -7,8 +7,8 @@
 nsink_plot_transport(
   transport_idx,
   breaks = c(0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100),
-  colors = c("#38A1D0", "#7AB4C0", "#A2C8B0", "#C3DC9D", "#E2F088", "#F5E871",
-    "#F9C159", "#F99844", "#F56A2E", "#EF2820")
+  colors = c("#38A1D0", "#7AB4C0", "#A2C8B0", "#C3DC9D", "#E2F088", "#F5E871", "#F9C159",
+    "#F99844", "#F56A2E", "#EF2820")
 )
 }
 \arguments{

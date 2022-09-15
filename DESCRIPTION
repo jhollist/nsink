@@ -80,7 +80,7 @@ LazyData: true
 URL: https://github.com/USEPA/nsink,
     https://jhollist.github.io/nsink/
 BugReports: https://github.com/USEPA/nsink/issues
-RoxygenNote: 7.1.2
+RoxygenNote: 7.2.1
 Suggests: 
     knitr,
     rmarkdown,
