@@ -3,7 +3,7 @@ pkgdown: 2.0.6
 pkgdown_sha: ~
 articles:
   intro: intro.html
-last_built: 2022-11-17T16:41Z
+last_built: 2022-11-17T17:04Z
 urls:
   reference: https://jhollist.github.io/nsink/reference
   article: https://jhollist.github.io/nsink/articles
