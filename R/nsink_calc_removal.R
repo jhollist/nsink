@@ -457,7 +457,7 @@ nsink_calc_land_removal <- function(input_data) {
   land_removal <- group_by(land_removal, .data$hydric_pct)
   land_removal <- summarize(land_removal, n_removal = unique(.data$n_removal))
   land_removal <- ungroup(land_removal)
-  land_removal <- filter(land_removal, !is.na(n_removal))
+  land_removal <- filter(land_removal, !is.na(.data$n_removal))
   land_removal <- st_cast(land_removal, "MULTIPOLYGON")
   land_removal_rast <- fasterize::fasterize(land_removal,
     input_data$raster_template,
