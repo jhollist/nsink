@@ -6,7 +6,7 @@
 \usage{
 nsink_get_data(
   huc,
-  data_dir = normalizePath("nsink_data", winslash = "/"),
+  data_dir = normalizePath("nsink_data", winslash = "/", mustWork = FALSE),
   force = FALSE,
   year = "2016"
 )

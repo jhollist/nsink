@@ -31,7 +31,8 @@
 #' nsink_get_data(huc = niantic_huc, data_dir = "nsink_data", force = TRUE)
 #' }
 nsink_get_data <- function(huc, data_dir = normalizePath("nsink_data",
-                                                         winslash = "/"),
+                                                         winslash = "/",
+                                                         mustWork = FALSE),
                            force = FALSE, year = "2016") {
 
   year <- as.character(year)
@@ -153,7 +154,7 @@ nsink_get_data <- function(huc, data_dir = normalizePath("nsink_data",
         repeat_it <- tryCatch(
             suppressMessages({
               suppressWarnings({
-                ssurgo <- FedData::get_ssurgo(as(huc_12, "Spatial"),
+                ssurgo <- FedData::get_ssurgo(huc_12,
                   label = huc,
                   extraction.dir = paste0(data_dir, "ssurgo"),
                   raw.dir = paste0(data_dir, "ssurgo"),
@@ -166,7 +167,7 @@ nsink_get_data <- function(huc, data_dir = normalizePath("nsink_data",
       }
     }
     if(is.logical(repeat_it) & count > 9){
-      ssurgo <- FedData::get_ssurgo(as(huc_12, "Spatial"),
+      ssurgo <- FedData::get_ssurgo(huc_12,
                                     label = huc,
                                     extraction.dir = paste0(data_dir, "ssurgo"),
                                     raw.dir = paste0(data_dir, "ssurgo"),

@@ -45,8 +45,11 @@
 #'              samp_dens = 600)
 #' }
 nsink_build <- function(huc, projection,
-                        output_dir = normalizePath("nsink_output", winslash = "/"),
-                        data_dir = normalizePath("nsink_data", winslash = "/"),
+                        output_dir = normalizePath("nsink_output",
+                                                   winslash = "/",
+                                                   mustWork = FALSE),
+                        data_dir = normalizePath("nsink_data", winslash = "/",
+                                                 mustWork = FALSE),
                         force = FALSE,
                         samp_dens = 300,
                         year = "2016", ...) {

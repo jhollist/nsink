@@ -4,7 +4,8 @@
 #' @param force Force new download
 #' @keywords internal
 get_nhd_plus <- function(download_url,
-                         data_dir = normalizePath("nsink_data/", winslash = "/"),
+                         data_dir = normalizePath("nsink_data/", winslash = "/",
+                                                  mustWork = FALSE),
                          download_again = FALSE) {
   if (!file.exists(paste0(data_dir, basename(download_url))) | download_again) {
     message(paste0("Downloading ", basename(download_url)))

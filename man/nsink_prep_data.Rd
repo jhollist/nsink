@@ -7,7 +7,7 @@
 nsink_prep_data(
   huc,
   projection,
-  data_dir = normalizePath("nsink_data/", winslash = "/"),
+  data_dir = normalizePath("nsink_data/", winslash = "/", mustWork = FALSE),
   year = "2016"
 )
 }

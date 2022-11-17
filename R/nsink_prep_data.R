@@ -37,7 +37,8 @@
 #' }
 nsink_prep_data <- function(huc, projection,
                             data_dir = normalizePath("nsink_data/",
-                                                     winslash = "/"),
+                                                     winslash = "/",
+                                                     mustWork = FALSE),
                             year = "2016") {
   year <- as.character(year)
   # Get vpu
