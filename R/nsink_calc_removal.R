@@ -23,11 +23,14 @@
 #'   value is to use the 25th percentile of removal from third order streams in
 #'   the HUC. If another value is desired provide a single numeric ranging from
 #'   0 to 1.
+#' @param off_network_out Optional argument to have the off network features
+#'   returned on the output list.
 #' @return A list with three items, 1) a raster stack with one layer with
 #'         the nitrogen removal, a second layer with the type of removal (e.g.
 #'         hydric soils, lakes, streams), 2) a polygon representing removal from
 #'         land, and 3) a polygon representing removal from the stream network,
-#'         including stream removal, and lake removal.
+#'         including stream removal, and lake removal. Optionally, the off network
+#'         waterbodies may be returned if off_network_out == TRUE.
 #'
 #' @references Kellogg, D. Q., Gold, A. J., Cox, S., Addy, K., & August, P. V.
 #'             (2010). A geospatial approach for assessing denitrification sinks
@@ -52,7 +55,8 @@
 #' }
 nsink_calc_removal <- function(input_data,off_network_lakes = NULL,
                                off_network_streams = NULL,
-                               off_network_canalsditches = NULL){
+                               off_network_canalsditches = NULL,
+                               off_network_out = FALSE){
   if (all(names(input_data) %in% c("streams", "lakes", "fdr", "impervious",
                                    "nlcd", "ssurgo", "q", "tot", "huc",
                                    "raster_template", "lakemorpho"))) {
@@ -199,11 +203,17 @@ nsink_calc_removal <- function(input_data,off_network_lakes = NULL,
       st_as_stars(land_off_network_removal_type_r),
       as_points = FALSE, merge = TRUE)
     land_off_network_removal_type_v <- st_make_valid(land_off_network_removal_type_v)
-    return(list(raster_method = raster::stack(merged_removal, merged_type),
+    out_obj <- list(raster_method = raster::stack(merged_removal, merged_type),
                 land_off_network_removal = land_off_network_removal_v,
                 land_off_network_removal_type = land_off_network_removal_type_v,
                 network_removal = rbind(removal$stream_removal_v,
-                                        removal$lake_removal_v)))
+                                        removal$lake_removal_v))
+    if(off_network_out){
+      out_obj$off_network_streams <- off_network_removal$off_network_streams_v
+      out_obj$off_network_lakes <- off_network_removal$off_network_lakes_v
+      out_obj$off_network_canalsditches <- off_network_removal$off_network_canal_ditch_v
+    }
+    return(out_obj)
   } else {
     stop("The input data do not contain the expected data.  Check the object and
          re-run with nsink_prep_data().")

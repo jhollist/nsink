@@ -8,7 +8,8 @@ nsink_calc_removal(
   input_data,
   off_network_lakes = NULL,
   off_network_streams = NULL,
-  off_network_canalsditches = NULL
+  off_network_canalsditches = NULL,
+  off_network_out = FALSE
 )
 }
 \arguments{
@@ -30,13 +31,17 @@ and ditches that are not part of the NHDPlus hydrologic network. Default
 value is to use the 25th percentile of removal from third order streams in
 the HUC. If another value is desired provide a single numeric ranging from
 0 to 1.}
+
+\item{off_network_out}{Optional argument to have the off network features
+returned on the output list.}
 }
 \value{
 A list with three items, 1) a raster stack with one layer with
         the nitrogen removal, a second layer with the type of removal (e.g.
         hydric soils, lakes, streams), 2) a polygon representing removal from
         land, and 3) a polygon representing removal from the stream network,
-        including stream removal, and lake removal.
+        including stream removal, and lake removal. Optionally, the off network
+        waterbodies may be returned if off_network_out == TRUE.
 }
 \description{
 Starting with base data layers of NHDPlus, SSURGO, impervious surface, flow
