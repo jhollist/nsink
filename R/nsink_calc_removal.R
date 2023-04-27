@@ -446,6 +446,7 @@ nsink_calc_off_network_removal <- function(input_data, off_network_lakes,
 #' @importFrom stars st_as_stars
 #' @keywords internal
 nsink_calc_land_removal <- function(input_data) {
+
   land_removal <- mutate(input_data$ssurgo,
     n_removal = 0.8 * (.data$hydric_pct / 100)
   )
@@ -464,9 +465,10 @@ nsink_calc_land_removal <- function(input_data) {
     field = "n_removal", background = 0,
     fun = "max")
   impervious <- input_data$impervious
-  impervious[impervious > 0] <- NA
-  impervious[impervious == 0] <- 1
-  impervious[is.na(impervious)] <- 0
+  #impervious[impervious > 0] <- NA
+  #impervious[impervious == 0] <- 1
+  impervious[!is.na(impervious)] <- 0
+  impervious[is.na(impervious)] <- 1
 
   imp_land_removal <- land_removal_rast * impervious
 
